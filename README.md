@@ -9,7 +9,6 @@ NexusBuild is a full-stack web application developed as an academic project for 
 ### Course Details
 *   **Course:** CSE412 – Software Engineering
 *   **Section:** 2
-*   **Date of Submission:** June 7, 2026
 
 ### Course Instructor
 *   **Dr. Mohammad Mahdi Hassan**  
@@ -23,7 +22,7 @@ NexusBuild is a full-stack web application developed as an academic project for 
 *   **Contact Number:** +8801614246090
 *   **Client Address:** Shwapno (Masdair), Octo Office, Narayanganj
 
-### Group Members & Project Roles (Group 5)
+### Group Members & Project Roles (Group 2)
 | ID | First Name | Last Name | Academic / Project Role |
 | :--- | :--- | :--- | :--- |
 | **2023-2-60-036** | Shahil Mahmud | Swad | Team Lead |
