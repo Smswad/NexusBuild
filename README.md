@@ -25,11 +25,11 @@ NexusBuild is a full-stack web application developed as an academic project for 
 ### Group Members & Project Roles (Group 2)
 | ID | First Name | Last Name | Academic / Project Role |
 | :--- | :--- | :--- | :--- |
-| **2023-2-60-036** | Shahil Mahmud | Swad | Team Lead |
-| **2023-3-60-090** | Md Saiful | Islam | Emon |
-| **2023-2-60-060** | Galib Hasan | Siam | Project Member |
-| **2023-2-60-135** | Md Bellal | Hosen | Project Member |
-| **2023-2-60-040** | Debangshu Saha | Arghya | Project Member |
+| **2023-2-60-036** | Shahil Mahmud | Swad | Team Lead + Fronted Developer |
+| **2023-3-60-090** | Md Saiful | Islam Emon | Database Manager |
+| **2023-2-60-060** | Galib Hasan | Siam | HR of Project and Prompt Engineer |
+| **2023-2-60-135** | Md Bellal | Hosen | Frontend Graphics Designer |
+| **2023-2-60-040** | Debangshu Saha | Arghya | Backend Developer |
 
 ---
 
