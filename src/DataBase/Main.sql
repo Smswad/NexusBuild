@@ -28,3 +28,7 @@ $$;
 SELECT name, age, grade
 FROM students
 WHERE grade = 'A';
+
+SELECT name
+FROM students
+WHERE grade = 'B'
