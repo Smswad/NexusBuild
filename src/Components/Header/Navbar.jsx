@@ -1,11 +1,13 @@
 // import React from 'react';
 
+import { Link } from "react-router";
+
 const Navbar = () => {
     const links = <>
-        <li className="mr-[1.37rem]">Projects</li>
-        <li className="mr-[1.37rem]">GIS Map</li>
-        <li className="mr-[1.37rem]">About</li>
-        <li className="">Contact</li>
+    <Link to="/projects"><li className="mr-[1.37rem]">Projects</li></Link>
+    <Link to="/gismap"><li className="mr-[1.37rem]">GIS Map</li></Link>
+    <Link to="/about"><li className="mr-[1.37rem]">About</li></Link>
+    <Link to="/contact"><li className="">Contact</li></Link> 
     </>
     return (
         <div className="navbar bg-base-100 shadow-sm  ">
@@ -45,9 +47,9 @@ const Navbar = () => {
                     <input type="search" required placeholder="Search" />
                 </label>
                 {/* Login */}
-                <a className="btn">Login</a>
+                <Link to="/login" className="btn">Login</Link>
                 {/* Register */}
-                <a className="btn">Register</a>
+                <Link to="/register" className="btn">Register</Link>
             </div>
         </div>
     );

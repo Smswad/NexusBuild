@@ -5,6 +5,10 @@ import Error from '../Pages/ErrorPage/Error';
 import Home from '../Pages/Home/Home';
 import Login from '../Pages/Login/Login';
 import Register from '../Pages/Register/Register';
+import Projects from '../Pages/Projects/Projects';
+import Gismap from '../Pages/Gismap/Gismap';
+import About from '../Pages/About/About';
+import Contact from '../Pages/Contact/Contact';
 
 export const router = createBrowserRouter([
     {
@@ -26,5 +30,25 @@ export const router = createBrowserRouter([
     {
         path: "/register",
         Component: Register
-    }
+    },
+    {
+        path: "/projects",
+        Component: Projects
+
+    },
+    {
+        path: "/gismap",
+        Component: Gismap
+
+    },
+    {
+        path: "/about",
+        Component: About
+
+    },
+    {
+        path: "/contact",
+        Component: Contact
+
+    },
 ]);
