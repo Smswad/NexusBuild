@@ -1,19 +1,38 @@
-DROP TABLE IF EXISTS Registration CASCADE;
+-- Drop old table if it exists
+DROP TABLE IF EXISTS public.Registration CASCADE;
 
-CREATE TABLE Registration(
-	Reg_ID INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	Full_name TEXT NOT NULL,
-	Email TEXT NOT NULL UNIQUE,
-	Phone_Number TEXT UNIQUE,
-	Password TEXT NOT NULL,
+-- Create profile table linked to Supabase auth.users
+-- Passwords are NEVER stored here — Supabase Auth handles that securely
+CREATE TABLE public.Registration (
+    id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name   TEXT NOT NULL,
+    email       TEXT NOT NULL UNIQUE,
+    phone_number TEXT,
 
-	CONSTRAINT chk_client_email    CHECK (Email LIKE '%@%.%'),
-	CONSTRAINT chk_client_password CHECK (LENGTH(Password) >= 8),
-	CONSTRAINT chk_client_phone    CHECK (Phone_Number ~ '^\+?[0-9\-\s]{7,15}$')
+    CONSTRAINT chk_client_email CHECK (email LIKE '%@%.%'),
+    CONSTRAINT chk_client_phone CHECK (
+        phone_number IS NULL OR
+        phone_number ~ '^\+?[0-9\-\s]{7,15}$'
+    )
 );
 
-INSERT INTO Registration (Full_name, Email, Phone_Number, Password) VALUES
-('Saiful Islam',     'saiful@example.com',   '+8801712345678', 'password123'),
-('Tasnim Rahman',    'tasnim@example.com',   '01898765432',    'mysecret99'),
-('Arif Hossain',     'arif.hossain@mail.com','+880171234567',  'arifpass2024'),
-('Nusrat Jahan',     'nusrat@example.com',    NULL,             'nusratpass1');
+-- Enable Row Level Security
+ALTER TABLE public.Registration ENABLE ROW LEVEL SECURITY;
+
+-- Policy: users can read their own profile
+CREATE POLICY "Users can view own profile"
+    ON public.Registration
+    FOR SELECT
+    USING (auth.uid() = id);
+
+-- Policy: users can insert their own profile (on registration)
+CREATE POLICY "Users can insert own profile"
+    ON public.Registration
+    FOR INSERT
+    WITH CHECK (auth.uid() = id);
+
+-- Policy: users can update their own profile
+CREATE POLICY "Users can update own profile"
+    ON public.Registration
+    FOR UPDATE
+    USING (auth.uid() = id);
