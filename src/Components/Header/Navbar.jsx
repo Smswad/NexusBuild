@@ -1,57 +1,66 @@
-// import React from 'react';
-
 import { Link } from "react-router";
+import { Search } from "lucide-react";
 
 const Navbar = () => {
-    const links = <>
-    <Link to="/projects"><li className="mr-[1.37rem]">Projects</li></Link>
-    <Link to="/gismap"><li className="mr-[1.37rem]">GIS Map</li></Link>
-    <Link to="/about"><li className="mr-[1.37rem]">About</li></Link>
-    <Link to="/contact"><li className="">Contact</li></Link> 
-    </>
     return (
-        <div className="navbar bg-base-100 shadow-sm  ">
-            <div className="navbar-start ml-[2.741rem]">
-                <div className="dropdown">
-                    <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" /> </svg>
-                    </div>
-                    <ul
-                        tabIndex="-1"
-                        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-                        {links}
-                    </ul>
+        <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-sm">
+            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                
+                {/* Logo and Navigation Links */}
+                <div className="flex items-center gap-8">
+                    <Link to="/" className="text-xl font-bold text-[#0c326f] tracking-tight hover:opacity-90 transition-opacity">
+                        NexusBuild
+                    </Link>
+                    
+                    <nav className="hidden md:flex items-center gap-6">
+                        <Link to="/projects" className="text-xs font-bold text-slate-600 hover:text-[#0c326f] transition-colors">
+                            Projects
+                        </Link>
+                        <Link to="/gismap" className="text-xs font-bold text-slate-600 hover:text-[#0c326f] transition-colors">
+                            GIS Map
+                        </Link>
+                        <Link to="/about" className="text-xs font-bold text-slate-600 hover:text-[#0c326f] transition-colors">
+                            About
+                        </Link>
+                        <Link to="/contact" className="text-xs font-bold text-slate-600 hover:text-[#0c326f] transition-colors">
+                            Contact
+                        </Link>
+                    </nav>
                 </div>
-                <a className="btn btn-ghost text-xl">NexusBuild</a>
-            </div>
-            <div className="navbar-center hidden lg:flex">
-                <ul className="menu menu-horizontal px-1">
-                    {links}
-                </ul>
-            </div>
-            <div className="navbar-end mr-[2.741rem]">
-                {/* Search Box */}
-                <label className="input">
-                    <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <g
-                            strokeLinejoin="round"
-                            strokeLinecap="round"
-                            strokeWidth="2.5"
-                            fill="none"
-                            stroke="currentColor"
+
+                {/* Search Bar & CTAs */}
+                <div className="flex items-center gap-4">
+                    {/* Search Input Box */}
+                    <div className="relative hidden sm:flex items-center">
+                        <span className="absolute left-3 text-slate-400 pointer-events-none flex items-center">
+                            <Search size={14} />
+                        </span>
+                        <input 
+                            type="search" 
+                            placeholder="Search here..." 
+                            className="pl-9 pr-4 py-1.5 w-48 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-slate-400 text-slate-800"
+                        />
+                    </div>
+
+                    {/* Auth CTAs */}
+                    <div className="flex items-center gap-2">
+                        <Link 
+                            to="/login" 
+                            className="px-3.5 py-1.5 text-xs font-bold text-slate-600 hover:text-[#0c326f] border border-slate-200 hover:border-slate-300 rounded-lg hover:bg-slate-50 transition-all"
                         >
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="m21 21-4.3-4.3"></path>
-                        </g>
-                    </svg>
-                    <input type="search" required placeholder="Search" />
-                </label>
-                {/* Login */}
-                <Link to="/login" className="btn">Login</Link>
-                {/* Register */}
-                <Link to="/register" className="btn">Register</Link>
+                            Login
+                        </Link>
+                        <Link 
+                            to="/register" 
+                            className="px-3.5 py-1.5 text-xs font-bold text-white bg-[#0c326f] hover:bg-[#082554] rounded-lg shadow-sm transition-all"
+                        >
+                            Register
+                        </Link>
+                    </div>
+                </div>
+
             </div>
-        </div>
+        </header>
     );
 };
 
