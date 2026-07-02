@@ -46,22 +46,10 @@ const Register = () => {
             return;
         }
 
-        // Step 2: Insert profile row into Registration table
-        if (data.user) {
-            const { error: profileError } = await supabase
-                .from('Registration')
-                .insert({
-                    id: data.user.id,
-                    full_name: fullName,
-                    email: email,
-                    phone_number: phoneNumber || null,
-                });
-
-            if (profileError) {
-                // Auth user created but profile insert failed — show warning
-                console.warn('Profile insert error:', profileError.message);
-            }
-        }
+        // Step 2: The Postgres trigger (handle_new_user) automatically inserts
+        // the profile row into public.Registration when the auth user is created.
+        // No client-side insert needed — the trigger runs with SECURITY DEFINER
+        // which bypasses RLS and works even before email confirmation.
 
         setLoading(false);
         setSuccess('Registration successful! Please check your email to confirm your account.');

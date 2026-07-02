@@ -8,6 +8,7 @@ CREATE TABLE public.Registration (
     full_name   TEXT NOT NULL,
     email       TEXT NOT NULL UNIQUE,
     phone_number TEXT,
+    created_at  TIMESTAMPTZ DEFAULT NOW(),
 
     CONSTRAINT chk_client_email CHECK (email LIKE '%@%.%'),
     CONSTRAINT chk_client_phone CHECK (
@@ -25,14 +26,41 @@ CREATE POLICY "Users can view own profile"
     FOR SELECT
     USING (auth.uid() = id);
 
--- Policy: users can insert their own profile (on registration)
-CREATE POLICY "Users can insert own profile"
-    ON public.Registration
-    FOR INSERT
-    WITH CHECK (auth.uid() = id);
-
 -- Policy: users can update their own profile
 CREATE POLICY "Users can update own profile"
     ON public.Registration
     FOR UPDATE
     USING (auth.uid() = id);
+
+-- ============================================================
+-- TRIGGER: Auto-insert profile row when a new auth user signs up
+-- This runs server-side (SECURITY DEFINER), bypassing RLS.
+-- This is the official Supabase-recommended pattern and fixes
+-- the issue where auth.uid() is NULL before email confirmation,
+-- which caused the client-side INSERT to be rejected by RLS.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+    INSERT INTO public.Registration (id, full_name, email, phone_number)
+    VALUES (
+        NEW.id,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+        NEW.email,
+        NEW.raw_user_meta_data->>'phone_number'
+    )
+    ON CONFLICT (id) DO NOTHING;
+    RETURN NEW;
+END;
+$$;
+
+-- Drop trigger if it already exists, then recreate
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
