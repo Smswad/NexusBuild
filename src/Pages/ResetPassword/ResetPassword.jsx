@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
-import { Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import login_image from '../../assets/pics/login_pic.png';
 import Footer from '../../Components/Footer/Footer';
-import { resetPassword } from '../../Backend/Auth/auth';
+import { updatePassword } from '../../Backend/Auth/auth';
+import { supabase } from '../../lib/supabaseClient';
 
 const ResetPassword = () => {
     const navigate = useNavigate();
 
-    const [email, setEmail] = useState('');
+    const [sessionReady, setSessionReady] = useState(false);
+    const [sessionError, setSessionError] = useState('');
+
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showNew, setShowNew] = useState(false);
@@ -17,16 +20,20 @@ const ResetPassword = () => {
     const [error, setError] = useState('');
     const [done, setDone] = useState(false);
 
-    // Retrieve the email that was verified via OTP
     useEffect(() => {
-        const stored = sessionStorage.getItem('nexus_reset_email');
-        if (!stored) {
-            // No verified email — send back to login
-            navigate('/login', { replace: true });
-        } else {
-            setEmail(stored);
-        }
-    }, [navigate]);
+        // Supabase automatically processes the recovery token from the URL hash.
+        // We just need to wait for the session to be ready.
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                setSessionReady(true);
+            } else {
+                // No session — user might have arrived here without a recovery link
+                setTimeout(() => {
+                    setSessionError('Invalid or expired reset link. Please request a new one.');
+                }, 500);
+            }
+        });
+    }, []);
 
     // ── Password rules ────────────────────────────────────────────────────────
     const getStrength = (pw) => {
@@ -35,7 +42,7 @@ const ResetPassword = () => {
         if (/[A-Z]/.test(pw)) score++;
         if (/[0-9]/.test(pw)) score++;
         if (/[^A-Za-z0-9]/.test(pw)) score++;
-        return score; // 0–4
+        return score;
     };
 
     const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'];
@@ -57,7 +64,7 @@ const ResetPassword = () => {
         }
 
         setLoading(true);
-        const result = await resetPassword(email, newPassword);
+        const result = await updatePassword(newPassword);
         setLoading(false);
 
         if (!result.success) {
@@ -65,13 +72,44 @@ const ResetPassword = () => {
             return;
         }
 
-        // Clear the stored email
-        sessionStorage.removeItem('nexus_reset_email');
         setDone(true);
-
-        // Redirect to login after 2.5 seconds
         setTimeout(() => navigate('/login', { replace: true }), 2500);
     };
+
+    // ── Session not ready (still processing token or error) ───────────────────
+    if (!sessionReady) {
+        return (
+            <div className="flex flex-col min-h-screen bg-[#f4f7fa]">
+                <div className="flex-grow flex items-center justify-center p-4">
+                    <div className="text-center space-y-3">
+                        {sessionError ? (
+                            <>
+                                <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mx-auto">
+                                    <AlertCircle size={36} className="text-rose-500" />
+                                </div>
+                                <h2 className="text-lg font-bold text-[#0c326f] tracking-tight">Invalid Link</h2>
+                                <p className="text-xs text-slate-500 max-w-xs">{sessionError}</p>
+                                <Link
+                                    to="/login"
+                                    className="inline-block mt-2 text-xs font-semibold text-[#0c326f] hover:underline"
+                                >
+                                    Back to Login
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <div className="w-16 h-16 rounded-full bg-[#eef3ff] flex items-center justify-center mx-auto">
+                                    <div className="w-6 h-6 border-2 border-[#0c326f] border-t-transparent rounded-full animate-spin" />
+                                </div>
+                                <p className="text-xs text-slate-500">Verifying your reset link...</p>
+                            </>
+                        )}
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col min-h-screen bg-[#f4f7fa]">
@@ -97,7 +135,6 @@ const ResetPassword = () => {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#051c38]/95 via-[#051c38]/40 to-transparent" />
 
-                        {/* Logo */}
                         <div className="relative z-10 p-8 flex items-center gap-3">
                             <div className="bg-white p-2 rounded-xl flex items-center justify-center w-10 h-10 shadow-md">
                                 <svg className="w-6 h-6" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -110,7 +147,6 @@ const ResetPassword = () => {
 
                         <div className="flex-grow" />
 
-                        {/* Overlay text */}
                         <div className="relative z-10 w-full">
                             <div className="p-8 pb-5 text-white">
                                 <h3 className="text-xl font-bold tracking-tight text-white mb-3 max-w-sm leading-snug">
@@ -126,8 +162,8 @@ const ResetPassword = () => {
                                     <div className="text-[10px] font-semibold text-white/50 uppercase tracking-widest mt-0.5">Encryption</div>
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-emerald-400 tracking-tight">OTP</div>
-                                    <div className="text-[10px] font-semibold text-white/50 uppercase tracking-widest mt-0.5">Verified</div>
+                                    <div className="text-2xl font-bold text-emerald-400 tracking-tight">Supabase</div>
+                                    <div className="text-[10px] font-semibold text-white/50 uppercase tracking-widest mt-0.5">Auth</div>
                                 </div>
                             </div>
                         </div>
@@ -166,8 +202,7 @@ const ResetPassword = () => {
                                     <div>
                                         <h2 className="text-xl font-bold text-[#0c326f] tracking-tight">Set New Password</h2>
                                         <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                            Resetting for{' '}
-                                            <span className="font-semibold text-slate-700">{email}</span>
+                                            Enter your new password below.
                                         </p>
                                     </div>
 
@@ -200,7 +235,6 @@ const ResetPassword = () => {
                                                 </button>
                                             </div>
 
-                                            {/* Strength bar */}
                                             {newPassword.length > 0 && (
                                                 <div className="pt-1 space-y-1">
                                                     <div className="flex gap-1">
@@ -293,4 +327,3 @@ const ResetPassword = () => {
 };
 
 export default ResetPassword;
-

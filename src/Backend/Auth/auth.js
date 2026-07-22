@@ -63,63 +63,39 @@ export async function handleRegister(formData) {
 }
 
 
-// ─── FORGOT PASSWORD STUBS ────────────────────────────────────────────────────
-// These functions are intentionally left as stubs so the backend developer can
-// wire in real logic (Supabase Edge Functions, Nodemailer, SendGrid, etc.)
-// The UI imports these directly; just replace the function bodies.
+// ─── FORGOT PASSWORD (Supabase Native) ────────────────────────────────────────
 
 /**
- * TODO (Backend Developer):
- * Check whether `email` belongs to a registered user.
- * Return { exists: true } if found, { exists: false } if not.
- * Throw or return an error object on unexpected failures.
+ * Send a password reset email via Supabase Auth.
+ * Supabase handles the email delivery and includes a recovery link.
+ * The user clicks the link, which redirects back to the app with a
+ * recovery token in the URL hash (handled by the ResetPassword page).
  */
-export async function checkEmailExists(email) {
-    // --- STUB: replace with real DB lookup ---
-    console.log('[STUB] checkEmailExists called with:', email);
-    // Mock: treat any email that contains "@" as registered
-    if (email && email.includes('@')) {
-        return { exists: true };
+export async function sendResetEmail(email) {
+    try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
     }
-    return { exists: false };
 }
 
 /**
- * TODO (Backend Developer):
- * Generate a 6-digit OTP server-side, store it (with expiry) tied to `email`,
- * then send it via your chosen email provider.
- * Return { success: true } on success, { success: false, error: '...' } on failure.
+ * Update the password for the currently authenticated user.
+ * This is called after the user clicks the recovery link in their email,
+ * which gives them a valid Supabase session with the `email_change` grant.
  */
-export async function sendOTPEmail(email) {
-    // --- STUB: replace with real OTP generation + email send ---
-    console.log('[STUB] sendOTPEmail called with:', email);
-    return { success: true };
-}
-
-/**
- * TODO (Backend Developer):
- * Validate the 6-digit `otp` against the server-side store for `email`.
- * Enforce the 30-second expiry window.
- * Return { valid: true } if correct and not expired, { valid: false, error: '...' } otherwise.
- */
-export async function verifyOTP(email, otp) {
-    // --- STUB: replace with real OTP verification ---
-    console.log('[STUB] verifyOTP called with:', email, otp);
-    // Mock: accept any 6-digit code
-    if (otp && otp.length === 6) {
-        return { valid: true };
+export async function updatePassword(newPassword) {
+    try {
+        const { error } = await supabase.auth.updateUser({
+            password: newPassword,
+        });
+        if (error) throw error;
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
     }
-    return { valid: false, error: 'Invalid OTP. Please try again.' };
-}
-
-/**
- * TODO (Backend Developer):
- * Update the password for `email` to `newPassword`.
- * You must authenticate this action with the verified OTP session/token.
- * Return { success: true } on success, { success: false, error: '...' } on failure.
- */
-export async function resetPassword(email, newPassword) {
-    // --- STUB: replace with real password update (e.g. supabase.auth.updateUser) ---
-    console.log('[STUB] resetPassword called with:', email);
-    return { success: true };
 }
