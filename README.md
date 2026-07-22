@@ -1,4 +1,4 @@
-# NexusBuild 🌐
+# NexusBuild
 
 NexusBuild is a full-stack web application developed as an academic project for the course **CSE412 - Software Engineering** at *East West University*. The platform bridges the gap between physical real estate infrastructure and digital accessibility for an external client, providing an interactive, map-based interface alongside comprehensive account and project management modules.
 
@@ -33,12 +33,12 @@ NexusBuild is a full-stack web application developed as an academic project for 
 
 ---
 
-## 📝 Problem Statement
+## Problem Statement
 Traditional interaction between real estate companies and clients heavily relies on scattered phone calls, physical site visits, and generic emails. Reliance Housing Ltd., a premier company specializing in building construction, infrastructure development, and structural rebuilding, lacks a unified digital touchpoint. Clients currently have no dynamic way to visualize ongoing projects, surrounding neighborhood amenities, or seamlessly manage their property services online, leading to communication gaps and slower sales cycles.
 
 ---
 
-## 🚀 Proposed Solution & Project Scope
+## Proposed Solution & Project Scope
 NexusBuild solves these communication gaps through four unified, core engineering modules:
 
 *   **Interactive Neighborhood Mapping (GIS):** A unique, map-based interface allowing prospective buyers to visually explore Reliance projects. Users can view the surroundings of a building, including nearby shops, educational institutions, hospitals, and transit points.
@@ -48,7 +48,7 @@ NexusBuild solves these communication gaps through four unified, core engineerin
 
 ---
 
-## 🛠️ System Architecture
+## System Architecture
 
 ```text
 +-------------------------------------------------------------------------+
