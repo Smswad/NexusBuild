@@ -5,6 +5,7 @@ import { Lock, Eye, EyeOff, ArrowRight, AtSign } from 'lucide-react';
 import login_image from '../../assets/pics/login_pic.png';
 import Footer from '../../Components/Footer/Footer';
 import ForgotPasswordModal from '../../Components/ForgotPasswordModal/ForgotPasswordModal';
+// ─── Login logging is handled inline below via supabase.rpc() ────────────────
 
 const Login = () => {
     const navigate = useNavigate();
@@ -31,7 +32,23 @@ const Login = () => {
         if (authError) {
             setError(authError.message);
         } else {
+<<<<<<< HEAD
             navigate('/dashboard');
+=======
+            // ── Record login log (non-blocking) ──────────────────────────────
+            // Calls the SECURITY DEFINER function on Supabase which
+            // auto-joins public.Registration and inserts into public.login_logs.
+            supabase.rpc('record_login_log', {
+                p_user_agent:   navigator.userAgent ?? null,
+                p_ip_address:   null,
+                p_login_method: 'email_password',
+            }).then(({ error: logErr }) => {
+                if (logErr) console.warn('[Login Log] Failed to record login:', logErr.message);
+                else console.log('[Login Log] Login recorded successfully.');
+            });
+
+            setSuccess(`Welcome back, ${data.user.email}!`);
+>>>>>>> bc709ed6f8d5699f222ff795e5025cf014ed5190
         }
     };
 
