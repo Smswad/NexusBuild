@@ -32,9 +32,6 @@ const Login = () => {
         if (authError) {
             setError(authError.message);
         } else {
-<<<<<<< HEAD
-            navigate('/dashboard');
-=======
             // ── Record login log (non-blocking) ──────────────────────────────
             // Calls the SECURITY DEFINER function on Supabase which
             // auto-joins public.Registration and inserts into public.login_logs.
@@ -47,8 +44,8 @@ const Login = () => {
                 else console.log('[Login Log] Login recorded successfully.');
             });
 
-            setSuccess(`Welcome back, ${data.user.email}!`);
->>>>>>> bc709ed6f8d5699f222ff795e5025cf014ed5190
+            navigate('/dashboard');
+
         }
     };
 
