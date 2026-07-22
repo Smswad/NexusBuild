@@ -9,6 +9,7 @@ import Projects from '../Pages/Projects/Projects';
 import Gismap from '../Pages/Gismap/Gismap';
 import About from '../Pages/About/About';
 import Contact from '../Pages/Contact/Contact';
+import ResetPassword from '../Pages/ResetPassword/ResetPassword';
 
 export const router = createBrowserRouter([
     {
@@ -50,5 +51,9 @@ export const router = createBrowserRouter([
         path: "/contact",
         Component: Contact
 
+    },
+    {
+        path: "/reset-password",
+        Component: ResetPassword
     },
 ]);

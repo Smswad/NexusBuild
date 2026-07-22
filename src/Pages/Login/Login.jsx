@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { Lock, Eye, EyeOff, ArrowRight, AtSign } from 'lucide-react';
 import login_image from '../../assets/pics/login_pic.png';
 import Footer from '../../Components/Footer/Footer';
+import ForgotPasswordModal from '../../Components/ForgotPasswordModal/ForgotPasswordModal';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [showForgotModal, setShowForgotModal] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -162,9 +164,13 @@ const Login = () => {
                                         />
                                         Remember Me
                                     </label>
-                                    <a href="#" className="text-[#0c326f] font-semibold hover:underline">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowForgotModal(true)}
+                                        className="text-[#0c326f] font-semibold hover:underline focus:outline-none cursor-pointer"
+                                    >
                                         Forgot Password?
-                                    </a>
+                                    </button>
                                 </div>
 
                                 {error && (
@@ -202,6 +208,7 @@ const Login = () => {
                 </div>
             </div>
             <Footer />
+            <ForgotPasswordModal isOpen={showForgotModal} onClose={() => setShowForgotModal(false)} />
         </div>
     );
 };
