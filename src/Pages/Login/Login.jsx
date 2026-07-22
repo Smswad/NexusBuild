@@ -1,25 +1,25 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Lock, Eye, EyeOff, ArrowRight, AtSign } from 'lucide-react';
 import login_image from '../../assets/pics/login_pic.png';
 import Footer from '../../Components/Footer/Footer';
 import ForgotPasswordModal from '../../Components/ForgotPasswordModal/ForgotPasswordModal';
 
 const Login = () => {
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showForgotModal, setShowForgotModal] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setSuccess('');
         setLoading(true);
+
 
         const { data, error: authError } = await supabase.auth.signInWithPassword({
             email,
@@ -31,7 +31,7 @@ const Login = () => {
         if (authError) {
             setError(authError.message);
         } else {
-            setSuccess(`Welcome back, ${data.user.email}!`);
+            navigate('/dashboard');
         }
     };
 
@@ -176,9 +176,8 @@ const Login = () => {
                                 {error && (
                                     <p className="text-rose-500 text-xs mt-2 font-medium bg-rose-50 border border-rose-100 rounded-md px-3 py-2">{error}</p>
                                 )}
-                                {success && (
-                                    <p className="text-emerald-600 text-xs mt-2 font-medium bg-emerald-50 border border-emerald-100 rounded-md px-3 py-2">{success}</p>
-                                )}
+
+
 
                                 {/* Submit Button */}
                                 <button

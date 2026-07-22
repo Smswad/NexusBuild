@@ -1,4 +1,3 @@
-// import React from 'react';
 import { createBrowserRouter } from 'react-router';
 import Root from '../Pages/Root/Root';
 import Error from '../Pages/ErrorPage/Error';
@@ -11,49 +10,48 @@ import About from '../Pages/About/About';
 import Contact from '../Pages/Contact/Contact';
 import ResetPassword from '../Pages/ResetPassword/ResetPassword';
 
+// Dashboard
+import Dashboard from '../Pages/Dashboard/Dashboard';
+import Overview from '../Pages/Dashboard/Overview';
+import FinancialLedger from '../Pages/Dashboard/FinancialLedger';
+import ProjectProgress from '../Pages/Dashboard/ProjectProgress';
+import Support from '../Pages/Dashboard/Support';
+import ProtectedRoute from '../Components/ProtectedRoute/ProtectedRoute';
+
 export const router = createBrowserRouter([
     {
-        path: "/",
+        path: '/',
         Component: Root,
-        errorElement: <Error></Error>,
+        errorElement: <Error />,
         children: [
             {
                 index: true,
-                path: "/",
+                path: '/',
                 Component: Home,
             },
-        ]
+        ],
     },
-    {
-        path: "/login",
-        Component: Login
-    },
-    {
-        path: "/register",
-        Component: Register
-    },
-    {
-        path: "/projects",
-        Component: Projects
+    { path: '/login',          Component: Login },
+    { path: '/register',       Component: Register },
+    { path: '/projects',       Component: Projects },
+    { path: '/gismap',         Component: Gismap },
+    { path: '/about',          Component: About },
+    { path: '/contact',        Component: Contact },
+    { path: '/reset-password', Component: ResetPassword },
 
-    },
+    // ── Protected Dashboard ───────────────────────────────────────────────────
     {
-        path: "/gismap",
-        Component: Gismap
-
-    },
-    {
-        path: "/about",
-        Component: About
-
-    },
-    {
-        path: "/contact",
-        Component: Contact
-
-    },
-    {
-        path: "/reset-password",
-        Component: ResetPassword
+        path: '/dashboard',
+        element: (
+            <ProtectedRoute>
+                <Dashboard />
+            </ProtectedRoute>
+        ),
+        children: [
+            { index: true,              Component: Overview },
+            { path: 'financials',       Component: FinancialLedger },
+            { path: 'progress',         Component: ProjectProgress },
+            { path: 'support',          Component: Support },
+        ],
     },
 ]);
