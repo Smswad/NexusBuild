@@ -21,18 +21,27 @@ const ResetPassword = () => {
     const [done, setDone] = useState(false);
 
     useEffect(() => {
-        // Supabase automatically processes the recovery token from the URL hash.
-        // We just need to wait for the session to be ready.
+        let cancelled = false;
+
         supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
+            if (cancelled) return;
+            if (session) { setSessionReady(true); return; }
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (cancelled) return;
+            if (event === 'SIGNED_IN' && session) {
                 setSessionReady(true);
-            } else {
-                // No session — user might have arrived here without a recovery link
-                setTimeout(() => {
-                    setSessionError('Invalid or expired reset link. Please request a new one.');
-                }, 500);
             }
         });
+
+        const timer = setTimeout(() => {
+            if (!cancelled) {
+                setSessionError('Invalid or expired reset link. Please request a new one.');
+            }
+        }, 5000);
+
+        return () => { cancelled = true; subscription.unsubscribe(); clearTimeout(timer); };
     }, []);
 
     // ── Password rules ────────────────────────────────────────────────────────

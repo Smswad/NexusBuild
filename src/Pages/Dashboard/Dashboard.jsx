@@ -5,6 +5,7 @@ import {
     Bell, LogOut, X, Mail, Phone, Calendar, Shield,
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
+import { fetchProfile } from '../../lib/profile';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -61,9 +62,16 @@ const Dashboard = () => {
     const [showNotif,   setShowNotif]   = useState(false);
     const [showProfile, setShowProfile] = useState(false);
     const [notifs,      setNotifs]      = useState(DUMMY_NOTIFICATIONS);
+    const [profile,    setProfile]      = useState(null);
 
     const notifRef   = useRef(null);
     const profileRef = useRef(null);
+
+    useEffect(() => {
+        if (user?.id) {
+            fetchProfile(user.id).then(setProfile);
+        }
+    }, [user?.id]);
 
     const unreadCount = notifs.filter(n => n.unread).length;
     const displayName = user?.user_metadata?.full_name
@@ -371,9 +379,9 @@ const Dashboard = () => {
                                     {/* Fields */}
                                     <div>
                                         {[
-                                            { icon: Mail,     label: 'Email',        value: user?.email || 'john@nexusbuild.com' },
-                                            { icon: Phone,    label: 'Phone',        value: DUMMY_USER_META.phone },
-                                            { icon: Calendar, label: 'Member Since', value: DUMMY_USER_META.memberSince },
+                                            { icon: Mail,     label: 'Email',        value: user?.email || '—' },
+                                            { icon: Phone,    label: 'Phone',        value: profile?.phone_number || '—' },
+                                            { icon: Calendar, label: 'Member Since', value: profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : '—' },
                                             { icon: Shield,   label: 'Account No.',  value: DUMMY_USER_META.accountNo },
                                         ].map(({ icon: Icon, label, value }, i, arr) => (
                                             <div key={label} style={{

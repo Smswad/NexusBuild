@@ -1,26 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Link, useNavigate } from 'react-router';
 import { Lock, Eye, EyeOff, ArrowRight, AtSign } from 'lucide-react';
 import login_image from '../../assets/pics/login_pic.png';
 import Footer from '../../Components/Footer/Footer';
 import ForgotPasswordModal from '../../Components/ForgotPasswordModal/ForgotPasswordModal';
+import { useAuth } from '../../Context/AuthContext';
 // ─── Login logging is handled inline below via supabase.rpc() ────────────────
 
 const Login = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showForgotModal, setShowForgotModal] = useState(false);
+    const [redirecting, setRedirecting] = useState(false);
+
+    // Navigate only after AuthContext has the user
+    useEffect(() => {
+        if (redirecting && user) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [redirecting, user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
-
 
         const { data, error: authError } = await supabase.auth.signInWithPassword({
             email,
@@ -32,9 +41,7 @@ const Login = () => {
         if (authError) {
             setError(authError.message);
         } else {
-            // ── Record login log (non-blocking) ──────────────────────────────
-            // Calls the SECURITY DEFINER function on Supabase which
-            // auto-joins public.Registration and inserts into public.login_logs.
+            // Record login log (non-blocking)
             supabase.rpc('record_login_log', {
                 p_user_agent:   navigator.userAgent ?? null,
                 p_ip_address:   null,
@@ -44,8 +51,8 @@ const Login = () => {
                 else console.log('[Login Log] Login recorded successfully.');
             });
 
-            navigate('/dashboard');
-
+            // Wait for AuthContext to reflect the user before navigating
+            setRedirecting(true);
         }
     };
 
@@ -197,9 +204,9 @@ const Login = () => {
                                 <button
                                     type="submit"
                                     className="w-full bg-[#0c326f] hover:bg-[#092552] text-white py-3 px-4 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors duration-200 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-                                    disabled={loading}
+                                    disabled={loading || redirecting}
                                 >
-                                    {loading ? 'Signing in...' : (
+                                    {redirecting ? 'Redirecting...' : loading ? 'Signing in...' : (
                                         <>
                                             Sign In <ArrowRight size={14} />
                                         </>
