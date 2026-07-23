@@ -67,34 +67,39 @@ export async function handleRegister(formData) {
 
 /**
  * Check if an email is registered, then send a password reset email.
- * Tries multiple lookup strategies: RPC → Registration table → fallback.
  */
 export async function sendResetEmail(email) {
     try {
         let exists = null;
 
-        // Strategy 1: RPC function (check_email_exists)
+        // Try RPC function first
         try {
             const { data, error: rpcError } = await supabase
                 .rpc('check_email_exists', { p_email: email });
-            if (!rpcError) exists = data?.exists;
-        } catch { /* fall through */ }
-
-        // Strategy 2: Registration table
-        if (exists === null) {
-            const { data: profile, error: tableError } = await supabase
-                .from('Registration')
-                .select('id')
-                .eq('email', email)
-                .maybeSingle();
-            if (!tableError) exists = !!profile;
+            if (!rpcError && data !== null && data !== undefined) {
+                exists = data.exists === true;
+            }
+        } catch (e) {
+            console.warn('[sendResetEmail] RPC failed:', e);
         }
 
-        // Strategy 3: can't verify — show helpful message
+        // Fallback: Registration table
+        if (exists === null) {
+            try {
+                const { data: profile, error: tableError } = await supabase
+                    .from('Registration')
+                    .select('id')
+                    .eq('email', email)
+                    .maybeSingle();
+                if (!tableError) exists = !!profile;
+            } catch { /* ignore */ }
+        }
+
+        // Can't verify at all
         if (exists === null) {
             return {
                 success: false,
-                error: 'Unable to verify email. Please run the database setup script (src/DataBase/CheckEmailExists.sql) in your Supabase SQL Editor, or contact support.'
+                error: 'Unable to verify email. Please run src/DataBase/CheckEmailExists.sql in your Supabase SQL Editor, or contact support.'
             };
         }
 
