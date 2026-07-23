@@ -66,24 +66,11 @@ export async function handleRegister(formData) {
 // ─── FORGOT PASSWORD (Supabase Native) ────────────────────────────────────────
 
 /**
- * Check if an email is registered, then send a password reset email.
- * Uses the check_email_exists RPC function (SECURITY DEFINER) to look up
- * auth.users without needing the client to be logged in.
+ * Send a password reset email via Supabase Auth.
+ * Works for any registered user — same simplicity as login.
  */
 export async function sendResetEmail(email) {
     try {
-        const { data, error: rpcError } = await supabase
-            .rpc('check_email_exists', { p_email: email });
-
-        if (rpcError) {
-            console.error('[sendResetEmail] RPC failed:', rpcError);
-            return { success: false, error: 'Service unavailable. Please try again later.' };
-        }
-
-        if (!data?.exists) {
-            return { success: false, error: 'Credentials do not match our records.' };
-        }
-
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/reset-password`,
         });
