@@ -22,6 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+<<<<<<< HEAD
 
 
 # Local environment variables
@@ -33,3 +34,6 @@ dist-ssr
 
 # Do NOT ignore the template file
 !.env.example
+=======
+.env
+>>>>>>> 5e290f7f97e9f64110c0c4499a163e1ba398c127
