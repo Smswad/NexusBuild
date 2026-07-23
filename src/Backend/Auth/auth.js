@@ -75,15 +75,8 @@ export async function sendResetEmail(email) {
         const { data, error: rpcError } = await supabase
             .rpc('check_email_exists', { p_email: email });
 
-        if (rpcError) {
-            return {
-                success: false,
-                error: 'Database function not found. Please run src/DataBase/CheckEmailExists.sql in your Supabase SQL Editor.'
-            };
-        }
-
-        if (!data?.exists) {
-            return { success: false, error: 'No account found with this email address.' };
+        if (rpcError || !data?.exists) {
+            return { success: false, error: 'Credentials do not match our records.' };
         }
 
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
