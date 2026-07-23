@@ -67,7 +67,6 @@ export async function handleRegister(formData) {
 
 /**
  * Check if an email is registered, then send a password reset email.
- * Returns an error if the email doesn't exist in the Registration table.
  */
 export async function sendResetEmail(email) {
     try {
@@ -77,9 +76,16 @@ export async function sendResetEmail(email) {
             .eq('email', email)
             .maybeSingle();
 
-        if (lookupError) throw lookupError;
+        if (lookupError) {
+            if (lookupError.message?.includes('schema cache')) {
+                // Table hasn't been created yet — proceed without checking
+                console.warn('[sendResetEmail] Registration table not found, skipping existence check.');
+            } else {
+                throw lookupError;
+            }
+        }
 
-        if (!profile) {
+        if (!profile && !lookupError) {
             return { success: false, error: 'No account found with this email address.' };
         }
 
