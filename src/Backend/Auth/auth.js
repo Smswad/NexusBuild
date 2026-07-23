@@ -67,25 +67,38 @@ export async function handleRegister(formData) {
 
 /**
  * Check if an email is registered, then send a password reset email.
+ * Tries multiple lookup strategies: RPC → Registration table → fallback.
  */
 export async function sendResetEmail(email) {
     try {
-        const { data: profile, error: lookupError } = await supabase
-            .from('Registration')
-            .select('id')
-            .eq('email', email)
-            .maybeSingle();
+        let exists = null;
 
-        if (lookupError) {
-            if (lookupError.message?.includes('schema cache')) {
-                // Table hasn't been created yet — proceed without checking
-                console.warn('[sendResetEmail] Registration table not found, skipping existence check.');
-            } else {
-                throw lookupError;
-            }
+        // Strategy 1: RPC function (check_email_exists)
+        try {
+            const { data, error: rpcError } = await supabase
+                .rpc('check_email_exists', { p_email: email });
+            if (!rpcError) exists = data?.exists;
+        } catch { /* fall through */ }
+
+        // Strategy 2: Registration table
+        if (exists === null) {
+            const { data: profile, error: tableError } = await supabase
+                .from('Registration')
+                .select('id')
+                .eq('email', email)
+                .maybeSingle();
+            if (!tableError) exists = !!profile;
         }
 
-        if (!profile && !lookupError) {
+        // Strategy 3: can't verify — show helpful message
+        if (exists === null) {
+            return {
+                success: false,
+                error: 'Unable to verify email. Please run the database setup script (src/DataBase/CheckEmailExists.sql) in your Supabase SQL Editor, or contact support.'
+            };
+        }
+
+        if (!exists) {
             return { success: false, error: 'No account found with this email address.' };
         }
 
