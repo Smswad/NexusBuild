@@ -66,13 +66,23 @@ export async function handleRegister(formData) {
 // ─── FORGOT PASSWORD (Supabase Native) ────────────────────────────────────────
 
 /**
- * Send a password reset email via Supabase Auth.
- * Supabase handles the email delivery and includes a recovery link.
- * The user clicks the link, which redirects back to the app with a
- * recovery token in the URL hash (handled by the ResetPassword page).
+ * Check if an email is registered, then send a password reset email.
+ * Returns an error if the email doesn't exist in the Registration table.
  */
 export async function sendResetEmail(email) {
     try {
+        const { data: profile, error: lookupError } = await supabase
+            .from('Registration')
+            .select('id')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (lookupError) throw lookupError;
+
+        if (!profile) {
+            return { success: false, error: 'No account found with this email address.' };
+        }
+
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/reset-password`,
         });
