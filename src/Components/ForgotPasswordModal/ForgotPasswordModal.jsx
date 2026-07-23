@@ -22,10 +22,14 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
         setError('');
         setLoading(true);
 
-        // Always show "Check your email" — even if the email isn't registered
-        // (security best practice: don't reveal whether an account exists)
-        await sendResetEmail(email);
+        const result = await sendResetEmail(email);
         setLoading(false);
+
+        if (!result.success) {
+            setError(result.error || 'Failed to send reset email.');
+            return;
+        }
+
         setSent(true);
     };
 
