@@ -75,7 +75,12 @@ export async function sendResetEmail(email) {
         const { data, error: rpcError } = await supabase
             .rpc('check_email_exists', { p_email: email });
 
-        if (rpcError || !data?.exists) {
+        if (rpcError) {
+            console.error('[sendResetEmail] RPC failed:', rpcError);
+            return { success: false, error: 'Service unavailable. Please try again later.' };
+        }
+
+        if (!data?.exists) {
             return { success: false, error: 'Credentials do not match our records.' };
         }
 
