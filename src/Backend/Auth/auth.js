@@ -36,6 +36,20 @@ export async function handleSignIn(formData) {
 }
 
 
+export async function handleSignOut() {
+    try {
+        await supabase.rpc('record_auth_log', {
+            p_event_type: 'LOGOUT',
+            p_user_agent: navigator.userAgent ?? null,
+        });
+    } catch (err) {
+        console.warn('[Logout Log] Failed to record logout:', err.message);
+    } finally {
+        await supabase.auth.signOut();
+    }
+}
+
+
 export async function handleRegister(formData) {
     const fullName = formData.get('fullName');
     const email = formData.get('email');

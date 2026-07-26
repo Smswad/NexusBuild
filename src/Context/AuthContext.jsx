@@ -31,6 +31,15 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const signOut = async () => {
+        if (user) {
+            const { error: logErr } = await supabase.rpc('record_auth_log', { 
+                p_event_type: 'LOGOUT',
+                p_user_agent: navigator.userAgent ?? null
+            });
+            if (logErr) {
+                console.warn('[Logout Log] RPC error:', logErr.message);
+            }
+        }
         await supabase.auth.signOut();
     };
 
