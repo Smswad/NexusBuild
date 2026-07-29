@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router';
 import { Lock, Eye, EyeOff, ArrowRight, AtSign } from 'lucide-react';
 import login_image from '../../assets/pics/login_pic.png';
 import Footer from '../../Components/Footer/Footer';
+import Navbar from '../../Components/Header/Navbar';
 import ForgotPasswordModal from '../../Components/ForgotPasswordModal/ForgotPasswordModal';
 import { useAuth } from '../../Context/AuthContext';
 // ─── Login logging is handled inline below via supabase.rpc() ────────────────
@@ -57,176 +58,281 @@ const Login = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-[#f4f7fa]">
-            <div className="flex-grow flex items-center justify-center p-4 md:p-8">
-                <div className="relative flex flex-col md:flex-row w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100/80 min-h-[600px]">
-                    
-                    {/* Back Button */}
-                    <div className="absolute top-4 right-4 z-20">
-                        <Link 
-                            to="/" 
-                            className="text-xs font-semibold text-slate-400 hover:text-[#0c326f] transition-colors duration-200"
-                        >
-                            Back to Home
-                        </Link>
-                    </div>
+        <div className="flex flex-col min-h-screen bg-[#f3f4f5]">
+            <Navbar />
+            {/* ── Main content area ── */}
+            <div className="flex-grow flex items-center justify-center p-4 sm:p-6 lg:py-12 lg:px-6">
 
-                    {/* Left Panel - Image & Stats (Hidden on mobile) */}
-                    <div className="relative md:w-1/2 hidden md:flex flex-col justify-between overflow-hidden">
-                        <img 
-                            src={login_image} 
-                            alt="NexusBuild Building" 
+                {/*
+                 * DESKTOP (lg+): Exact Figma split-screen — 50/50, 852px tall card, flush edge-to-edge
+                 * TABLET (sm-lg): Single column, form panel centered with max-width
+                 * MOBILE (<sm): Full-width stacked, touch-friendly
+                 */}
+                <div className="
+                    relative w-full bg-white overflow-hidden
+                    flex flex-col
+                    lg:flex-row lg:min-h-[700px] lg:max-w-[1280px] lg:shadow-[0px_25px_50px_#00000040]
+                    sm:max-w-2xl sm:rounded-xl sm:shadow-[0px_10px_15px_#0000001a]
+                    max-w-full rounded-lg shadow-[0px_4px_6px_#0000001a]
+                    lg:rounded-2xl lg:mx-auto
+                ">
+
+                    {/* ── LEFT PANEL — Hero image (desktop only) ─────────────── */}
+                    <div className="hidden lg:block lg:w-1/2 relative overflow-hidden flex-shrink-0">
+
+                        {/* Hero image */}
+                        <img
+                            src={login_image}
+                            alt="NexusBuild Architectural Excellence"
                             className="absolute inset-0 w-full h-full object-cover select-none"
                         />
-                        {/* Linear overlay gradient for readability */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#051c38]/95 via-[#051c38]/40 to-transparent"></div>
-                        
-                        {/* Top Logo Container */}
-                        <div className="relative z-10 p-8 flex items-center gap-3">
-                            <div className="bg-white p-2 rounded-xl flex items-center justify-center w-10 h-10 shadow-md">
-                                {/* Stylized SVG logo representing Reliance / NexusBuild */}
-                                <svg className="w-6 h-6" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M20 80C35 50 65 50 80 20" stroke="#0ea5e9" strokeWidth="12" strokeLinecap="round" />
-                                    <path d="M20 50C35 30 65 30 80 10" stroke="#10b981" strokeWidth="8" strokeLinecap="round" />
+
+                        {/* Dark overlay — #000f22 from design tokens (primary-dark) */}
+                        <div className="absolute inset-0 bg-[#000f22]/80" />
+
+                        {/* Decorative geometric shape — matches the Figma vector overlay */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[165px] h-[165px] border border-white/10 rotate-45 flex items-center justify-center">
+                            <div className="w-24 h-24 border border-white/20 flex items-center justify-center">
+                                <svg viewBox="0 0 92 92" fill="none" className="w-14 h-14 opacity-60">
+                                    <path d="M10 82L46 10L82 82H10Z" stroke="white" strokeWidth="2" fill="none"/>
+                                    <path d="M28 60L46 26L64 60H28Z" fill="white" fillOpacity="0.15"/>
                                 </svg>
                             </div>
-                            <span className="text-2xl font-bold tracking-tight text-white">NexusBuild</span>
                         </div>
 
-                        <div className="flex-grow"></div>
-                        
-                        {/* Overlay Text & Stats */}
-                        <div className="relative z-10 w-full">
-                            <div className="p-8 pb-5 text-white">
-                                <h3 className="text-xl font-bold tracking-tight text-white mb-3 max-w-sm leading-snug">
-                                    Redefining Urban Infrastructure with Architectural Precision.
-                                </h3>
-                                <p className="text-xs text-white/80 leading-relaxed max-w-sm">
-                                    Access the industry's most advanced GIS-mapped property management ecosystem. Securely manage assets, track financials, and explore new development opportunities.
-                                </p>
-                            </div>
-                            
-                            {/* Stats Row with Green text color as in mockup */}
-                            <div className="bg-[#051c38]/90 px-8 py-5 border-t border-white/10 flex items-center gap-10">
-                                <div>
-                                    <div className="text-2xl font-bold text-emerald-400 tracking-tight">4.8k+</div>
-                                    <div className="text-[10px] font-semibold text-white/50 uppercase tracking-widest mt-0.5">Managed Assets</div>
-                                </div>
-                                <div>
-                                    <div className="text-2xl font-bold text-emerald-400 tracking-tight">98%</div>
-                                    <div className="text-[10px] font-semibold text-white/50 uppercase tracking-widest mt-0.5">Client Precision</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        {/* Text content — Figma: 80px padding all sides, vertical layout, 16px gap */}
+                        <div className="absolute inset-0 flex flex-col justify-center p-20 z-10">
+                            <div className="flex flex-col gap-4 max-w-[480px]">
 
-                    {/* Right Panel - Login Form */}
-                    <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white relative">
-                        <div className="max-w-sm mx-auto w-full">
-                            <form onSubmit={handleSubmit} className="space-y-5">
-                                <div>
-                                    <h2 className="text-xl font-bold text-[#0c326f] tracking-tight">Welcome Back</h2>
-                                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                        Please enter your credentials to access your portal.
+                                {/* Heading block */}
+                                <div className="flex flex-col gap-4">
+                                    <div>
+                                        {/* Eyebrow */}
+                                        <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#fe762a] mb-3">
+                                            Client Portal
+                                        </p>
+                                        {/* Main heading — Figma: 32px, bold, white */}
+                                        <h1 className="text-[32px] font-bold leading-tight tracking-tight text-white">
+                                            Architectural Excellence,<br />
+                                            Engineered for You.
+                                        </h1>
+                                    </div>
+                                    {/* Sub-text — Figma: 14px, #c4c6ce (gray-500 token) */}
+                                    <p className="text-[14px] text-[#c4c6ce] leading-relaxed">
+                                        Access the industry's most advanced GIS-mapped property management ecosystem. Securely manage assets, track financials, and explore development opportunities.
                                     </p>
                                 </div>
 
-                                <div className="space-y-4 pt-2">
-                                    {/* Email Address */}
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email Address</label>
-                                        <div className="relative flex items-center">
-                                            <span className="absolute left-3 text-slate-400 pointer-events-none z-10 flex items-center">
-                                                <AtSign size={16} />
-                                            </span>
-                                            <input
-                                                type="email"
-                                                className="w-full pl-10 pr-4 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
-                                                placeholder="name@company.com"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                required
-                                            />
-                                        </div>
+                                {/* Stat pills — bottom of left panel */}
+                                <div className="flex items-center gap-8 mt-4 pt-6 border-t border-white/10">
+                                    <div>
+                                        <div className="text-[24px] font-bold text-white tracking-tight">4.8k+</div>
+                                        <div className="text-[10px] font-semibold text-[#74777e] uppercase tracking-widest mt-0.5">Managed Assets</div>
                                     </div>
+                                    <div className="w-px h-8 bg-white/10" />
+                                    <div>
+                                        <div className="text-[24px] font-bold text-white tracking-tight">98%</div>
+                                        <div className="text-[10px] font-semibold text-[#74777e] uppercase tracking-widest mt-0.5">Client Satisfaction</div>
+                                    </div>
+                                    <div className="w-px h-8 bg-white/10" />
+                                    <div>
+                                        <div className="text-[24px] font-bold text-white tracking-tight">12yr</div>
+                                        <div className="text-[10px] font-semibold text-[#74777e] uppercase tracking-widest mt-0.5">Market Presence</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                    {/* Password */}
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Password</label>
-                                        <div className="relative flex items-center">
-                                            <span className="absolute left-3 text-slate-400 pointer-events-none z-10 flex items-center">
-                                                <Lock size={16} />
-                                            </span>
-                                            <input
-                                                type={showPassword ? "text" : "password"}
-                                                className="w-full pl-10 pr-10 py-2.5 bg-[#f8fafc] border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
-                                                placeholder="••••••••"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                required
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none flex items-center"
-                                            >
-                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                            </button>
-                                        </div>
+                    {/* ── RIGHT PANEL — Login form ───────────────────────────── */}
+                    {/*
+                     * Figma: 640px wide, white bg, 80px top/bottom pad, 24px left/right on outer,
+                     * inner container 448px wide centered, 80px gap between header block and form
+                     */}
+                    <div className="
+                        w-full bg-white flex items-center justify-center
+                        lg:w-1/2 lg:flex-shrink-0
+                        px-4 py-10
+                        sm:px-10 sm:py-12
+                        lg:px-6 lg:py-20
+                    ">
+                        {/* Back to home — top right, absolute on desktop */}
+                        <Link
+                            to="/"
+                            className="
+                                absolute top-4 right-4 z-20
+                                text-[12px] font-medium text-[#74777e] hover:text-[#0a2540]
+                                transition-colors duration-200
+                                hidden lg:block
+                            "
+                        >
+                            &larr; Back to Home
+                        </Link>
+
+                        {/* Inner container — Figma: 448px wide, 80px gap between sections */}
+                        <div className="w-full max-w-[448px] flex flex-col gap-10 sm:gap-16 lg:gap-20">
+
+                            {/* Header block — Figma: 448x64, 8px gap */}
+                            <div className="flex flex-col gap-2">
+                                {/* Mobile back link */}
+                                <Link
+                                    to="/"
+                                    className="text-[12px] text-[#74777e] hover:text-[#0a2540] transition-colors mb-1 lg:hidden"
+                                >
+                                    &larr; Back to Home
+                                </Link>
+
+                                {/* Figma: brand wordmark above heading on desktop */}
+                                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#fe762a] hidden lg:block">
+                                    NexusBuild
+                                </p>
+                                {/* Heading — Figma Heading 2 node: 32px bold, #000f22 */}
+                                <h2 className="text-[24px] sm:text-[28px] lg:text-[32px] font-bold text-[#000f22] tracking-tight leading-tight">
+                                    Welcome Back
+                                </h2>
+                                {/* Sub-label — Figma: 14px, #74777e (gray-600 token) */}
+                                <p className="text-[14px] text-[#74777e] leading-relaxed">
+                                    Please enter your credentials to access your portal.
+                                </p>
+                            </div>
+
+                            {/* Form block — Figma: Form node 448x444, 24px gap between fields */}
+                            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+
+                                {/* Email input — Figma: Email Input 448x77, 8px gap label→input */}
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-bold text-[#43474d] uppercase tracking-[0.14em]">
+                                        Email Address
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-4 text-[#74777e] pointer-events-none flex items-center">
+                                            <AtSign size={16} />
+                                        </span>
+                                        <input
+                                            type="email"
+                                            className="
+                                                w-full pl-11 pr-4 py-3.5
+                                                bg-[#f8f9fa] border border-[#e1e3e4]
+                                                rounded-lg
+                                                text-[14px] text-[#191c1d] placeholder-[#74777e]
+                                                focus:outline-none focus:border-[#0a2540] focus:ring-1 focus:ring-[#0a2540]/20
+                                                transition-all duration-200
+                                                min-h-[44px]
+                                            "
+                                            placeholder="name@company.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                        />
                                     </div>
                                 </div>
 
-                                {/* Remember Me and Forgot Password */}
-                                <div className="flex items-center justify-between text-xs pt-1">
-                                    <label className="flex items-center gap-2 text-slate-500 select-none cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 w-4 h-4 cursor-pointer" 
+                                {/* Password input — Figma: Password Input 448x77, 8px gap */}
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-bold text-[#43474d] uppercase tracking-[0.14em]">
+                                        Password
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-4 text-[#74777e] pointer-events-none flex items-center">
+                                            <Lock size={16} />
+                                        </span>
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            className="
+                                                w-full pl-11 pr-12 py-3.5
+                                                bg-[#f8f9fa] border border-[#e1e3e4]
+                                                rounded-lg
+                                                text-[14px] text-[#191c1d] placeholder-[#74777e]
+                                                focus:outline-none focus:border-[#0a2540] focus:ring-1 focus:ring-[#0a2540]/20
+                                                transition-all duration-200
+                                                min-h-[44px]
+                                            "
+                                            placeholder="••••••••"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            required
                                         />
-                                        Remember Me
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 text-[#74777e] hover:text-[#43474d] focus:outline-none flex items-center min-h-[44px] min-w-[44px] justify-end"
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Remember Me row — Figma: Remember Me 448x24, horizontal layout */}
+                                <div className="flex items-center justify-between">
+                                    <label className="flex items-center gap-2.5 text-[14px] text-[#43474d] select-none cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-[#c4c6ce] accent-[#0a2540] cursor-pointer"
+                                        />
+                                        Remember me
                                     </label>
                                     <button
                                         type="button"
                                         onClick={() => setShowForgotModal(true)}
-                                        className="text-[#0c326f] font-semibold hover:underline focus:outline-none cursor-pointer"
+                                        className="text-[14px] text-[#0a2540] font-semibold hover:text-[#fe762a] focus:outline-none cursor-pointer transition-colors duration-200"
                                     >
-                                        Forgot Password?
+                                        Forgot password?
                                     </button>
                                 </div>
 
+                                {/* Error state */}
                                 {error && (
-                                    <p className="text-rose-500 text-xs mt-2 font-medium bg-rose-50 border border-rose-100 rounded-md px-3 py-2">{error}</p>
+                                    <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-100 rounded-lg">
+                                        <p className="text-[12px] text-red-600 font-medium leading-snug">{error}</p>
+                                    </div>
                                 )}
 
-
-
-                                {/* Submit Button */}
+                                {/* CTA Button — Figma: 448x52, fill=#fe762a (accent token), radius=8px, 16px V pad, 8px gap */}
                                 <button
                                     type="submit"
-                                    className="w-full bg-[#0c326f] hover:bg-[#092552] text-white py-3 px-4 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors duration-200 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                                     disabled={loading || redirecting}
+                                    className="
+                                        w-full flex items-center justify-center gap-2
+                                        bg-[#fe762a] hover:bg-[#a14000]
+                                        text-white font-semibold text-[16px]
+                                        py-3.5 px-6 rounded-lg min-h-[52px]
+                                        transition-colors duration-200
+                                        disabled:opacity-50 disabled:cursor-not-allowed
+                                        shadow-[0px_4px_6px_#0000001a]
+                                        cursor-pointer
+                                    "
                                 >
                                     {redirecting ? 'Redirecting...' : loading ? 'Signing in...' : (
                                         <>
-                                            Sign In <ArrowRight size={14} />
+                                            Sign In <ArrowRight size={16} />
                                         </>
                                     )}
                                 </button>
+
+                                {/* Divider + Register link — Figma: Divider 448x48 with 16px V padding */}
+                                <div className="flex flex-col items-center gap-4 pt-2">
+                                    <div className="flex items-center gap-4 w-full">
+                                        <div className="flex-1 h-px bg-[#e1e3e4]" />
+                                        <span className="text-[12px] text-[#74777e] font-medium flex-shrink-0">or</span>
+                                        <div className="flex-1 h-px bg-[#e1e3e4]" />
+                                    </div>
+                                    <p className="text-[14px] text-[#43474d] text-center">
+                                        New to Reliance Housing?{' '}
+                                        <Link
+                                            to="/register"
+                                            className="text-[#0a2540] font-bold hover:text-[#fe762a] transition-colors duration-200"
+                                        >
+                                            Create an account
+                                        </Link>
+                                    </p>
+                                </div>
                             </form>
-
-                            <div className="border-t border-slate-100 my-6"></div>
-
-                            <p className="text-xs text-center text-slate-600">
-                                New to Reliance Housing?{' '}
-                                <Link to="/register" className="text-[#0c326f] font-bold hover:underline">
-                                    Register for an Account
-                                </Link>
-                            </p>
                         </div>
                     </div>
-
                 </div>
             </div>
+
             <Footer />
             <ForgotPasswordModal isOpen={showForgotModal} onClose={() => setShowForgotModal(false)} />
         </div>

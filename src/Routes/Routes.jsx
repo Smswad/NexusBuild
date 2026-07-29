@@ -27,13 +27,16 @@ export const router = createBrowserRouter([
             {
                 index: true,
                 path: '/',
-                Component: Home,
+                Component: Projects,
+            },
+            {
+                path: 'projects',
+                Component: Projects,
             },
         ],
     },
     { path: '/login',          Component: Login },
     { path: '/register',       Component: Register },
-    { path: '/projects',       Component: Projects },
     { path: '/gismap',         Component: Gismap },
     { path: '/about',          Component: About },
     { path: '/contact',        Component: Contact },

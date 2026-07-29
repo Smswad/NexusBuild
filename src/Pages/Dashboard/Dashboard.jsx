@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import {
     LayoutDashboard, BookOpen, HardHat, Headphones,
-    Bell, LogOut, X, Mail, Phone, Calendar, Shield,
+    Bell, LogOut, X, Mail, Phone, Calendar, Shield, Globe,
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { fetchProfile } from '../../lib/profile';
@@ -181,6 +181,40 @@ const Dashboard = () => {
                             )}
                         </NavLink>
                     ))}
+
+                    <div style={{
+                        marginTop: 14,
+                        padding: '4px 12px 10px',
+                        fontFamily: F.display, fontWeight: 500, fontSize: 8,
+                        letterSpacing: '0.22em', textTransform: 'uppercase',
+                        color: 'rgba(255,255,255,0.2)',
+                    }}>
+                        Public Site
+                    </div>
+                    <NavLink to="/" style={{ textDecoration: 'none' }}>
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: 10,
+                            padding: '9px 12px',
+                            borderLeft: `3px solid transparent`,
+                            color: 'rgba(255,255,255,0.5)',
+                            fontFamily: F.display, fontWeight: 600, fontSize: 11,
+                            letterSpacing: '0.1em', textTransform: 'uppercase',
+                            transition: 'all 0.12s',
+                            cursor: 'pointer',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.color = '#fff';
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                            e.currentTarget.style.background = 'transparent';
+                        }}
+                        >
+                            <Globe size={13} />
+                            <span style={{ flex: 1 }}>Home / Projects</span>
+                        </div>
+                    </NavLink>
                 </nav>
 
                 {/* User / Revision Block */}
