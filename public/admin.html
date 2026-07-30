@@ -524,11 +524,11 @@
     // ── Supabase ──────────────────────────────────────────────────────────
     const SUPABASE_URL = 'https://xldgagnqhmzsykaaupav.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZGdhZ25xaG16c3lrYWF1cGF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMTM2NjgsImV4cCI6MjA5Nzg4OTY2OH0.rRE16LnFCmZ3LnDpgcRcfoOYiryBCt6rtGFhGDvO3mg';
-    const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function loadData() {
         try {
-            const { data, error } = await supabase.rpc('get_all_users');
+            const { data, error } = await supabaseClient.rpc('get_all_users');
             if (error) throw error;
 
             const users = data || [];
