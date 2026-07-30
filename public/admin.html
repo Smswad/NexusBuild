@@ -461,30 +461,22 @@
 <button class="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full shadow-lg border-2 border-white"><span class="material-symbols-outlined text-[16px]">photo_camera</span></button>
 </div>
 <div class="text-center">
-<h4 class="text-body-lg font-bold text-slate-900">Julian Thorne</h4>
-<span class="px-2 py-0.5 bg-brand-emerald/10 text-brand-emerald rounded font-label-sm text-label-sm border border-brand-emerald/20">Verified Buyer</span>
+<h4 class="text-body-lg font-bold text-slate-900" id="drawer-name">User Name</h4>
+<span class="px-2 py-0.5 bg-brand-emerald/10 text-brand-emerald rounded font-label-sm text-label-sm border border-brand-emerald/20">Client</span>
 </div>
 </div>
 <div class="space-y-4">
 <div>
 <label class="block text-label-md font-label-md text-on-surface-variant mb-1.5">Full Name</label>
-<input class="w-full bg-slate-50 border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-slate-900 focus:ring-1 focus:ring-primary outline-none" type="text" value="Julian Thorne"/>
+<input class="w-full bg-slate-50 border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-slate-900 focus:ring-1 focus:ring-primary outline-none" type="text" id="drawer-fullname" value=""/>
 </div>
 <div>
 <label class="block text-label-md font-label-md text-on-surface-variant mb-1.5">Email Address</label>
-<input class="w-full bg-slate-50 border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-slate-900 focus:ring-1 focus:ring-primary outline-none" type="email" value="julian.t@example.com"/>
+<input class="w-full bg-slate-50 border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-slate-900 focus:ring-1 focus:ring-primary outline-none" type="email" id="drawer-email" value=""/>
 </div>
 <div>
 <label class="block text-label-md font-label-md text-on-surface-variant mb-1.5">Primary Phone</label>
-<input class="w-full bg-slate-50 border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-slate-900 focus:ring-1 focus:ring-primary outline-none" type="tel" value="+1 (555) 012-3456"/>
-</div>
-<div>
-<label class="block text-label-md font-label-md text-on-surface-variant mb-1.5">Assigned Agent</label>
-<select class="w-full bg-slate-50 border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-slate-900 focus:ring-1 focus:ring-primary outline-none appearance-none">
-<option>Marcus Vane</option>
-<option>Helena Rossi</option>
-<option>Thomas Chen</option>
-</select>
+<input class="w-full bg-slate-50 border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-slate-900 focus:ring-1 focus:ring-primary outline-none" type="tel" id="drawer-phone" value=""/>
 </div>
 <div class="p-4 bg-brand-emerald/5 rounded-xl border border-brand-emerald/10">
 <div class="flex items-center gap-2 mb-2 text-brand-emerald">
@@ -503,10 +495,20 @@
 </div>
 <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[90] hidden opacity-0 transition-opacity duration-300" id="drawer-overlay" onclick="toggleDrawer()"></div>
 <script>
-    function toggleDrawer() {
+    function toggleDrawer(index) {
         const drawer = document.getElementById('edit-drawer');
         const overlay = document.getElementById('drawer-overlay');
         const isOpen = !drawer.classList.contains('translate-x-full');
+
+        if (index !== undefined) {
+            const user = _users[index];
+            if (user) {
+                document.getElementById('drawer-name').textContent = user.full_name || 'Unknown';
+                document.getElementById('drawer-fullname').value = user.full_name || '';
+                document.getElementById('drawer-email').value = user.email || '';
+                document.getElementById('drawer-phone').value = user.phone_number || '';
+            }
+        }
 
         if (isOpen) {
             drawer.classList.add('translate-x-full');
@@ -539,20 +541,22 @@
         return res.json();
     }
 
+    let _users = [];
+
     async function loadData() {
         try {
             const users = await supabaseRpc('get_all_users');
-            const list = Array.isArray(users) ? users : [];
+            _users = Array.isArray(users) ? users : [];
 
-            document.getElementById('stat-users').textContent = list.length.toLocaleString();
+            document.getElementById('stat-users').textContent = _users.length.toLocaleString();
 
             const tbody = document.getElementById('users-table-body');
-            if (list.length === 0) {
+            if (_users.length === 0) {
                 tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-on-surface-variant text-body-sm" colspan="6">No users registered yet.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = list.map((u) => {
+            tbody.innerHTML = _users.map((u, i) => {
                 const name = u.full_name || 'Unknown';
                 const initials = name.split(' ').map(s => s[0]).filter(Boolean).join('').toUpperCase().slice(0, 2) || '?';
                 const date = u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
@@ -577,7 +581,7 @@
                     <td class="px-6 py-4 text-body-sm text-on-surface-variant">${u.phone_number || '—'}</td>
                     <td class="px-6 py-4 text-body-sm text-on-surface-variant">${date}</td>
                     <td class="px-6 py-4 text-right">
-                        <button class="p-2 hover:bg-slate-100 rounded-lg text-primary transition-all" onclick="toggleDrawer()">
+                        <button class="p-2 hover:bg-slate-100 rounded-lg text-primary transition-all" onclick="toggleDrawer(${i})">
                             <span class="material-symbols-outlined">edit</span>
                         </button>
                     </td>
