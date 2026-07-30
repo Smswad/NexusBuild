@@ -268,11 +268,12 @@
 <th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Role</th>
 <th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
 <th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Phone</th>
-<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Joined</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Joined</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
 </tr>
 </thead>
 <tbody id="users-table-body" class="divide-y divide-outline-variant/50">
-<tr><td class="px-6 py-8 text-center text-on-surface-variant text-body-sm" colspan="5">Loading users...</td></tr>
+<tr><td class="px-6 py-8 text-center text-on-surface-variant text-body-sm" colspan="6">Loading users...</td></tr>
 </tbody>
 </table>
 </div>
@@ -547,7 +548,7 @@
 
             const tbody = document.getElementById('users-table-body');
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-on-surface-variant text-body-sm" colspan="5">No users registered yet.</td></tr>';
+                tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-on-surface-variant text-body-sm" colspan="6">No users registered yet.</td></tr>';
                 return;
             }
 
@@ -574,18 +575,23 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 text-body-sm text-on-surface-variant">${u.phone_number || '—'}</td>
-                    <td class="px-6 py-4 text-body-sm text-on-surface-variant text-right">${date}</td>
+                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">${date}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button class="p-2 hover:bg-slate-100 rounded-lg text-primary transition-all" onclick="toggleDrawer()">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                    </td>
                 </tr>`;
             }).join('');
         } catch (err) {
             console.error('Failed to load users:', err);
             const tbody = document.getElementById('users-table-body');
             if (err.message && err.message.includes('404')) {
-                tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-amber-600 text-body-sm" colspan="5">Run src/DataBase/AdminGetAllUsers.sql in Supabase SQL Editor first.</td></tr>';
+                tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-amber-600 text-body-sm" colspan="6">Run src/DataBase/AdminGetAllUsers.sql in Supabase SQL Editor first.</td></tr>';
             } else if (err.message && err.message.includes('Failed to fetch')) {
-                tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-red-500 text-body-sm" colspan="5">Network error - check your connection.</td></tr>';
+                tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-red-500 text-body-sm" colspan="6">Network error - check your connection.</td></tr>';
             } else {
-                tbody.innerHTML = `<tr><td class="px-6 py-8 text-center text-red-500 text-body-sm" colspan="5">${err.message || 'Failed to load users.'}</td></tr>`;
+                tbody.innerHTML = `<tr><td class="px-6 py-8 text-center text-red-500 text-body-sm" colspan="6">${err.message || 'Failed to load users.'}</td></tr>`;
             }
         }
     }
