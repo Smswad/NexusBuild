@@ -18,7 +18,7 @@ const AdminLogin = () => {
         setTimeout(() => {
             setLoading(false);
             if (username === 'Admin' && password === 'Admin123') {
-                window.location.href = '/admin-panel';
+                window.location.href = '/admin.html';
             } else {
                 setError('Invalid admin credentials.');
             }
