@@ -7,7 +7,6 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -521,41 +520,47 @@
         }
     }
 
-    // ── Supabase ──────────────────────────────────────────────────────────
+    // ── Supabase (direct fetch, no SDK) ───────────────────────────────────
     const SUPABASE_URL = 'https://xldgagnqhmzsykaaupav.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZGdhZ25xaG16c3lrYWF1cGF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMTM2NjgsImV4cCI6MjA5Nzg4OTY2OH0.rRE16LnFCmZ3LnDpgcRcfoOYiryBCt6rtGFhGDvO3mg';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function supabaseRpc(fn, params = {}) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+            method: 'POST',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params),
+        });
+        if (!res.ok) throw new Error(`RPC ${fn} failed: ${res.status} ${res.statusText}`);
+        return res.json();
+    }
 
     async function loadData() {
         try {
-            const { data, error } = await supabaseClient.rpc('get_all_users');
-            if (error) throw error;
+            const users = await supabaseRpc('get_all_users') || [];
 
-            const users = data || [];
-
-            // Update stats
             document.getElementById('stat-users').textContent = users.length.toLocaleString();
 
-            // Render table
             const tbody = document.getElementById('users-table-body');
             if (users.length === 0) {
                 tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-on-surface-variant text-body-sm" colspan="5">No users registered yet.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = users.map((u, i) => {
-                const initials = (u.full_name || u.email || '?').split(' ').map(s => s[0]).join('').toUpperCase().slice(0, 2) || '?';
-                const avatar = initials.length === 1
-                    ? `<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-outline-variant text-sm">${initials}</div>`
-                    : `<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-primary font-bold border border-outline-variant text-sm">${initials}</div>`;
+            tbody.innerHTML = users.map((u) => {
+                const name = u.full_name || 'Unknown';
+                const initials = name.split(' ').map(s => s[0]).filter(Boolean).join('').toUpperCase().slice(0, 2) || '?';
                 const date = u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
                 return `<tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
-                            ${avatar}
+                            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-outline-variant text-sm">${initials}</div>
                             <div>
-                                <div class="text-body-md font-semibold text-slate-900">${u.full_name || 'Unknown'}</div>
+                                <div class="text-body-md font-semibold text-slate-900">${name}</div>
                                 <div class="text-label-sm text-on-surface-variant">${u.email || '—'}</div>
                             </div>
                         </div>
