@@ -15,14 +15,35 @@ const AdminLogin = () => {
         setError('');
         setLoading(true);
 
-        setTimeout(() => {
-            setLoading(false);
+        // Import supabase client dynamically or define it
+        import('../../lib/supabaseClient').then(async ({ supabase }) => {
             if (username === 'Admin' && password === 'Admin123') {
+                try {
+                    await supabase.rpc('record_admin_auth_log', {
+                        p_admin_username: username,
+                        p_event_type: 'LOGIN',
+                        p_user_agent: navigator.userAgent || null
+                    });
+                } catch (e) {
+                    console.error('Failed to log admin login:', e);
+                }
+                setLoading(false);
                 window.location.href = '/admin.html';
             } else {
+                try {
+                    await supabase.rpc('record_admin_auth_log', {
+                        p_admin_username: username || 'Unknown',
+                        p_event_type: 'LOGIN',
+                        p_status: 'failed',
+                        p_user_agent: navigator.userAgent || null
+                    });
+                } catch (e) {
+                    console.error('Failed to log failed admin login:', e);
+                }
+                setLoading(false);
                 setError('Invalid admin credentials.');
             }
-        }, 500);
+        });
     };
 
     return (
