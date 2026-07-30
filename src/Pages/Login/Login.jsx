@@ -326,6 +326,12 @@ const Login = () => {
                                             Create an account
                                         </Link>
                                     </p>
+                                    <Link
+                                        to="/admin"
+                                        className="text-[11px] text-[#74777e] hover:text-[#0a2540] transition-colors duration-200"
+                                    >
+                                        Login as Admin
+                                    </Link>
                                 </div>
                             </form>
                         </div>

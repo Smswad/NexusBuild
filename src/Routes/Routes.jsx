@@ -9,6 +9,7 @@ import Gismap from '../Pages/Gismap/Gismap';
 import About from '../Pages/About/About';
 import Contact from '../Pages/Contact/Contact';
 import ResetPassword from '../Pages/ResetPassword/ResetPassword';
+import AdminLogin from '../Pages/AdminLogin/AdminLogin';
 
 // Dashboard
 import Dashboard from '../Pages/Dashboard/Dashboard';
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
     { path: '/about',          Component: About },
     { path: '/contact',        Component: Contact },
     { path: '/reset-password', Component: ResetPassword },
+    { path: '/admin',          Component: AdminLogin },
 
     // ── Protected Dashboard ───────────────────────────────────────────────────
     {
