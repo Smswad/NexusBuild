@@ -540,17 +540,18 @@
 
     async function loadData() {
         try {
-            const users = await supabaseRpc('get_all_users') || [];
+            const users = await supabaseRpc('get_all_users');
+            const list = Array.isArray(users) ? users : [];
 
-            document.getElementById('stat-users').textContent = users.length.toLocaleString();
+            document.getElementById('stat-users').textContent = list.length.toLocaleString();
 
             const tbody = document.getElementById('users-table-body');
-            if (users.length === 0) {
+            if (list.length === 0) {
                 tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-on-surface-variant text-body-sm" colspan="5">No users registered yet.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = users.map((u) => {
+            tbody.innerHTML = list.map((u) => {
                 const name = u.full_name || 'Unknown';
                 const initials = name.split(' ').map(s => s[0]).filter(Boolean).join('').toUpperCase().slice(0, 2) || '?';
                 const date = u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
@@ -578,7 +579,14 @@
             }).join('');
         } catch (err) {
             console.error('Failed to load users:', err);
-            document.getElementById('users-table-body').innerHTML = '<tr><td class="px-6 py-8 text-center text-red-500 text-body-sm" colspan="5">Failed to load users.</td></tr>';
+            const tbody = document.getElementById('users-table-body');
+            if (err.message && err.message.includes('404')) {
+                tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-amber-600 text-body-sm" colspan="5">Run src/DataBase/AdminGetAllUsers.sql in Supabase SQL Editor first.</td></tr>';
+            } else if (err.message && err.message.includes('Failed to fetch')) {
+                tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-red-500 text-body-sm" colspan="5">Network error - check your connection.</td></tr>';
+            } else {
+                tbody.innerHTML = `<tr><td class="px-6 py-8 text-center text-red-500 text-body-sm" colspan="5">${err.message || 'Failed to load users.'}</td></tr>`;
+            }
         }
     }
 
