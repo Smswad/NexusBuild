@@ -7,6 +7,7 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -163,10 +164,11 @@
             Settings
         </a>
 </nav>
-<div class="p-4 border-t border-outline-variant">
-<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-slate-900 hover:bg-surface-container-low font-label-md text-label-md transition-all duration-150 rounded-lg" href="#">
-<span class="material-symbols-outlined">account_circle</span>
-            Admin Profile
+<div class="p-4 border-t border-outline-variant space-y-1">
+<div class="px-3 py-2 text-label-sm text-on-surface-variant truncate" id="admin-email">admin@nexusbuild.com</div>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-red-600 hover:bg-red-50 font-label-md text-label-md transition-all duration-150 rounded-lg cursor-pointer" onclick="handleLogout()">
+<span class="material-symbols-outlined">logout</span>
+            Logout
         </a>
 </div>
 </aside>
@@ -206,8 +208,8 @@
 </div>
 <h3 class="text-label-md font-label-md text-on-surface-variant mb-1">Total Active Listings</h3>
 <div class="flex items-baseline gap-2">
-<span class="text-headline-md font-headline-md text-slate-900">284</span>
-<span class="text-label-sm font-label-sm text-on-surface-variant">| 18 pending</span>
+<span class="text-headline-md font-headline-md text-slate-900" id="stat-listings">0</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant">| <span id="stat-listings-pending">0</span> pending</span>
 </div>
 </div>
 <div class="bg-white p-5 rounded-2xl border border-outline-variant card-shadow hover:border-primary transition-colors">
@@ -217,8 +219,8 @@
 </div>
 <h3 class="text-label-md font-label-md text-on-surface-variant mb-1">Total Registered Users</h3>
 <div class="flex items-baseline gap-2">
-<span class="text-headline-md font-headline-md text-slate-900">3,420</span>
-<span class="text-label-sm font-label-sm text-on-surface-variant">Clients | 42 Agents</span>
+<span class="text-headline-md font-headline-md text-slate-900" id="stat-users">0</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant">Registered Users</span>
 </div>
 </div>
 <div class="bg-white p-5 rounded-2xl border border-outline-variant card-shadow hover:border-primary transition-colors">
@@ -265,84 +267,13 @@
 <tr class="bg-slate-50 border-b border-outline-variant">
 <th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Name/Avatar</th>
 <th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Role</th>
-<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Verification</th>
-<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Assigned Agent</th>
-<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Phone</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Joined</th>
 </tr>
 </thead>
-<tbody class="divide-y divide-outline-variant/50">
-<tr class="hover:bg-slate-50 transition-colors">
-<td class="px-6 py-4">
-<div class="flex items-center gap-3">
-<img class="w-10 h-10 rounded-full object-cover border border-outline-variant" data-alt="Portrait of a young professional male" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWWpsZ2WzjzmZGK22aCHbHyHWhdaCXh2f1hmHivjSc31HCGIO2oJjLncGfdB8DvXMqM5nbm-Z47kYNnt74U9fMFwa4sdmbgNEt8yCKb04nC93EDP5MPh1NGMNEA8eYF9agB9zp8B7hz7VV-yaqExaH8xxjz-17o3_rlJ3FnijiO34HPMJr2C2DmAu6dUaaokSNDkX6M9WM_UHkBeB96jgw5RWWjJScCy2CRwVBf4aN2seuE_TDlf90Dg"/>
-<div>
-<div class="text-body-md font-semibold text-slate-900">Julian Thorne</div>
-<div class="text-label-sm text-on-surface-variant">julian.t@example.com</div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4"><span class="px-2 py-1 bg-slate-100 text-slate-700 rounded-md font-label-sm text-label-sm border border-outline-variant">Buyer</span></td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-1.5 text-brand-emerald">
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
-<span class="font-label-md text-label-md">Verified</span>
-</div>
-</td>
-<td class="px-6 py-4 text-body-sm text-on-surface-variant">Marcus Vane</td>
-<td class="px-6 py-4 text-right">
-<button class="p-2 hover:bg-slate-100 rounded-lg text-primary transition-all" onclick="toggleDrawer()">
-<span class="material-symbols-outlined">edit</span>
-</button>
-</td>
-</tr>
-<tr class="hover:bg-slate-50 transition-colors">
-<td class="px-6 py-4">
-<div class="flex items-center gap-3">
-<img class="w-10 h-10 rounded-full object-cover border border-outline-variant" data-alt="Professional profile photo of a sophisticated woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA65eY3yClfHG7Az17LgHxJOJ9HDL5V9LpOjkqdFhfsmegmhxbydp3yywdd5S-oZJcGC3qX19LChFblLi01YJbaKM9l3MyoEvlFUmOqY5STTcEZ5jnS0ocEyVtZrgwYst_y_pgsky0l9lG0kVCQMrWHG558J2op_YgN4H_LEoyZCQAPvtfzSVGwchJQu-7XA9rD8KnhDuFmo3l7Kc8CNJvUA8ywWlkgwL-4KPALHqDkWN-3rdo9Y4J6aw"/>
-<div>
-<div class="text-body-md font-semibold text-slate-900">Helena Rossi</div>
-<div class="text-label-sm text-on-surface-variant">h.rossi@agent.net</div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4"><span class="px-2 py-1 bg-primary-container/30 text-primary rounded-md font-label-sm text-label-sm border border-primary/10">Agent</span></td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-1.5 text-brand-emerald">
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
-<span class="font-label-md text-label-md">Verified</span>
-</div>
-</td>
-<td class="px-6 py-4 text-body-sm text-on-surface-variant">—</td>
-<td class="px-6 py-4 text-right">
-<button class="p-2 hover:bg-slate-100 rounded-lg text-primary transition-all">
-<span class="material-symbols-outlined">edit</span>
-</button>
-</td>
-</tr>
-<tr class="hover:bg-slate-50 transition-colors">
-<td class="px-6 py-4">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-primary font-bold border border-outline-variant">SJ</div>
-<div>
-<div class="text-body-md font-semibold text-slate-900">Sarah Jenkins</div>
-<div class="text-label-sm text-on-surface-variant">s.jenkins@web.com</div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4"><span class="px-2 py-1 bg-slate-100 text-slate-700 rounded-md font-label-sm text-label-sm border border-outline-variant">Buyer</span></td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-1.5 text-tertiary">
-<span class="material-symbols-outlined text-[16px]">pending</span>
-<span class="font-label-md text-label-md">Pending</span>
-</div>
-</td>
-<td class="px-6 py-4 text-body-sm text-on-surface-variant">Marcus Vane</td>
-<td class="px-6 py-4 text-right">
-<button class="p-2 hover:bg-slate-100 rounded-lg text-primary transition-all">
-<span class="material-symbols-outlined">edit</span>
-</button>
-</td>
-</tr>
+<tbody id="users-table-body" class="divide-y divide-outline-variant/50">
+<tr><td class="px-6 py-8 text-center text-on-surface-variant text-body-sm" colspan="5">Loading users...</td></tr>
 </tbody>
 </table>
 </div>
@@ -589,5 +520,67 @@
             }, 10);
         }
     }
+
+    // ── Supabase ──────────────────────────────────────────────────────────
+    const SUPABASE_URL = 'https://xldgagnqhmzsykaaupav.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZGdhZ25xaG16c3lrYWF1cGF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMTM2NjgsImV4cCI6MjA5Nzg4OTY2OH0.rRE16LnFCmZ3LnDpgcRcfoOYiryBCt6rtGFhGDvO3mg';
+    const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function loadData() {
+        try {
+            const { data, error } = await supabase.rpc('get_all_users');
+            if (error) throw error;
+
+            const users = data || [];
+
+            // Update stats
+            document.getElementById('stat-users').textContent = users.length.toLocaleString();
+
+            // Render table
+            const tbody = document.getElementById('users-table-body');
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td class="px-6 py-8 text-center text-on-surface-variant text-body-sm" colspan="5">No users registered yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map((u, i) => {
+                const initials = (u.full_name || u.email || '?').split(' ').map(s => s[0]).join('').toUpperCase().slice(0, 2) || '?';
+                const avatar = initials.length === 1
+                    ? `<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-outline-variant text-sm">${initials}</div>`
+                    : `<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-primary font-bold border border-outline-variant text-sm">${initials}</div>`;
+                const date = u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+
+                return `<tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            ${avatar}
+                            <div>
+                                <div class="text-body-md font-semibold text-slate-900">${u.full_name || 'Unknown'}</div>
+                                <div class="text-label-sm text-on-surface-variant">${u.email || '—'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 bg-slate-100 text-slate-700 rounded-md font-label-sm text-label-sm border border-outline-variant">Client</span></td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-1.5 text-brand-emerald">
+                            <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            <span class="font-label-md text-label-md">Verified</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-body-sm text-on-surface-variant">${u.phone_number || '—'}</td>
+                    <td class="px-6 py-4 text-body-sm text-on-surface-variant text-right">${date}</td>
+                </tr>`;
+            }).join('');
+        } catch (err) {
+            console.error('Failed to load users:', err);
+            document.getElementById('users-table-body').innerHTML = '<tr><td class="px-6 py-8 text-center text-red-500 text-body-sm" colspan="5">Failed to load users.</td></tr>';
+        }
+    }
+
+    function handleLogout() {
+        window.location.href = '/login';
+    }
+
+    loadData();
 </script>
 </body></html>
