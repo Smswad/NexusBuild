@@ -13,6 +13,38 @@ import Navbar from '../../Components/Header/Navbar';
 // Right: #f8f9fa bg, 80px all-around padding, 352px form container, 48px gap sections
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── Shared input field wrapper — defined at MODULE SCOPE so it is stable across
+// renders. Defining sub-components inside a parent function causes React to
+// treat them as new types on every render, which unmounts and remounts the DOM
+// node (losing focus). Module-level = single, stable reference.
+const Field = ({ label, hint, children }) => (
+    <div className="flex flex-col gap-2">
+        {/* Figma: label 14px fw=600 #000f22 uppercase */}
+        <label className="text-[14px] font-semibold text-[#000f22] uppercase tracking-[0.06em]">
+            {label}
+        </label>
+        {children}
+        {hint && (
+            <p className="text-[12px] font-medium text-[#43474d] leading-snug">{hint}</p>
+        )}
+    </div>
+);
+
+const IconWrap = ({ children }) => (
+    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#74777e] pointer-events-none flex items-center">
+        {children}
+    </span>
+);
+
+// Figma: inputs — #f3f4f5 bg, r=4, #c4c6ce stroke 1px, pad=18px V / 80px L gutter
+const inputCls = `
+    w-full pl-12 pr-4 py-[18px]
+    bg-[#f3f4f5] border border-[#c4c6ce] rounded-[4px]
+    text-[14px] font-medium text-[#191c1d] placeholder-[#74777e]
+    focus:outline-none focus:border-[#0a2540] focus:ring-1 focus:ring-[#0a2540]/20
+    transition-all duration-200 min-h-[44px]
+`;
+
 const Register = () => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
@@ -66,35 +98,6 @@ const Register = () => {
         setPhoneNumber('');
         setPassword('');
     };
-
-    // ── Shared input field wrapper ────────────────────────────────────────────
-    const Field = ({ label, hint, children }) => (
-        <div className="flex flex-col gap-2">
-            {/* Figma: label 14px fw=600 #000f22 uppercase */}
-            <label className="text-[14px] font-semibold text-[#000f22] uppercase tracking-[0.06em]">
-                {label}
-            </label>
-            {children}
-            {hint && (
-                <p className="text-[12px] font-medium text-[#43474d] leading-snug">{hint}</p>
-            )}
-        </div>
-    );
-
-    // Figma: inputs — #f3f4f5 bg, r=4, #c4c6ce stroke 1px, pad=18px V / 80px L gutter
-    const inputCls = `
-        w-full pl-12 pr-4 py-[18px]
-        bg-[#f3f4f5] border border-[#c4c6ce] rounded-[4px]
-        text-[14px] font-medium text-[#191c1d] placeholder-[#74777e]
-        focus:outline-none focus:border-[#0a2540] focus:ring-1 focus:ring-[#0a2540]/20
-        transition-all duration-200 min-h-[44px]
-    `;
-
-    const IconWrap = ({ children }) => (
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#74777e] pointer-events-none flex items-center">
-            {children}
-        </span>
-    );
 
     return (
         <div className="flex flex-col min-h-screen bg-[#f3f4f5]">
@@ -263,10 +266,28 @@ const Register = () => {
                                             <IconWrap><Phone size={16} /></IconWrap>
                                             <input
                                                 type="tel"
+                                                inputMode="tel"
                                                 className={inputCls}
                                                 placeholder="+880 1XXX-XXXXXX"
                                                 value={phoneNumber}
-                                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    // Allow: digits, +, -, space, (, ), Backspace,
+                                                    // Delete, Tab, ArrowLeft/Right, Home, End
+                                                    const allowed = /^[0-9+\-() ]$/;
+                                                    const nav = [
+                                                        'Backspace','Delete','Tab','ArrowLeft',
+                                                        'ArrowRight','Home','End',
+                                                    ];
+                                                    if (!allowed.test(e.key) && !nav.includes(e.key)) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                onChange={(e) => {
+                                                    // Strip any non-phone characters that arrive
+                                                    // through paste or autofill
+                                                    const cleaned = e.target.value.replace(/[^0-9+\-() ]/g, '');
+                                                    setPhoneNumber(cleaned);
+                                                }}
                                             />
                                         </div>
                                     </Field>
