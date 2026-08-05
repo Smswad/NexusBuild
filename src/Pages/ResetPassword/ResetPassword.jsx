@@ -108,9 +108,9 @@ const ResetPassword = () => {
                         ) : (
                             <>
                                 <div className="w-16 h-16 rounded-full bg-[#eef3ff] flex items-center justify-center mx-auto">
-                                    <div className="w-6 h-6 border-2 border-[#0c326f] border-t-transparent rounded-full animate-spin" />
+                                    <span className="loading loading-spinner loading-lg text-[#0c326f]"></span>
                                 </div>
-                                <p className="text-xs text-slate-500">Verifying your reset link...</p>
+                                <p className="text-xs font-semibold text-[#0c326f]">Verifying your reset link...</p>
                             </>
                         )}
                     </div>
@@ -313,7 +313,12 @@ const ResetPassword = () => {
                                         disabled={loading}
                                         className="w-full bg-[#0c326f] hover:bg-[#092552] text-white py-3 px-4 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors duration-200 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                                     >
-                                        {loading ? 'Updating...' : (<>Update Password <ArrowRight size={14} /></>)}
+                                        {loading ? (
+                                            <span className="flex items-center gap-2">
+                                                <span className="loading loading-dots loading-sm text-white"></span>
+                                                Updating...
+                                            </span>
+                                        ) : (<>Update Password <ArrowRight size={14} /></>)}
                                     </button>
 
                                     <div className="border-t border-slate-100 my-4" />

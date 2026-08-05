@@ -302,7 +302,17 @@ const Login = () => {
                                         cursor-pointer
                                     "
                                 >
-                                    {redirecting ? 'Redirecting...' : loading ? 'Signing in...' : (
+                                    {redirecting ? (
+                                        <span className="flex items-center gap-2">
+                                            <span className="loading loading-spinner loading-xs text-white"></span>
+                                            Redirecting...
+                                        </span>
+                                    ) : loading ? (
+                                        <span className="flex items-center gap-2">
+                                            <span className="loading loading-dots loading-sm text-white"></span>
+                                            Signing in...
+                                        </span>
+                                    ) : (
                                         <>
                                             Sign In <ArrowRight size={16} />
                                         </>

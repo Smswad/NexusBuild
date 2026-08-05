@@ -365,7 +365,10 @@ const Register = () => {
                                         "
                                     >
                                         {loading ? (
-                                            'Registering...'
+                                            <span className="flex items-center gap-2">
+                                                <span className="loading loading-dots loading-sm text-[#5e2200]"></span>
+                                                Registering...
+                                            </span>
                                         ) : (
                                             <>
                                                 Register Account <ArrowRight size={16} />

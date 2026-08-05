@@ -22,6 +22,44 @@ const IMG_HERO = "/Frontend/Projects/Hero_Section.svg";
 const IMG_SERVICES = "/Frontend/Projects/Professional_Services_Remodeling.svg";
 const IMG_ABOUT = "/Frontend/Projects/Decades_of_Trust_in_Narayanganj.svg";
 
+const ImageWithSkeleton = ({ src, alt, className }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="relative w-full h-full overflow-hidden bg-[#edeeef]">
+            {!loaded && <div className="skeleton absolute inset-0 w-full h-full bg-[#e1e3e4]" />}
+            <img
+                src={src}
+                alt={alt}
+                onLoad={() => setLoaded(true)}
+                className={`${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+            />
+        </div>
+    );
+};
+
+const MapFrameWithSkeleton = ({ src, title }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="relative w-full h-full">
+            {!loaded && (
+                <div className="absolute inset-0 bg-[#000f22] flex items-center justify-center z-10">
+                    <div className="flex flex-col items-center gap-3 text-white">
+                        <span className="loading loading-spinner loading-lg text-[#fe762a]"></span>
+                        <span className="text-xs font-semibold text-[#768dad]">Loading Map Coordinates...</span>
+                    </div>
+                </div>
+            )}
+            <iframe
+                title={title}
+                src={src}
+                className="w-full h-full border-0 relative z-0"
+                loading="lazy"
+                onLoad={() => setLoaded(true)}
+            />
+        </div>
+    );
+};
+
 const Home = () => {
     const [selectedNeighborhood, setSelectedNeighborhood] = useState("Chashiara");
 
@@ -315,13 +353,11 @@ const Home = () => {
                         {/* Right: Map graphics preview */}
                         <div className="lg:col-span-7 bg-white p-3 border border-[#c4c6ce] rounded-[8px] overflow-hidden shadow-sm flex flex-col justify-between min-h-[380px] relative">
                             <div className="relative w-full h-full min-h-[340px] rounded-[4px] overflow-hidden bg-[#000f22] flex items-center justify-center">
-                                {/* Live OpenStreetMap interactive embed centered on selected neighborhood */}
-                                <iframe
+                                {/* Live OpenStreetMap interactive embed centered on selected neighborhood with loading spinner */}
+                                <MapFrameWithSkeleton
                                     key={selectedNbData.name}
                                     title={`NexusBuild GIS Map Preview — ${selectedNbData.name}`}
                                     src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedNbData.bbox}&layer=mapnik&marker=${selectedNbData.lat}%2C${selectedNbData.lng}`}
-                                    className="absolute inset-0 w-full h-full border-0"
-                                    loading="lazy"
                                 />
                                 {/* Fallback image background in case iframe loads slowly */}
                                 <img

@@ -100,7 +100,12 @@ const AdminLogin = () => {
                             disabled={loading}
                             className="w-full flex items-center justify-center gap-2 bg-[#0c326f] hover:bg-[#082554] text-white font-semibold text-[16px] py-3.5 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                         >
-                            {loading ? 'Signing in...' : (<>Sign In <ArrowRight size={16} /></>)}
+                            {loading ? (
+                                <span className="flex items-center gap-2">
+                                    <span className="loading loading-dots loading-sm text-white"></span>
+                                    Signing in...
+                                </span>
+                            ) : (<>Sign In <ArrowRight size={16} /></>)}
                         </button>
 
                         <p className="text-[12px] text-center text-[#74777e]">

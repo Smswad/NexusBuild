@@ -18,6 +18,21 @@ const IMG_ABOUT = "/Frontend/Projects/Decades_of_Trust_in_Narayanganj.svg";
 //   5. About Us Section
 // ─────────────────────────────────────────────────────────────────────────────
 
+const ImageWithSkeleton = ({ src, alt, className }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="relative w-full h-full overflow-hidden bg-[#edeeef]">
+            {!loaded && <div className="skeleton absolute inset-0 w-full h-full bg-[#e1e3e4]" />}
+            <img
+                src={src}
+                alt={alt}
+                onLoad={() => setLoaded(true)}
+                className={`${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+            />
+        </div>
+    );
+};
+
 const Projects = () => {
     // ── Filter State ──────────────────────────────────────────────────────────
     const [locationFilter, setLocationFilter] = useState("");
@@ -250,7 +265,7 @@ const Projects = () => {
                                 >
                                     {/* Card image area — Figma: 256px tall, with status pill overlay */}
                                     <div className="relative h-[200px] lg:h-[256px] overflow-hidden flex-shrink-0">
-                                        <img
+                                        <ImageWithSkeleton
                                             src={project.image}
                                             alt={project.name}
                                             className="absolute inset-0 w-full h-full object-cover"

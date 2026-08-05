@@ -63,6 +63,7 @@ const Contact = () => {
         subject:  '',
         message:  '',
     });
+    const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
     const handleChange = (e) =>
@@ -70,10 +71,13 @@ const Contact = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // No business logic change — placeholder submit handler
-        setSubmitted(true);
-        setTimeout(() => setSubmitted(false), 4000);
-        setForm({ fullName: '', email: '', subject: '', message: '' });
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            setSubmitted(true);
+            setTimeout(() => setSubmitted(false), 4000);
+            setForm({ fullName: '', email: '', subject: '', message: '' });
+        }, 400);
     };
 
     // OpenStreetMap embed — Shamabay New Market, Narayanganj
@@ -333,16 +337,27 @@ const Contact = () => {
                                 {/* Submit */}
                                 <button
                                     type="submit"
+                                    disabled={loading}
                                     className="
                                         w-full h-14 flex items-center justify-center gap-2
                                         bg-[#000f22] hover:bg-[#0a2540]
                                         text-white text-[14px] font-bold uppercase tracking-[0.1em]
                                         transition-colors duration-200
+                                        disabled:opacity-50 disabled:cursor-not-allowed
                                         mt-1
                                     "
                                 >
-                                    <Send size={15} />
-                                    SEND MESSAGE
+                                    {loading ? (
+                                        <span className="flex items-center gap-2">
+                                            <span className="loading loading-dots loading-sm text-white"></span>
+                                            SENDING MESSAGE...
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <Send size={15} />
+                                            SEND MESSAGE
+                                        </>
+                                    )}
                                 </button>
                             </form>
                         </div>

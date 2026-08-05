@@ -13,6 +13,21 @@ import Footer from "../../Components/Footer/Footer";
 // Styled consistently with Blueprint OS design tokens (#000f22, #fe762a, #f8f9fa).
 // ─────────────────────────────────────────────────────────────────────────────
 
+const ImageWithSkeleton = ({ src, alt, className }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="relative w-full h-full overflow-hidden bg-[#0a2540]">
+            {!loaded && <div className="skeleton absolute inset-0 w-full h-full bg-[#191c1d]" />}
+            <img
+                src={src}
+                alt={alt}
+                onLoad={() => setLoaded(true)}
+                className={`${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+            />
+        </div>
+    );
+};
+
 const ProjectDetails = () => {
     const { id } = useParams();
     const project = getProjectById(id);
@@ -91,13 +106,13 @@ const ProjectDetails = () => {
                     <div className="lg:col-span-7 flex flex-col gap-4">
                         {/* Main Featured Image */}
                         <div className="relative aspect-[16/10] bg-[#0a2540] rounded-[6px] overflow-hidden border border-white/10 shadow-lg">
-                            <img
+                            <ImageWithSkeleton
                                 src={galleryImages[activeImage]}
                                 alt={project.name}
                                 className="w-full h-full object-cover"
                             />
                             {/* Status badge */}
-                            <div className="absolute top-4 left-4">
+                            <div className="absolute top-4 left-4 z-10">
                                 <span
                                     className="text-[12px] font-bold text-white px-3.5 py-1.5 uppercase tracking-wider shadow-md rounded-[2px]"
                                     style={{ backgroundColor: project.statusBg }}
@@ -120,7 +135,7 @@ const ProjectDetails = () => {
                                                 : "border-transparent opacity-60 hover:opacity-100"
                                         }`}
                                     >
-                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <ImageWithSkeleton src={img} alt="" className="w-full h-full object-cover" />
                                     </button>
                                 ))}
                             </div>
