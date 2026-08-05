@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
-import { Search, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import { Search, LogOut, LayoutDashboard, Menu, X, MapPin, Building2 } from "lucide-react";
 import { useAuth } from "../../Context/AuthContext";
+import { PROJECTS } from "../../data/projectsData";
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 // Figma spec (Header - TopNavBar, consistent across all frames):
@@ -19,11 +20,233 @@ const NAV_LINKS = [
     { to: "/contact",  label: "Contact"  },
 ];
 
+const MAX_RESULTS = 7;
+
+// ── ProjectSearch ─────────────────────────────────────────────────────────────
+// Defined OUTSIDE Navbar so it is never recreated on parent re-renders.
+// This prevents the focus-loss bug caused by component identity changing.
+// ─────────────────────────────────────────────────────────────────────────────
+const ProjectSearch = ({ onNavigate, className = "" }) => {
+    const [query, setQuery]           = useState("");
+    const [results, setResults]       = useState([]);
+    const [open, setOpen]             = useState(false);
+    const [activeIdx, setActiveIdx]   = useState(-1);
+    const inputRef                    = useRef(null);
+    const containerRef                = useRef(null);
+    const debounceRef                 = useRef(null);
+
+    // ── Click outside → close ─────────────────────────────────────────────
+    useEffect(() => {
+        const handler = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setOpen(false);
+                setActiveIdx(-1);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
+    // ── Debounced filter ──────────────────────────────────────────────────
+    const filter = useCallback((q) => {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            const trimmed = q.trim().toLowerCase();
+            if (!trimmed) {
+                setResults([]);
+                setOpen(false);
+                return;
+            }
+            const matched = PROJECTS.filter((p) => {
+                const haystack = [p.name, p.location, p.fullAddress, p.type]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+                return haystack.includes(trimmed);
+            }).slice(0, MAX_RESULTS);
+            setResults(matched);
+            setOpen(true);
+            setActiveIdx(-1);
+        }, 175);
+    }, []);
+
+    const handleChange = (e) => {
+        const val = e.target.value;
+        setQuery(val);
+        filter(val);
+    };
+
+    const handleClear = () => {
+        setQuery("");
+        setResults([]);
+        setOpen(false);
+        setActiveIdx(-1);
+        inputRef.current?.focus();
+    };
+
+    const handleSelect = (project) => {
+        setQuery("");
+        setResults([]);
+        setOpen(false);
+        setActiveIdx(-1);
+        onNavigate(`/project-details/${project.id}`);
+    };
+
+    // ── Keyboard navigation (↑ ↓ Enter Escape) ───────────────────────────
+    const handleKeyDown = (e) => {
+        if (!open) return;
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActiveIdx((i) => Math.min(i + 1, results.length - 1));
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActiveIdx((i) => Math.max(i - 1, -1));
+        } else if (e.key === "Enter") {
+            if (activeIdx >= 0 && results[activeIdx]) {
+                handleSelect(results[activeIdx]);
+            }
+        } else if (e.key === "Escape") {
+            setOpen(false);
+            setActiveIdx(-1);
+            inputRef.current?.blur();
+        }
+    };
+
+    return (
+        <div ref={containerRef} className={`relative ${className}`}>
+            {/* ── Search Input ── */}
+            <div className="relative flex items-center">
+                <Search
+                    size={15}
+                    className="absolute left-3 text-[#74777e] pointer-events-none z-10"
+                />
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={query}
+                    onChange={handleChange}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => query.trim() && results.length >= 0 && setOpen(true)}
+                    placeholder="Search projects..."
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="
+                        pl-9 pr-8 py-[9px] w-full
+                        bg-[#f3f4f5] border border-[#c4c6ce] rounded-[4px]
+                        text-[14px] font-semibold text-[#191c1d] placeholder-[#6b7280]
+                        focus:outline-none focus:border-[#0a2540] focus:ring-1 focus:ring-[#0a2540]/20
+                        transition-all
+                    "
+                />
+                {/* Clear (×) button shown only when there's text */}
+                {query && (
+                    <button
+                        onMouseDown={(e) => { e.preventDefault(); handleClear(); }}
+                        className="absolute right-2.5 text-[#74777e] hover:text-[#191c1d] transition-colors"
+                        aria-label="Clear search"
+                    >
+                        <X size={14} />
+                    </button>
+                )}
+            </div>
+
+            {/* ── Dropdown ── */}
+            {open && (
+                <div className="
+                    absolute top-[calc(100%+6px)] left-0 right-0
+                    bg-white border border-[#c4c6ce] rounded-[6px] shadow-xl
+                    overflow-hidden z-[200]
+                    min-w-[300px]
+                ">
+                    {results.length === 0 ? (
+                        /* No results state */
+                        <div className="flex items-center gap-3 px-4 py-3.5 text-[#74777e]">
+                            <Search size={14} className="flex-shrink-0" />
+                            <span className="text-[13px] font-medium">
+                                No projects found for &ldquo;{query}&rdquo;
+                            </span>
+                        </div>
+                    ) : (
+                        <ul role="listbox" className="divide-y divide-[#f3f4f5]">
+                            {results.map((project, idx) => (
+                                <li key={project.id} role="option" aria-selected={idx === activeIdx}>
+                                    <button
+                                        onMouseDown={(e) => { e.preventDefault(); handleSelect(project); }}
+                                        onMouseEnter={() => setActiveIdx(idx)}
+                                        className={`
+                                            w-full text-left px-4 py-3 flex items-start gap-3
+                                            transition-colors duration-100 cursor-pointer
+                                            ${idx === activeIdx
+                                                ? "bg-[#000f22] text-white"
+                                                : "hover:bg-[#f3f4f5] text-[#191c1d]"
+                                            }
+                                        `}
+                                    >
+                                        {/* Icon badge */}
+                                        <div className={`
+                                            w-8 h-8 rounded-[3px] flex items-center justify-center flex-shrink-0 mt-0.5
+                                            ${idx === activeIdx ? "bg-white/15" : "bg-[#000f22]/8"}
+                                        `}>
+                                            <Building2
+                                                size={14}
+                                                className={idx === activeIdx ? "text-white" : "text-[#a14000]"}
+                                            />
+                                        </div>
+
+                                        {/* Text block */}
+                                        <div className="flex flex-col gap-0.5 min-w-0">
+                                            <span className={`
+                                                text-[13px] font-bold leading-tight truncate
+                                                ${idx === activeIdx ? "text-white" : "text-[#000f22]"}
+                                            `}>
+                                                {project.name}
+                                            </span>
+                                            <span className={`
+                                                text-[11px] flex items-center gap-1 truncate
+                                                ${idx === activeIdx ? "text-white/70" : "text-[#74777e]"}
+                                            `}>
+                                                <MapPin size={10} className="flex-shrink-0" />
+                                                {project.fullAddress || project.location}
+                                                {project.type && (
+                                                    <span className={`
+                                                        ml-1.5 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide rounded-[2px]
+                                                        ${idx === activeIdx
+                                                            ? "bg-white/20 text-white"
+                                                            : "bg-[#a14000]/10 text-[#a14000]"
+                                                        }
+                                                    `}>
+                                                        {project.type}
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </div>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {/* Footer hint */}
+                    <div className="px-4 py-2 bg-[#f8f9fa] border-t border-[#e1e3e4] flex items-center justify-between">
+                        <span className="text-[10px] text-[#9ea1a8] font-medium">
+                            {results.length > 0
+                                ? `${results.length} result${results.length !== 1 ? "s" : ""} — ↑↓ to navigate, Enter to open`
+                                : "Try a project name or location"}
+                        </span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 const Navbar = () => {
     const { user, loading, signOut } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
     const handleLogout = async () => {
         await signOut();
@@ -68,20 +291,10 @@ const Navbar = () => {
                 {/* ── Right: Search + Auth CTAs ── */}
                 <div className="hidden md:flex items-center gap-4">
                     {/* Search — Figma: 256×38, #f3f4f5 bg, r=4, #c4c6ce stroke */}
-                    <div className="relative flex items-center">
-                        <Search size={16} className="absolute left-3 text-[#74777e] pointer-events-none" />
-                        <input
-                            type="search"
-                            placeholder="Search projects..."
-                            className="
-                                pl-9 pr-4 py-[9px] w-56
-                                bg-[#f3f4f5] border border-[#c4c6ce] rounded-[4px]
-                                text-[14px] font-semibold text-[#191c1d] placeholder-[#6b7280]
-                                focus:outline-none focus:border-[#0a2540] focus:ring-1 focus:ring-[#0a2540]/20
-                                transition-all
-                            "
-                        />
-                    </div>
+                    <ProjectSearch
+                        onNavigate={navigate}
+                        className="w-56"
+                    />
 
                     {/* Auth CTAs */}
                     {!loading && (
@@ -126,15 +339,34 @@ const Navbar = () => {
                     )}
                 </div>
 
-                {/* ── Mobile Hamburger ── */}
-                <button
-                    className="md:hidden text-[#43474d] hover:text-[#000f22] focus:outline-none"
-                    onClick={() => setMobileOpen(!mobileOpen)}
-                    aria-label="Toggle menu"
-                >
-                    {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
+                {/* ── Mobile: Search icon + Hamburger ── */}
+                <div className="md:hidden flex items-center gap-3">
+                    <button
+                        onClick={() => { setMobileSearchOpen((s) => !s); setMobileOpen(false); }}
+                        className="text-[#43474d] hover:text-[#000f22] focus:outline-none"
+                        aria-label="Toggle search"
+                    >
+                        <Search size={22} />
+                    </button>
+                    <button
+                        className="text-[#43474d] hover:text-[#000f22] focus:outline-none"
+                        onClick={() => { setMobileOpen(!mobileOpen); setMobileSearchOpen(false); }}
+                        aria-label="Toggle menu"
+                    >
+                        {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </div>
+
+            {/* ── Mobile Search Bar (slide-down) ── */}
+            {mobileSearchOpen && (
+                <div className="md:hidden bg-[#f8f9fa] border-t border-[#c4c6ce] px-4 py-3">
+                    <ProjectSearch
+                        onNavigate={(path) => { navigate(path); setMobileSearchOpen(false); }}
+                        className="w-full"
+                    />
+                </div>
+            )}
 
             {/* ── Mobile Menu Drawer ── */}
             {mobileOpen && (
