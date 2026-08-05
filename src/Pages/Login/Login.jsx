@@ -44,8 +44,8 @@ const Login = () => {
         } else {
             // Record login log (non-blocking)
             supabase.rpc('record_login_log', {
-                p_user_agent:   navigator.userAgent ?? null,
-                p_ip_address:   null,
+                p_user_agent: navigator.userAgent ?? null,
+                p_ip_address: null,
                 p_login_method: 'email_password',
             }).then(({ error: logErr }) => {
                 if (logErr) console.warn('[Login Log] Failed to record login:', logErr.message);
@@ -94,8 +94,8 @@ const Login = () => {
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[165px] h-[165px] border border-white/10 rotate-45 flex items-center justify-center">
                             <div className="w-24 h-24 border border-white/20 flex items-center justify-center">
                                 <svg viewBox="0 0 92 92" fill="none" className="w-14 h-14 opacity-60">
-                                    <path d="M10 82L46 10L82 82H10Z" stroke="white" strokeWidth="2" fill="none"/>
-                                    <path d="M28 60L46 26L64 60H28Z" fill="white" fillOpacity="0.15"/>
+                                    <path d="M10 82L46 10L82 82H10Z" stroke="white" strokeWidth="2" fill="none" />
+                                    <path d="M28 60L46 26L64 60H28Z" fill="white" fillOpacity="0.15" />
                                 </svg>
                             </div>
                         </div>
@@ -326,12 +326,12 @@ const Login = () => {
                                             Create an account
                                         </Link>
                                     </p>
-                                    <Link
+                                    {/* <Link
                                         to="/admin"
                                         className="text-[11px] text-[#74777e] hover:text-[#0a2540] transition-colors duration-200"
                                     >
                                         Login as Admin
-                                    </Link>
+                                    </Link> */}
                                 </div>
                             </form>
                         </div>
