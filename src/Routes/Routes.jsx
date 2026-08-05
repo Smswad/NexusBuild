@@ -59,4 +59,7 @@ export const router = createBrowserRouter([
             { path: 'support',          Component: Support },
         ],
     },
+
+    // ── Catch-all Fallback Route ──────────────────────────────────────────────
+    { path: '*', Component: Error },
 ]);
