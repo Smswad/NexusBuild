@@ -47,24 +47,14 @@ export const router = createBrowserRouter([
             },
         ],
     },
-<<<<<<< HEAD
     { path: '/login',              Component: Login },
     { path: '/register',           Component: Register },
     { path: '/gismap',             Component: Gismap },
     { path: '/about',              Component: About },
     { path: '/contact',            Component: Contact },
     { path: '/reset-password',     Component: ResetPassword },
-    { path: '/admin',              Component: AdminLogin },
+    { path: '/admin-login',        Component: AdminLogin },
     { path: '/project-details/:id', Component: ProjectDetails },
-=======
-    { path: '/login',          Component: Login },
-    { path: '/register',       Component: Register },
-    { path: '/gismap',         Component: Gismap },
-    { path: '/about',          Component: About },
-    { path: '/contact',        Component: Contact },
-    { path: '/reset-password', Component: ResetPassword },
-    { path: '/admin-login',    Component: AdminLogin },
->>>>>>> 724d6de9260ff440a3c429a412b81117f59cba23
 
     // ── Protected Dashboard ───────────────────────────────────────────────────
     {
