@@ -10,6 +10,7 @@ import About from '../Pages/About/About';
 import Contact from '../Pages/Contact/Contact';
 import ResetPassword from '../Pages/ResetPassword/ResetPassword';
 import AdminLogin from '../Pages/AdminLogin/AdminLogin';
+import ProjectDetails from '../Pages/ProjectDetails/ProjectDetails';
 
 // Dashboard
 import Dashboard from '../Pages/Dashboard/Dashboard';
@@ -27,8 +28,7 @@ export const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                path: '/',
-                Component: Projects,
+                Component: Home,
             },
             {
                 path: 'projects',
@@ -36,13 +36,14 @@ export const router = createBrowserRouter([
             },
         ],
     },
-    { path: '/login',          Component: Login },
-    { path: '/register',       Component: Register },
-    { path: '/gismap',         Component: Gismap },
-    { path: '/about',          Component: About },
-    { path: '/contact',        Component: Contact },
-    { path: '/reset-password', Component: ResetPassword },
-    { path: '/admin',          Component: AdminLogin },
+    { path: '/login',              Component: Login },
+    { path: '/register',           Component: Register },
+    { path: '/gismap',             Component: Gismap },
+    { path: '/about',              Component: About },
+    { path: '/contact',            Component: Contact },
+    { path: '/reset-password',     Component: ResetPassword },
+    { path: '/admin',              Component: AdminLogin },
+    { path: '/project-details/:id', Component: ProjectDetails },
 
     // ── Protected Dashboard ───────────────────────────────────────────────────
     {
