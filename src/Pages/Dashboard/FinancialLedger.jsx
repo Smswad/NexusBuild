@@ -1,262 +1,149 @@
-import { Download, FileText, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Download, FileText, CheckCircle } from 'lucide-react';
+import { useClientData } from '../../Context/ClientDataContext';
 
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-const C = { iron:'#12151C', amber:'#C9973A', green:'#0A3D2E', paper:'#F4F1EB', steel:'#2C3748', alert:'#E84040', border:'#D4CFC7', muted:'#6B6762' };
-const F = { display:"'Barlow Semi Condensed', sans-serif", body:"'Barlow', sans-serif", mono:"'Roboto Mono', monospace" };
-
-// ─── Dummy Data ───────────────────────────────────────────────────────────────
-const CLIENT = { name: 'John Sardar', accountNo: 'NXB-2024-001', contractValue: 320000, totalPaid: 214900, balance: 105100, statementDate: 'July 2026' };
-
-const TRANSACTIONS = [
-    { id: 'TXN-001', date: '15 May 2026', desc: 'Initial Advance Payment',             type: 'Payment',    amount: -50000, status: 'Paid' },
-    { id: 'TXN-002', date: '01 Jun 2026', desc: 'Material Procurement Fee',             type: 'Charge',     amount: -3400,  status: 'Paid' },
-    { id: 'TXN-003', date: '15 Jun 2026', desc: 'Progress Payment – 30%',              type: 'Payment',    amount: -18500, status: 'Paid' },
-    { id: 'TXN-004', date: '01 Jul 2026', desc: 'Q2 Statement Adjustment (credit)',    type: 'Adjustment', amount: +1200,  status: 'Processed' },
-    { id: 'TXN-005', date: '15 Jul 2026', desc: 'Milestone Payment – Foundation Done', type: 'Payment',    amount: -25000, status: 'Paid' },
-    { id: 'TXN-006', date: '01 Aug 2026', desc: 'Phase 2 Mobilisation Fee',            type: 'Charge',     amount: -5000,  status: 'Pending' },
-    { id: 'TXN-007', date: '15 Aug 2026', desc: 'Progress Payment – 50%',              type: 'Payment',    amount: -28000, status: 'Pending' },
-    { id: 'TXN-008', date: '30 Jul 2026', desc: 'VAT on Services – Q2',                type: 'Tax',        amount: -4500,  status: 'Due' },
-];
-
-const STATUS_CONFIG = {
-    Paid:      { color: C.green,  icon: CheckCircle2 },
-    Processed: { color: C.steel,  icon: CheckCircle2 },
-    Pending:   { color: '#92400E', icon: Clock },
-    Due:       { color: C.alert,  icon: AlertCircle },
-};
-
-const fmt = (n) => (n < 0 ? '-' : '+') + '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2 });
-const fmtDollar = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2 });
-
-// ─── PDF print ────────────────────────────────────────────────────────────────
-const printStatement = (rows, title) => {
-    const rowsHtml = rows.map(t => `
-        <tr>
-            <td style="font-family:'Courier New',monospace">${t.id}</td>
-            <td style="font-family:'Courier New',monospace">${t.date}</td>
-            <td>${t.desc}</td>
-            <td>${t.type}</td>
-            <td style="text-align:right;font-family:'Courier New',monospace;font-weight:600;color:${t.amount < 0 ? '#1a1a1a' : '#0A3D2E'}">${fmt(t.amount)}</td>
-            <td style="text-align:center">${t.status}</td>
-        </tr>`).join('');
-    const win = window.open('', '_blank');
-    win.document.write(`
-        <html><head><title>${title}</title>
-        <style>
-            body { font-family: Arial, sans-serif; font-size: 12px; padding: 40px; color: #2C3748; background: #F4F1EB; }
-            .header { border: 2px solid #C9973A; padding: 16px; margin-bottom: 24px; }
-            .header h2 { margin: 0 0 4px; color: #12151C; font-size: 18px; letter-spacing: 0.06em; }
-            .header p { margin: 2px 0; color: #6B6762; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
-            .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #D4CFC7; margin-bottom: 24px; }
-            .sum-cell { background: #fff; padding: 12px 16px; }
-            .sum-cell .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em; color: #6B6762; margin-bottom: 4px; }
-            .sum-cell .val { font-family: 'Courier New', monospace; font-size: 18px; font-weight: 700; color: #2C3748; }
-            table { width: 100%; border-collapse: collapse; background: #fff; }
-            th { background: #2C3748; color: #fff; text-align: left; padding: 9px 12px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; }
-            td { padding: 9px 12px; border-bottom: 1px solid #F0EDE7; }
-            .footer { margin-top: 32px; font-size: 9px; color: #aaa; text-align: center; letter-spacing: 0.12em; text-transform: uppercase; }
-        </style></head>
-        <body>
-            <div class="header">
-                <h2>NEXUSBUILD — ${title}</h2>
-                <p>Client: ${CLIENT.name} &nbsp;|&nbsp; Account: ${CLIENT.accountNo} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString()}</p>
-            </div>
-            <div class="summary">
-                <div class="sum-cell"><div class="lbl">Contract Value</div><div class="val">${fmtDollar(CLIENT.contractValue)}</div></div>
-                <div class="sum-cell"><div class="lbl">Total Paid</div><div class="val">${fmtDollar(CLIENT.totalPaid)}</div></div>
-                <div class="sum-cell"><div class="lbl">Balance Due</div><div class="val">${fmtDollar(CLIENT.balance)}</div></div>
-            </div>
-            <table>
-                <thead><tr><th>ID</th><th>Date</th><th>Description</th><th>Type</th><th style="text-align:right">Amount</th><th style="text-align:center">Status</th></tr></thead>
-                <tbody>${rowsHtml}</tbody>
-            </table>
-            <div class="footer">NexusBuild Client Portal &mdash; Confidential &mdash; ${new Date().getFullYear()}</div>
-        </body></html>`);
-    win.document.close();
-    win.focus();
-    setTimeout(() => { win.print(); }, 300);
-};
-
-// ─── Shared header ────────────────────────────────────────────────────────────
-const PanelHeader = ({ title }) => (
-    <div style={{
-        padding: '11px 18px', background: C.steel,
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        fontFamily: F.display, fontWeight: 700, fontSize: 11,
-        color: '#fff', letterSpacing: '0.14em', textTransform: 'uppercase',
-    }}>{title}</div>
-);
-
-// ─── Component ─────────────────────────────────────────────────────────────────
-const FinancialLedger = () => {
-    const paidPct = Math.round((CLIENT.totalPaid / CLIENT.contractValue) * 100);
-
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-
-            {/* ── Page title row ───────────────────────────────────────────── */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                <div>
-                    <div style={{ fontFamily: F.display, fontWeight: 600, fontSize: 9, color: C.muted, letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 4 }}>
-                        Statement Period
-                    </div>
-                    <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 22, color: C.steel, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        {CLIENT.statementDate}
-                    </div>
-                    <div style={{ fontFamily: F.mono, fontSize: 11, color: C.muted, marginTop: 3 }}>
-                        Acct: {CLIENT.accountNo}
-                    </div>
+const PrintView = ({ financials, userProfile }) => (
+    <div id="print-area" className="hidden print:block bg-white text-black p-10 font-sans">
+        <div className="flex justify-between items-start border-b border-gray-300 pb-8 mb-8">
+            <div>
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 border-2 border-black flex items-center justify-center font-bold text-lg">N</div>
+                    <span className="font-bold text-xl tracking-widest uppercase">Reliance Housing LTD</span>
                 </div>
-                <button
-                    onClick={() => printStatement(TRANSACTIONS, 'Account Statement – ' + CLIENT.statementDate)}
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '10px 18px',
-                        background: C.iron, border: `1px solid ${C.amber}`,
-                        color: C.amber, fontFamily: F.display, fontWeight: 700,
-                        fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
-                        cursor: 'pointer', transition: 'background 0.12s',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = C.amber.replace(')', ', 0.1)').replace('rgb', 'rgba')}
-                    onMouseLeave={e => e.currentTarget.style.background = C.iron}
-                >
-                    <Download size={13} /> Download Statement
-                </button>
+                <div className="text-sm text-gray-600">Client Portal Account Statement</div>
             </div>
-
-            {/* ── Summary figures ──────────────────────────────────────────── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0, border: `1px solid ${C.border}` }}>
-                {[
-                    { label: 'Contract Value', value: fmtDollar(CLIENT.contractValue), accent: C.amber },
-                    { label: 'Amount Paid',    value: fmtDollar(CLIENT.totalPaid),     accent: C.green },
-                    { label: 'Balance Due',    value: fmtDollar(CLIENT.balance),       accent: C.alert },
-                ].map(({ label, value, accent }, i, arr) => (
-                    <div key={label} style={{
-                        background: '#fff', padding: '20px 22px',
-                        borderTop: `3px solid ${accent}`,
-                        borderRight: i < arr.length - 1 ? `1px solid ${C.border}` : 'none',
-                    }}>
-                        <div style={{ fontFamily: F.display, fontWeight: 600, fontSize: 9, color: C.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>
-                            {label}
-                        </div>
-                        <div style={{ fontFamily: F.mono, fontWeight: 600, fontSize: 24, color: C.steel }}>
-                            {value}
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* ── Budget Elevation Bar (Signature sub-element) ─────────────── */}
-            <div style={{ background: '#fff', border: `1px solid ${C.border}` }}>
-                <PanelHeader title="Budget Allocation Track" />
-                <div style={{ padding: '18px 22px' }}>
-                    {/* Labels above */}
-                    <div style={{ display: 'flex', marginBottom: 6 }}>
-                        <div style={{ width: `${paidPct}%`, fontFamily: F.display, fontWeight: 600, fontSize: 9, color: C.green, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-                            ← Paid {paidPct}%
-                        </div>
-                        <div style={{ flex: 1, fontFamily: F.display, fontWeight: 600, fontSize: 9, color: C.muted, letterSpacing: '0.14em', textTransform: 'uppercase', textAlign: 'right' }}>
-                            Remaining {100 - paidPct}% →
-                        </div>
-                    </div>
-                    {/* The bar track */}
-                    <div style={{ height: 28, display: 'flex', border: `1px solid ${C.border}`, overflow: 'hidden', position: 'relative' }}>
-                        {/* Paid – solid green */}
-                        <div style={{
-                            width: `${paidPct}%`, height: '100%',
-                            background: C.green,
-                            position: 'relative', flexShrink: 0,
-                        }}>
-                            {/* Tick marks */}
-                            {[25, 50, 75].filter(t => t < paidPct).map(t => (
-                                <div key={t} style={{
-                                    position: 'absolute', top: 0, bottom: 0,
-                                    left: `${(t / paidPct) * 100}%`,
-                                    width: 1, background: 'rgba(255,255,255,0.2)',
-                                }} />
-                            ))}
-                        </div>
-                        {/* Remaining – diagonal hatch */}
-                        <div style={{
-                            flex: 1,
-                            backgroundImage: 'repeating-linear-gradient(45deg, rgba(201,151,58,0.15), rgba(201,151,58,0.15) 3px, transparent 3px, transparent 9px)',
-                            borderLeft: `2px solid ${C.amber}`,
-                        }} />
-                    </div>
-                    {/* Dollar labels below */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-                        <span style={{ fontFamily: F.mono, fontSize: 10, color: C.green }}>$0</span>
-                        <span style={{ fontFamily: F.mono, fontSize: 10, color: C.muted }}>
-                            Paid: {fmtDollar(CLIENT.totalPaid)}&emsp;|&emsp;Balance: {fmtDollar(CLIENT.balance)}
-                        </span>
-                        <span style={{ fontFamily: F.mono, fontSize: 10, color: C.steel }}>{fmtDollar(CLIENT.contractValue)}</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Transactions Table ───────────────────────────────────────── */}
-            <div style={{ background: '#fff', border: `1px solid ${C.border}` }}>
-                <PanelHeader title={`All Transactions — ${TRANSACTIONS.length} Records`} />
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ background: C.paper }}>
-                            {['Ref ID', 'Date', 'Description', 'Type', 'Amount', 'Status', 'Receipt'].map((h, i) => (
-                                <th key={h} style={{
-                                    padding: '9px 18px',
-                                    fontFamily: F.display, fontWeight: 600, fontSize: 8,
-                                    color: C.muted, letterSpacing: '0.2em', textTransform: 'uppercase',
-                                    textAlign: i === 4 ? 'right' : i >= 5 ? 'center' : 'left',
-                                    borderBottom: `1px solid ${C.border}`,
-                                }}>{h}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {TRANSACTIONS.map((t, i) => {
-                            const { color, icon: StatusIcon } = STATUS_CONFIG[t.status] || STATUS_CONFIG.Pending;
-                            return (
-                                <tr key={t.id} style={{ borderBottom: i < TRANSACTIONS.length - 1 ? `1px solid ${C.border}` : 'none' }}>
-                                    <td style={{ padding: '11px 18px', fontFamily: F.mono, fontSize: 10, color: C.muted }}>{t.id}</td>
-                                    <td style={{ padding: '11px 18px', fontFamily: F.mono, fontSize: 11, color: C.muted, whiteSpace: 'nowrap' }}>{t.date}</td>
-                                    <td style={{ padding: '11px 18px', fontFamily: F.body, fontSize: 12, color: C.steel }}>{t.desc}</td>
-                                    <td style={{ padding: '11px 18px', fontFamily: F.display, fontSize: 9, color: C.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{t.type}</td>
-                                    <td style={{ padding: '11px 18px', fontFamily: F.mono, fontWeight: 500, fontSize: 12, color: t.amount < 0 ? C.steel : C.green, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                                        {fmt(t.amount)}
-                                    </td>
-                                    <td style={{ padding: '11px 18px', textAlign: 'center' }}>
-                                        <span style={{
-                                            display: 'inline-flex', alignItems: 'center', gap: 4,
-                                            fontFamily: F.display, fontWeight: 600, fontSize: 9,
-                                            letterSpacing: '0.12em', textTransform: 'uppercase',
-                                            padding: '3px 8px', border: `1px solid ${color}`, color,
-                                        }}>
-                                            <StatusIcon size={9} /> {t.status}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '11px 18px', textAlign: 'center' }}>
-                                        <button
-                                            onClick={() => printStatement([t], `Receipt – ${t.id}`)}
-                                            title="Download receipt"
-                                            style={{
-                                                width: 28, height: 28, display: 'inline-flex',
-                                                alignItems: 'center', justifyContent: 'center',
-                                                background: 'transparent',
-                                                border: `1px solid ${C.border}`, color: C.muted,
-                                                cursor: 'pointer', transition: 'all 0.12s',
-                                            }}
-                                            onMouseEnter={e => { e.currentTarget.style.borderColor = C.amber; e.currentTarget.style.color = C.amber; }}
-                                            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.muted; }}
-                                        >
-                                            <FileText size={12} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+            <div className="text-right">
+                <div className="font-bold text-lg mb-1">Statement Date: {new Date().toLocaleDateString()}</div>
+                <div className="text-sm text-gray-600">Client: {userProfile.name}</div>
             </div>
         </div>
+
+        <table className="w-full text-left border-collapse mb-8">
+            <thead>
+                <tr className="border-b-2 border-black">
+                    <th className="py-2 text-xs uppercase tracking-wider text-gray-600">Installment No.</th>
+                    <th className="py-2 text-xs uppercase tracking-wider text-gray-600">Due Date</th>
+                    <th className="py-2 text-xs uppercase tracking-wider text-gray-600 text-right">Amount (৳)</th>
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+                {financials.installments.map((t) => (
+                    <tr key={t.id}>
+                        <td className="py-3 text-sm">{t.installment}</td>
+                        <td className="py-3 text-sm">{t.dueDate}</td>
+                        <td className="py-3 font-bold text-sm text-right">{t.amount}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+);
+
+const FinancialLedger = () => {
+    const { financials, userProfile, downloadStatement } = useClientData();
+
+    return (
+        <>
+            <PrintView financials={financials} userProfile={userProfile} />
+            
+            <div className="flex flex-col gap-6 print:hidden max-w-5xl">
+                
+                {/* ── Financial Ledger Overview (Center Column matching Figma) ── */}
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm">
+                    <div className="p-6 flex items-center justify-between border-b border-[#E2E8F0]">
+                        <h2 className="text-[#003178] font-bold text-[18px]">Financial Ledger Overview</h2>
+                        <button 
+                            onClick={downloadStatement}
+                            className="flex items-center gap-2 text-[#003178] font-bold text-sm hover:underline"
+                        >
+                            <Download size={16} /> Statement
+                        </button>
+                    </div>
+                    
+                    <div className="divide-y divide-[#E2E8F0] px-6 py-2">
+                        <div className="flex justify-between items-center py-4">
+                            <span className="text-slate-600 font-medium">Total Property Valuation</span>
+                            <span className="text-slate-800 font-bold text-base">৳ {financials.totalValuation}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-4">
+                            <span className="text-slate-600 font-medium">Total Amount Paid to Date</span>
+                            <span className="text-[#006E1C] font-bold text-base">৳ {financials.totalPaid}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-4">
+                            <span className="text-slate-600 font-medium">Utility/Other Charges</span>
+                            <span className="text-slate-800 font-bold text-base">৳ {financials.otherCharges}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-4 bg-[#FDF2F2] rounded my-2 border border-red-100">
+                            <span className="text-[#9B1C1C] font-bold">Current Due Balance</span>
+                            <span className="text-[#9B1C1C] font-bold text-lg">৳ {financials.dueBalance}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Installment Schedule Table ── */}
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-[#E2E8F0]">
+                        <h2 className="text-[#003178] font-bold text-[18px]">Installment Schedule</h2>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-[#F7F9FB] border-b border-[#E2E8F0]">
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Installment No.</th>
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Due Date</th>
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Amount (৳)</th>
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                                {financials.installments.map((t) => (
+                                    <tr key={t.id} className={`hover:bg-slate-50 ${t.active ? 'bg-blue-50/30 border-l-4 border-l-[#003178]' : 'border-l-4 border-l-transparent'}`}>
+                                        <td className={`py-4 px-6 text-sm font-medium ${t.active ? 'text-slate-800 font-bold' : 'text-slate-700'}`}>
+                                            {t.installment}
+                                        </td>
+                                        <td className={`py-4 px-6 text-sm ${t.active ? 'text-[#003178] font-bold' : 'text-slate-500'}`}>
+                                            {t.dueDate}
+                                        </td>
+                                        <td className={`py-4 px-6 text-sm font-bold text-right ${t.active ? 'text-slate-800' : 'text-slate-700'}`}>
+                                            {t.amount}
+                                        </td>
+                                        <td className="py-4 px-6 text-right">
+                                            <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${t.statusPill}`}>
+                                                {t.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* ── Recent Transactions ── */}
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6">
+                    <h2 className="text-[#003178] font-bold text-[18px] mb-5">Recent Transactions</h2>
+                    
+                    <div className="flex flex-col gap-5">
+                        {financials.transactions.map((item, idx) => (
+                            <div key={item.id} className="flex items-center gap-4 border-b border-[#E2E8F0] pb-4 last:border-0 last:pb-0">
+                                <div className="w-10 h-10 rounded-full bg-[#DEF7EC] flex items-center justify-center text-[#03543F] flex-shrink-0">
+                                    <CheckCircle size={20} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-bold text-slate-800 text-sm">৳ {item.amount}</div>
+                                    <div className="text-xs text-slate-500 mt-0.5 truncate">{item.date} • {item.type}</div>
+                                </div>
+                                <button className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[#003178] hover:bg-blue-100 transition-colors">
+                                    <FileText size={16} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+            </div>
+        </>
     );
 };
 
