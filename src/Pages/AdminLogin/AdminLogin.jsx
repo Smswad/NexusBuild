@@ -28,7 +28,7 @@ const AdminLogin = () => {
                     console.error('Failed to log admin login:', e);
                 }
                 setLoading(false);
-                window.location.href = '/admin.html';
+                navigate('/admin');
             } else {
                 try {
                     await supabase.rpc('record_admin_auth_log', {

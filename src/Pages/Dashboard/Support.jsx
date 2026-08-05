@@ -1,320 +1,193 @@
 import { useState } from 'react';
-import { Send, ChevronDown, ChevronUp, CheckCircle2, AlertCircle, Clock, Phone, Mail, MessageSquare } from 'lucide-react';
+import { Send, MessageSquare, ChevronDown, ChevronUp, Clock, HelpCircle, Phone, Mail } from 'lucide-react';
+import { useClientData } from '../../Context/ClientDataContext';
 
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-const C = { iron:'#12151C', amber:'#C9973A', green:'#0A3D2E', paper:'#F4F1EB', steel:'#2C3748', alert:'#E84040', border:'#D4CFC7', muted:'#6B6762' };
-const F = { display:"'Barlow Semi Condensed', sans-serif", body:"'Barlow', sans-serif", mono:"'Roboto Mono', monospace" };
-
-// ─── Dummy Data ───────────────────────────────────────────────────────────────
-const MY_TICKETS = [
-    { id: 'TKT-0024', subject: 'Request for site visit schedule',  priority: 'Normal', status: 'Resolved',  date: '10 Jul 2026', sc: C.green },
-    { id: 'TKT-0031', subject: 'Payment receipt not received',      priority: 'High',   status: 'Open',      date: '18 Jul 2026', sc: C.alert },
-    { id: 'TKT-0035', subject: 'Change request – kitchen layout',  priority: 'Normal', status: 'In Review', date: '21 Jul 2026', sc: C.amber },
-];
-
-const FAQS = [
-    { q: 'How often will I receive progress updates?',        a: 'You will receive a formal progress report every two weeks via email, plus real-time updates are available here in your Client Portal.' },
-    { q: 'What payment methods are accepted?',                a: 'We accept bank transfers, cheques, and mobile banking (bKash, Nagad). All payment details are shown on your invoice.' },
-    { q: 'How do I request a design change?',                 a: 'Submit a support ticket with your request. Our team will assess the impact on timeline and cost, and get back to you within 3 business days.' },
-    { q: 'Can I visit the construction site?',                a: 'Yes. Please request a site visit through a support ticket at least 48 hours in advance. A safety induction is required on your first visit.' },
-    { q: 'What does the warranty cover after handover?',      a: 'NexusBuild provides a 12-month defects liability period after handover, covering structural and finishing defects at no cost to you.' },
-];
-
-const PRIORITY_COLOR = { High: C.alert, Normal: C.steel, Low: C.green };
-const STATUS_ICON    = { Resolved: CheckCircle2, Open: AlertCircle, 'In Review': Clock };
-
-// ─── Panel Header ─────────────────────────────────────────────────────────────
-const PanelHeader = ({ title, icon: Icon }) => (
-    <div style={{
-        display: 'flex', alignItems: 'center', gap: 9,
-        padding: '11px 18px', background: C.steel,
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-    }}>
-        {Icon && <Icon size={12} color={C.amber} />}
-        <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 11, color: '#fff', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-            {title}
-        </span>
-    </div>
-);
-
-// ─── Input styles ─────────────────────────────────────────────────────────────
-const inputStyle = {
-    width: '100%', padding: '9px 12px',
-    background: C.paper,
-    border: 'none', borderBottom: `1px solid ${C.border}`,
-    outline: 'none',
-    fontFamily: F.body, fontSize: 12, color: C.steel,
-    boxSizing: 'border-box',
-    transition: 'border-color 0.12s',
-};
-
-// ─── Component ─────────────────────────────────────────────────────────────────
 const Support = () => {
-    const [form,      setForm]      = useState({ subject: '', priority: 'Normal', message: '' });
-    const [submitted, setSubmitted] = useState(false);
-    const [openFaq,   setOpenFaq]   = useState(null);
-    const [focusedField, setFocused] = useState(null);
+    const { support, submitTicket } = useClientData();
+    const { exec, faqs, tickets } = support;
 
-    const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
-    const handleSubmit = (e) => {
+    const [openFaq, setOpenFaq] = useState(0);
+    const [inquiryType, setInquiryType] = useState('General Question');
+    const [subject, setSubject] = useState('');
+
+    const handleTicketSubmit = (e) => {
         e.preventDefault();
-        console.log('[STUB] Ticket submitted:', form);
-        setSubmitted(true);
-        setTimeout(() => { setSubmitted(false); setForm({ subject: '', priority: 'Normal', message: '' }); }, 3500);
+        if (!subject.trim()) {
+            alert('Please enter a subject for your ticket.');
+            return;
+        }
+        submitTicket(inquiryType, subject, '');
+        setSubject('');
+    };
+
+    const handleMessageSubmit = (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const msg = form.elements.msg.value;
+        if (!msg.trim()) return;
+        submitTicket('Message', 'Direct Message to ' + exec.name, msg);
+        form.reset();
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-
-            {/* ── Page title ── */}
-            <div>
-                <div style={{ fontFamily: F.display, fontWeight: 600, fontSize: 9, color: C.muted, letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 4 }}>
-                    Client Services
-                </div>
-                <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 22, color: C.steel, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Support Centre
-                </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 22 }}>
-
-                {/* ── Left column ── */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-                    {/* New Ticket */}
-                    <div style={{ border: `1px solid ${C.border}`, background: '#fff' }}>
-                        <PanelHeader title="Submit New Ticket" icon={MessageSquare} />
-
-                        {submitted ? (
-                            <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                                <div style={{
-                                    width: 44, height: 44,
-                                    border: `2px solid ${C.green}`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                }}>
-                                    <CheckCircle2 size={22} color={C.green} />
-                                </div>
-                                <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: C.steel, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                                    Ticket Submitted
-                                </div>
-                                <div style={{ fontFamily: F.body, fontSize: 12, color: C.muted }}>
-                                    Our team will respond within 24 hours.
-                                </div>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleSubmit} style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                                {/* Subject + Priority row */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: 14 }}>
-                                    <div>
-                                        <div style={{ fontFamily: F.display, fontWeight: 600, fontSize: 8, color: C.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>
-                                            Subject
-                                        </div>
-                                        <input
-                                            name="subject" value={form.subject} onChange={handleChange} required
-                                            placeholder="Brief description of your request"
-                                            style={{
-                                                ...inputStyle,
-                                                borderBottomColor: focusedField === 'subject' ? C.amber : C.border,
-                                            }}
-                                            onFocus={() => setFocused('subject')}
-                                            onBlur={() => setFocused(null)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <div style={{ fontFamily: F.display, fontWeight: 600, fontSize: 8, color: C.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>
-                                            Priority
-                                        </div>
-                                        <select
-                                            name="priority" value={form.priority} onChange={handleChange}
-                                            style={{
-                                                ...inputStyle,
-                                                borderBottomColor: focusedField === 'priority' ? C.amber : C.border,
-                                                cursor: 'pointer',
-                                            }}
-                                            onFocus={() => setFocused('priority')}
-                                            onBlur={() => setFocused(null)}
-                                        >
-                                            <option>Low</option>
-                                            <option>Normal</option>
-                                            <option>High</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                {/* Message */}
-                                <div>
-                                    <div style={{ fontFamily: F.display, fontWeight: 600, fontSize: 8, color: C.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>
-                                        Message
-                                    </div>
-                                    <textarea
-                                        name="message" value={form.message} onChange={handleChange} required rows={4}
-                                        placeholder="Describe your issue or request in detail…"
-                                        style={{
-                                            ...inputStyle,
-                                            resize: 'none',
-                                            borderBottom: `1px solid ${focusedField === 'message' ? C.amber : C.border}`,
-                                        }}
-                                        onFocus={() => setFocused('message')}
-                                        onBlur={() => setFocused(null)}
-                                    />
-                                </div>
-
-                                <div>
-                                    <button
-                                        type="submit"
-                                        style={{
-                                            display: 'inline-flex', alignItems: 'center', gap: 8,
-                                            padding: '10px 20px',
-                                            background: C.iron, border: `1px solid ${C.amber}`,
-                                            color: C.amber, fontFamily: F.display, fontWeight: 700,
-                                            fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
-                                            cursor: 'pointer',
-                                        }}
-                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,151,58,0.1)'}
-                                        onMouseLeave={e => e.currentTarget.style.background = C.iron}
-                                    >
-                                        <Send size={12} /> Submit Ticket
-                                    </button>
-                                </div>
-                            </form>
-                        )}
+        <div className="flex gap-6 max-w-6xl items-start">
+            
+            {/* ══ LEFT COLUMN: Contact & Form ════════════════════════════════ */}
+            <div className="w-[360px] flex-shrink-0 flex flex-col gap-6">
+                
+                {/* Account Exec Contact Card (Matches Overview style) */}
+                <div className="bg-[#0F3A70] rounded-lg shadow-sm p-6 text-white">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-14 h-14 rounded-full bg-white border-2 border-[#A0B2C6] overflow-hidden flex-shrink-0 flex items-center justify-center font-bold text-[#0F3A70] text-xl">
+                            {exec.name.charAt(0)}
+                        </div>
+                        <div>
+                            <div className="font-bold text-[16px]">{exec.name}</div>
+                            <div className="text-[#A0B2C6] text-xs mt-1">{exec.role}</div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-3 mb-6">
+                        <div className="flex items-center gap-3 text-[#A0B2C6] text-sm">
+                            <Mail size={16} /> {exec.email}
+                        </div>
+                        <div className="flex items-center gap-3 text-[#A0B2C6] text-sm">
+                            <Phone size={16} /> {exec.phone}
+                        </div>
                     </div>
 
-                    {/* My Tickets */}
-                    <div style={{ border: `1px solid ${C.border}`, background: '#fff' }}>
-                        <PanelHeader title={`My Tickets — ${MY_TICKETS.length} Records`} />
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <form className="relative" onSubmit={handleMessageSubmit}>
+                        <textarea 
+                            name="msg"
+                            rows="3" 
+                            className="w-full bg-white rounded-lg p-3 pr-12 text-sm text-slate-800 placeholder-slate-400 focus:outline-none resize-none"
+                            placeholder={`Message ${exec.name.split(' ')[0]} regarding your account...`}
+                        />
+                        <button type="submit" className="absolute right-2 bottom-2 w-8 h-8 bg-[#003178] text-white rounded-md flex items-center justify-center hover:bg-[#0A2550] transition-colors shadow-sm">
+                            <Send size={14} />
+                        </button>
+                    </form>
+                </div>
+
+                {/* Submit Formal Inquiry Form */}
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm">
+                    <div className="p-5 border-b border-[#E2E8F0] flex items-center gap-3">
+                        <MessageSquare size={18} className="text-[#003178]" />
+                        <h3 className="font-bold text-[16px] text-[#003178]">Submit Support Ticket</h3>
+                    </div>
+                    <form className="p-5 flex flex-col gap-4" onSubmit={handleTicketSubmit}>
+                        
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Inquiry Type</label>
+                            <select 
+                                value={inquiryType}
+                                onChange={(e) => setInquiryType(e.target.value)}
+                                className="w-full bg-[#F0F4F8] border border-transparent rounded-lg p-3 text-sm text-slate-800 focus:outline-none focus:border-[#003178] focus:bg-white transition-colors"
+                            >
+                                <option>General Question</option>
+                                <option>Change Order Request</option>
+                                <option>Billing & Finance</option>
+                                <option>Technical Support</option>
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Subject</label>
+                            <input 
+                                type="text" 
+                                value={subject}
+                                onChange={(e) => setSubject(e.target.value)}
+                                placeholder="Brief summary of your request"
+                                className="w-full bg-[#F0F4F8] border border-transparent rounded-lg p-3 text-sm text-slate-800 focus:outline-none focus:border-[#003178] focus:bg-white transition-colors"
+                            />
+                        </div>
+
+                        <button type="submit" className="mt-2 w-full flex items-center justify-center gap-2 bg-[#003178] text-white px-5 py-3.5 rounded-lg hover:bg-[#0A2550] transition-colors text-[13px] font-bold uppercase tracking-wider shadow-sm">
+                            <Send size={16} /> Open Ticket
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            {/* ══ RIGHT COLUMN: Tickets & FAQs ═══════════════════════════════ */}
+            <div className="flex-1 flex flex-col gap-6">
+                
+                {/* Active Tickets Table */}
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-[#E2E8F0] flex items-center justify-between">
+                        <h3 className="font-bold text-[18px] text-[#003178]">Recent Tickets</h3>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr style={{ background: C.paper }}>
-                                    {['Ref ID', 'Subject', 'Priority', 'Date', 'Status'].map((h, i) => (
-                                        <th key={h} style={{
-                                            padding: '9px 18px',
-                                            fontFamily: F.display, fontWeight: 600, fontSize: 8,
-                                            color: C.muted, letterSpacing: '0.2em', textTransform: 'uppercase',
-                                            textAlign: i === 4 ? 'center' : 'left',
-                                            borderBottom: `1px solid ${C.border}`,
-                                        }}>{h}</th>
-                                    ))}
+                                <tr className="bg-[#F7F9FB] border-b border-[#E2E8F0]">
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ticket ID</th>
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Subject & Date</th>
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {MY_TICKETS.map((t, i) => {
-                                    const StatusIcon = STATUS_ICON[t.status] || Clock;
-                                    return (
-                                        <tr key={t.id} style={{ borderBottom: i < MY_TICKETS.length - 1 ? `1px solid ${C.border}` : 'none' }}>
-                                            <td style={{ padding: '11px 18px', fontFamily: F.mono, fontSize: 10, color: C.muted }}>{t.id}</td>
-                                            <td style={{ padding: '11px 18px', fontFamily: F.body, fontSize: 12, color: C.steel }}>{t.subject}</td>
-                                            <td style={{ padding: '11px 18px' }}>
-                                                <span style={{
-                                                    fontFamily: F.display, fontWeight: 600, fontSize: 9,
-                                                    color: PRIORITY_COLOR[t.priority], letterSpacing: '0.1em',
-                                                    textTransform: 'uppercase',
-                                                }}>{t.priority}</span>
-                                            </td>
-                                            <td style={{ padding: '11px 18px', fontFamily: F.mono, fontSize: 11, color: C.muted, whiteSpace: 'nowrap' }}>{t.date}</td>
-                                            <td style={{ padding: '11px 18px', textAlign: 'center' }}>
-                                                <span style={{
-                                                    display: 'inline-flex', alignItems: 'center', gap: 4,
-                                                    fontFamily: F.display, fontWeight: 600, fontSize: 9,
-                                                    letterSpacing: '0.12em', textTransform: 'uppercase',
-                                                    padding: '3px 8px', border: `1px solid ${t.sc}`, color: t.sc,
-                                                }}>
-                                                    <StatusIcon size={9} /> {t.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                                {tickets.map((t) => (
+                                    <tr key={t.id} className="hover:bg-slate-50">
+                                        <td className="py-4 px-6 font-mono text-sm font-bold text-[#003178]">{t.id}</td>
+                                        <td className="py-4 px-6">
+                                            <div className="text-sm font-bold text-slate-800">{t.subject}</div>
+                                            <div className="text-xs text-slate-500 mt-1">{t.date}</div>
+                                        </td>
+                                        <td className="py-4 px-6 text-right">
+                                            <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${
+                                                t.status === 'Resolved' 
+                                                    ? 'bg-slate-100 text-slate-600' 
+                                                    : 'bg-[#E1EFFE] text-[#1E429F]'
+                                            }`}>
+                                                {t.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {/* ── Right column ── */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-                    {/* Contact Panel — blueprint dark style */}
-                    <div style={{ border: `1px solid ${C.border}` }}>
-                        <div style={{
-                            background: C.iron,
-                            backgroundImage: [
-                                'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)',
-                                'linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
-                            ].join(','),
-                            backgroundSize: '16px 16px',
-                            padding: '18px 20px 16px',
-                        }}>
-                            <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 9, color: C.amber, letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 6 }}>
-                                Direct Contact
-                            </div>
-                            <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15, color: '#fff', letterSpacing: '0.04em' }}>
-                                Urgent help?
-                            </div>
-                            <div style={{ fontFamily: F.body, fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, lineHeight: 1.5 }}>
-                                Contact your dedicated project manager directly.
-                            </div>
-                        </div>
-                        <div style={{ background: '#fff' }}>
-                            {[
-                                { icon: Phone, label: 'Call',  value: '+880 1700-000000' },
-                                { icon: Mail,  label: 'Email', value: 'support@nexusbuild.com' },
-                                { icon: Clock, label: 'Hours', value: 'Sun–Thu  09:00–18:00' },
-                            ].map(({ icon: Icon, label, value }, i, arr) => (
-                                <div key={label} style={{
-                                    display: 'flex', alignItems: 'center', gap: 12,
-                                    padding: '12px 20px',
-                                    borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none',
-                                }}>
-                                    <Icon size={13} color={C.amber} style={{ flexShrink: 0 }} />
-                                    <div>
-                                        <div style={{ fontFamily: F.display, fontWeight: 600, fontSize: 8, color: C.muted, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{label}</div>
-                                        <div style={{ fontFamily: F.body, fontSize: 12, color: C.steel, marginTop: 1 }}>{value}</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                {/* FAQs */}
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden flex-1">
+                    <div className="p-6 border-b border-[#E2E8F0] flex items-center gap-3">
+                        <HelpCircle size={18} className="text-[#003178]" />
+                        <h3 className="font-bold text-[18px] text-[#003178]">Frequently Asked Questions</h3>
                     </div>
-
-                    {/* FAQ — Technical Notes style */}
-                    <div style={{ border: `1px solid ${C.border}`, background: '#fff' }}>
-                        <PanelHeader title="Technical Notes / FAQ" />
-                        <div>
-                            {FAQS.map((f, i) => (
-                                <div key={i} style={{ borderBottom: i < FAQS.length - 1 ? `1px solid ${C.border}` : 'none' }}>
-                                    <button
-                                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                                        style={{
-                                            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                                            padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer',
-                                            textAlign: 'left',
-                                        }}
+                    <div className="divide-y divide-[#E2E8F0]">
+                        {faqs.map((faq, i) => {
+                            const isOpen = openFaq === i;
+                            return (
+                                <div key={i} className="transition-colors">
+                                    <button 
+                                        onClick={() => setOpenFaq(isOpen ? -1 : i)}
+                                        className={`w-full p-6 flex items-start justify-between text-left transition-colors ${isOpen ? 'bg-blue-50/30' : 'hover:bg-slate-50'}`}
                                     >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                            <span style={{ fontFamily: F.mono, fontSize: 10, color: C.amber, flexShrink: 0 }}>
-                                                {String(i + 1).padStart(2, '0')}
-                                            </span>
-                                            <span style={{ fontFamily: F.display, fontWeight: 600, fontSize: 12, color: openFaq === i ? C.amber : C.steel, letterSpacing: '0.02em' }}>
-                                                {f.q}
-                                            </span>
-                                        </div>
-                                        {openFaq === i
-                                            ? <ChevronUp size={13} color={C.amber} style={{ flexShrink: 0 }} />
-                                            : <ChevronDown size={13} color={C.muted} style={{ flexShrink: 0 }} />
-                                        }
+                                        <span className={`font-bold text-[15px] pr-8 ${isOpen ? 'text-[#003178]' : 'text-slate-800'}`}>
+                                            {faq.q}
+                                        </span>
+                                        {isOpen ? (
+                                            <ChevronUp size={20} className="text-[#003178] flex-shrink-0" />
+                                        ) : (
+                                            <ChevronDown size={20} className="text-slate-400 flex-shrink-0" />
+                                        )}
                                     </button>
-                                    {openFaq === i && (
-                                        <div style={{
-                                            padding: '0 18px 14px 40px',
-                                            fontFamily: F.body, fontSize: 12, color: C.muted, lineHeight: 1.7,
-                                        }}>
-                                            {f.a}
+                                    
+                                    {isOpen && (
+                                        <div className="px-6 pb-6 text-[14px] text-slate-600 leading-relaxed pt-2 bg-blue-50/30">
+                                            {faq.a}
                                         </div>
                                     )}
                                 </div>
-                            ))}
-                        </div>
+                            )
+                        })}
                     </div>
                 </div>
+
             </div>
         </div>
     );
