@@ -11,8 +11,6 @@ export const AuthProvider = ({ children }) => {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user) {
-                // To keep the app logic working seamlessly, we'll map the role and id
-                // If it's the admin user, attach role 'admin', else 'client'
                 const isadmin = session.user.email === 'admin@reliance.com';
                 setUser({
                     id: session.user.id,
@@ -46,16 +44,36 @@ export const AuthProvider = ({ children }) => {
     const signIn = async (email, password) => {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        
+        // Record login log
+        supabase.rpc('record_login_log', {
+            p_user_agent: navigator.userAgent ?? null,
+            p_ip_address: null,
+            p_login_method: 'email_password',
+        }).then(({ error: logErr }) => {
+            if (logErr) console.warn('[Login Log] Failed to record login:', logErr.message);
+        });
+
         return data;
     };
 
     const signOut = async () => {
+        try {
+            await supabase.rpc('record_auth_log', {
+                p_event_type: 'LOGOUT',
+                p_user_agent: navigator.userAgent ?? null,
+            });
+        } catch (err) {
+            console.warn('[Logout Log] Failed to record logout:', err.message);
+        }
+        
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
+        setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+        <AuthContext.Provider value={{ user, setUser, loading, signIn, signOut }}>
             {children}
         </AuthContext.Provider>
     );

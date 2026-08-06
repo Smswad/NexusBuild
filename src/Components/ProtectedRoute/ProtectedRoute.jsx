@@ -12,8 +12,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     }
 
     if (!user) {
-        // Not logged in -> redirect to appropriate login page
-        return <Navigate to={requireAdmin ? "/admin-login" : "/login"} replace />;
+        // Not logged in -> redirect to login page
+        return <Navigate to="/login" replace />;
     }
 
     if (requireAdmin && user.role !== 'admin') {

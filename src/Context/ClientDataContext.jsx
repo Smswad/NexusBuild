@@ -9,20 +9,21 @@ export const ClientDataProvider = ({ children }) => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
 
-    // Get the active client ID from the authenticated user
-    const activeClientId = user?.id || 'client_1'; // fallback just in case
+    // Find the client record using the authenticated user's email.
+    // This connects their Supabase Auth account to their NexusBuild Client record.
+    const activeClient = db.clients.find(c => c.email === user?.email);
+    const activeClientId = activeClient?.id || 'client_1'; // fallback just in case
     
     // Derived state from global database
-    const activeClient = db.clients.find(c => c.id === activeClientId);
     const activeProperty = db.properties.find(p => p.clientId === activeClientId);
     const activeProject = db.projects.find(p => p.id === activeProperty?.projectId);
 
     const userProfile = {
-        name: activeClient?.name,
-        propertyDesc: activeProperty?.unitName + ' - ' + activeProject?.name,
-        propertyName: activeProperty?.unitName,
-        propertyLoc: activeProperty?.location,
-        area: activeProperty?.area,
+        name: activeClient?.name || user?.email?.split('@')[0] || 'Client',
+        propertyDesc: activeProperty ? (activeProperty.unitName + ' - ' + activeProject?.name) : 'No property assigned',
+        propertyName: activeProperty?.unitName || '-',
+        propertyLoc: activeProperty?.location || '-',
+        area: activeProperty?.area || '-',
         handoverDate: activeProperty?.handoverDate
     };
 

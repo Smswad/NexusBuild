@@ -9,7 +9,6 @@ import Gismap from '../Pages/Gismap/Gismap';
 import About from '../Pages/About/About';
 import Contact from '../Pages/Contact/Contact';
 import ResetPassword from '../Pages/ResetPassword/ResetPassword';
-import AdminLogin from '../Pages/AdminLogin/AdminLogin';
 import ProjectDetails from '../Pages/ProjectDetails/ProjectDetails';
 
 // Dashboard
@@ -48,23 +47,18 @@ export const router = createBrowserRouter([
             },
         ],
     },
-    { path: '/login',              Component: Login },
-    { path: '/register',           Component: Register },
-    { path: '/gismap',             Component: Gismap },
-    { path: '/about',              Component: About },
-    { path: '/contact',            Component: Contact },
-    { path: '/reset-password',     Component: ResetPassword },
-    { path: '/admin-login',        Component: AdminLogin },
+    { path: '/login',          Component: Login },
+    { path: '/register',       Component: Register },
+    { path: '/gismap',         Component: Gismap },
+    { path: '/about',          Component: About },
+    { path: '/contact',        Component: Contact },
+    { path: '/reset-password', Component: ResetPassword },
     { path: '/project-details/:id', Component: ProjectDetails },
 
     // ── Protected Dashboard ───────────────────────────────────────────────────
     {
         path: '/dashboard',
-        element: (
-            <ProtectedRoute>
-                <Dashboard />
-            </ProtectedRoute>
-        ),
+        element: <Dashboard />,
         children: [
             { index: true,              Component: Overview },
             { path: 'financials',       Component: FinancialLedger },

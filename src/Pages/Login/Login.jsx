@@ -11,21 +11,22 @@ import { useAuth } from '../../Context/AuthContext';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, signIn } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showForgotModal, setShowForgotModal] = useState(false);
-    const [redirecting, setRedirecting] = useState(false);
+
 
     // Navigate only after AuthContext has the user
     useEffect(() => {
-        if (redirecting && user) {
-            navigate('/dashboard', { replace: true });
+        if (user) {
+            if (user.role === 'admin') navigate('/admin', { replace: true });
+            else navigate('/dashboard', { replace: true });
         }
-    }, [redirecting, user, navigate]);
+    }, [user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -33,24 +34,11 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const isAdmin = (email.trim().toLowerCase() === 'admin' || email.trim().toLowerCase() === 'admin@reliance.com') && password === 'Admin123';
-
-            if (isAdmin) {
-                navigate('/admin', { replace: true });
-                return;
-            }
-
-            const { data, error: authError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-
-            if (authError) {
-                console.warn('[Login Note] Supabase Auth fallback:', authError.message);
-            }
-            navigate('/dashboard', { replace: true });
+            const loginEmail = email.toLowerCase() === 'admin' ? 'admin@reliance.com' : email;
+            await signIn(loginEmail, password);
+            // Redirection is handled by the useEffect above
         } catch (err) {
-            navigate('/dashboard', { replace: true });
+            setError(err.message || 'Invalid email or password. Please use a registered client email, or "admin@reliance.com".');
         } finally {
             setLoading(false);
         }
