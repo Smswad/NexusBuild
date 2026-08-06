@@ -22,12 +22,13 @@ import ProtectedRoute from '../Components/ProtectedRoute/ProtectedRoute';
 // Admin Pages
 import AdminLayout from '../Pages/Admin/AdminLayout';
 import AdminDashboard from '../Pages/Admin/AdminDashboard';
-import ClientDirectory from '../Pages/Admin/ClientDirectory';
+import ClientManagement from '../Pages/Admin/ClientManagement';
 import AdminLeads from '../Pages/Admin/AdminLeads';
 import AdminOnboarding from '../Pages/Admin/AdminOnboarding';
 import AdminInstallments from '../Pages/Admin/AdminInstallments';
 import AdminFinancials from '../Pages/Admin/AdminFinancials';
 import AdminSiteProgress from '../Pages/Admin/AdminSiteProgress';
+import AdminWebsiteProjects from '../Pages/Admin/AdminWebsiteProjects';
 import AdminSettings from '../Pages/Admin/AdminSettings';
 
 export const router = createBrowserRouter([
@@ -74,18 +75,19 @@ export const router = createBrowserRouter([
     {
         path: '/admin',
         element: (
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin={true}>
                 <AdminLayout />
             </ProtectedRoute>
         ),
         children: [
             { index: true,              Component: AdminDashboard },
-            { path: 'directory',        Component: ClientDirectory },
+            { path: 'management',       Component: ClientManagement },
             { path: 'leads',            Component: AdminLeads },
             { path: 'onboarding',       Component: AdminOnboarding },
             { path: 'installments',     Component: AdminInstallments },
             { path: 'financials',       Component: AdminFinancials },
             { path: 'progress',         Component: AdminSiteProgress },
+            { path: 'website-projects', Component: AdminWebsiteProjects },
             { path: 'settings',         Component: AdminSettings },
         ]
     },

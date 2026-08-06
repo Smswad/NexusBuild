@@ -48,6 +48,10 @@ const AdminLeads = () => {
         }
     };
 
+    const newLeadsCount = leads.filter(l => l.status === 'New').length;
+    const pipelineCount = leads.filter(l => ['Contacted', 'Meeting Scheduled', 'Qualified'].includes(l.status)).length;
+    const convertedCount = leads.filter(l => l.status === 'Application Submitted').length;
+
     return (
         <div className="max-w-5xl mx-auto space-y-6">
             
@@ -59,7 +63,7 @@ const AdminLeads = () => {
                     <p className="text-slate-500 text-sm mt-1">Track and manage potential clients across all projects.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
+                    <button onClick={() => alert("Advanced filtering will be available soon.")} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
                         <Filter size={14} /> Filter
                     </button>
                     <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
@@ -72,23 +76,23 @@ const AdminLeads = () => {
             <div className="grid grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
                     <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Leads</div>
-                    <div className="text-2xl font-extrabold text-[#1A4B9C] mt-1">1,248</div>
+                    <div className="text-2xl font-extrabold text-[#1A4B9C] mt-1">{leads.length}</div>
                     <div className="text-[10px] text-slate-500 mt-1 uppercase">Across all sources</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
                     <div className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">New (Uncontacted)</div>
-                    <div className="text-2xl font-extrabold text-slate-800 mt-1">56</div>
+                    <div className="text-2xl font-extrabold text-slate-800 mt-1">{newLeadsCount}</div>
                     <div className="text-[10px] text-slate-500 mt-1 uppercase">Requires immediate action</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
                     <div className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">In Pipeline</div>
-                    <div className="text-2xl font-extrabold text-slate-800 mt-1">342</div>
+                    <div className="text-2xl font-extrabold text-slate-800 mt-1">{pipelineCount}</div>
                     <div className="text-[10px] text-slate-500 mt-1 uppercase">Actively engaged</div>
                 </div>
                 <div className="bg-[#1A4B9C] p-4 rounded-xl border border-[#153B7C] shadow-sm text-white">
-                    <div className="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Converted (MTD)</div>
-                    <div className="text-2xl font-extrabold mt-1">28</div>
-                    <div className="text-[10px] text-emerald-300 mt-1 font-bold uppercase">↑ 15% VS LAST MONTH</div>
+                    <div className="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Converted (Total)</div>
+                    <div className="text-2xl font-extrabold mt-1">{convertedCount}</div>
+                    <div className="text-[10px] text-emerald-300 mt-1 font-bold uppercase">Awaiting Approval</div>
                 </div>
             </div>
 

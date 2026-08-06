@@ -1,14 +1,16 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useDatabase } from './DatabaseContext';
+import { useAuth } from './AuthContext';
 
 const ClientDataContext = createContext(null);
 
 export const ClientDataProvider = ({ children }) => {
     const db = useDatabase();
+    const { user } = useAuth();
     const [loading, setLoading] = useState(true);
 
-    // Hardcode the active client ID for the mock
-    const activeClientId = 'client_1';
+    // Get the active client ID from the authenticated user
+    const activeClientId = user?.id || 'client_1'; // fallback just in case
     
     // Derived state from global database
     const activeClient = db.clients.find(c => c.id === activeClientId);

@@ -1,129 +1,298 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 const DatabaseContext = createContext(null);
 
 export const DatabaseProvider = ({ children }) => {
-    // Global data mimicking the database schema
-    
-    const [clients, setClients] = useState([
-        { id: 'client_1', name: 'M. A. Rahman', email: 'rahman@example.com', phone: '+880 1711-000000', status: 'Active' },
-        { id: 'client_2', name: 'Syeda Fatima', email: 'fatima@example.com', phone: '+880 1722-000000', status: 'Active' },
+    const [clients, setClients] = useState([]);
+    const [leads, setLeads] = useState([]);
+    const [applications, setApplications] = useState([]);
+    const [projects, setProjects] = useState([]);
+    const [properties, setProperties] = useState([]);
+    const [installments, setInstallments] = useState([]);
+    const [transactions, setTransactions] = useState([]);
+    const [siteUpdates, setSiteUpdates] = useState([]);
+    const [tickets, setTickets] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Mock public projects (keep this local as it's just for the marketing site)
+    const [publicProjects, setPublicProjects] = useState([
+        {
+            id: 1,
+            name: "Reliance Zenith Towers",
+            status: "AVAILABLE",
+            statusBg: "#a14000",
+            location: "Narayanganj",
+            type: "Residential",
+            image: "/Frontend/Projects/Reliance_Zenith_Towers.svg",
+            description: "A masterpiece of urban living featuring panoramic river views, sky lounges, and smart-home integration across 32 premium floors.",
+            detailsLink: "#",
+            mapLink: "#",
+            price: "Starting from ৳1.2Cr",
+            area: "1,200 - 2,500 sqft"
+        },
+        {
+            id: 2,
+            name: "Nexus Business Hub",
+            status: "SOLD OUT",
+            statusBg: "#000f22",
+            location: "BB Road",
+            type: "Commercial",
+            image: "/Frontend/Projects/Nexus_Business_Hub.svg",
+            description: "Premium commercial units designed for headquarters, featuring column-free open floors, fibre-optic connectivity, and a rooftop conference suite.",
+            detailsLink: "#",
+            mapLink: "#",
+            price: "Contact for Pricing",
+            area: "3,000 - 10,000 sqft"
+        }
     ]);
 
-    const [leads, setLeads] = useState([
-        { id: 'L-101', name: 'Zahirul Islam', phone: '01711-234567', interest: 'Sardar Tower - 3B', source: 'Facebook Ad', status: 'New', date: '05 Aug 2026' },
-        { id: 'L-102', name: 'Farzana Chowdhury', phone: '01819-987654', interest: 'Green Valley - 12A', source: 'Website', status: 'Contacted', date: '04 Aug 2026' },
-        { id: 'L-103', name: 'Kamal Uddin', phone: '01912-345678', interest: 'Sardar Tower - 8C', source: 'Referral', status: 'Qualified', date: '02 Aug 2026' },
-        { id: 'L-104', name: 'Nusrat Jahan', phone: '01678-112233', interest: 'Green Valley - Penthouse', source: 'Walk-in', status: 'Converted', date: '28 Jul 2026' },
-    ]);
+    // Fetch everything on mount
+    useEffect(() => {
+        const fetchAllData = async () => {
+            setLoading(true);
+            try {
+                const [
+                    resClients, resLeads, resApps, resProjects,
+                    resProps, resInsts, resTrans, resUpdates, resTickets
+                ] = await Promise.all([
+                    supabase.from('clients').select('*'),
+                    supabase.from('leads').select('*'),
+                    supabase.from('applications').select('*'),
+                    supabase.from('projects').select('*'),
+                    supabase.from('properties').select('*'),
+                    supabase.from('installments').select('*'),
+                    supabase.from('transactions').select('*'),
+                    supabase.from('site_updates').select('*'),
+                    supabase.from('tickets').select('*')
+                ]);
 
-    const [applications, setApplications] = useState([
-        { id: 'APP-1001', name: 'Tariqul Islam', unit: 'Sardar Tower - 14A', stage: 'KYC Verification', status: 'Pending', date: '04 Aug 2026' },
-        { id: 'APP-1002', name: 'Sabrina Rahman', unit: 'Green Valley - 2B', stage: 'Financial Review', status: 'In Progress', date: '03 Aug 2026' },
-        { id: 'APP-1003', name: 'Md. Al Amin', unit: 'Sardar Tower - 9C', stage: 'Management Approval', status: 'Action Required', date: '01 Aug 2026' },
-        { id: 'APP-1004', name: 'Farzana Haque', unit: 'Green Valley - 5A', stage: 'Completed', status: 'Approved', date: '28 Jul 2026' },
-    ]);
+                if (resClients.data) setClients(resClients.data);
+                if (resLeads.data) setLeads(resLeads.data);
+                if (resApps.data) setApplications(resApps.data);
+                if (resProjects.data) setProjects(resProjects.data.map(p => ({ ...p, progressPhase: p.progress_phase, totalUnits: p.total_units })));
+                if (resProps.data) setProperties(resProps.data.map(p => ({ ...p, clientId: p.client_id, projectId: p.project_id, unitName: p.unit_name, handoverDate: p.handover_date, totalValuation: p.total_valuation, totalPaid: p.total_paid, otherCharges: p.other_charges, dueBalance: p.due_balance })));
+                if (resInsts.data) setInstallments(resInsts.data.map(i => ({ ...i, propertyId: i.property_id, dueDate: i.due_date, statusPill: i.status_pill })));
+                if (resTrans.data) setTransactions(resTrans.data.map(t => ({ ...t, propertyId: t.property_id })));
+                if (resUpdates.data) setSiteUpdates(resUpdates.data.map(u => ({ ...u, projectId: u.project_id })));
+                if (resTickets.data) setTickets(resTickets.data.map(t => ({ ...t, clientId: t.client_id })));
 
-    const [projects, setProjects] = useState([
-        { id: 'p1', name: 'Sardar Tower – Block A', progressPhase: 3 },
-        { id: 'p2', name: 'Green Valley Residency', progressPhase: 1 },
-    ]);
+            } catch (err) {
+                console.error("Error fetching data from Supabase:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const [properties, setProperties] = useState([
-        { id: 'prop_1', clientId: 'client_1', projectId: 'p1', unitName: 'Apt 5A, Type-B', location: 'Sardar Tower, Block D', area: '1,850 sqft', handoverDate: 'Dec 2026', totalValuation: '1,25,000,000', totalPaid: '75,00,000', otherCharges: '50,000', dueBalance: '50,50,000' },
-        { id: 'prop_2', clientId: 'client_2', projectId: 'p1', unitName: 'Apt 4B, Type-A', location: 'Sardar Tower, Block D', area: '2,100 sqft', handoverDate: 'Dec 2026', totalValuation: '1,50,000,000', totalPaid: '45,00,000', otherCharges: '50,000', dueBalance: '1,05,50,000' },
-    ]);
+        fetchAllData();
+    }, []);
 
-    const [installments, setInstallments] = useState([
-        { id: 'inst_1', propertyId: 'prop_1', installment: 'Installment 01', dueDate: '10 Jan 2024', amount: '25,00,000', status: 'Paid', statusPill: 'bg-[#DEF7EC] text-[#03543F]' },
-        { id: 'inst_2', propertyId: 'prop_1', installment: 'Installment 02', dueDate: '10 Feb 2024', amount: '25,00,000', status: 'Paid', statusPill: 'bg-[#DEF7EC] text-[#03543F]' },
-        { id: 'inst_3', propertyId: 'prop_1', installment: 'Installment 03', dueDate: '10 Mar 2024', amount: '25,00,000', status: 'Paid', statusPill: 'bg-[#DEF7EC] text-[#03543F]' },
-        { id: 'inst_4', propertyId: 'prop_1', installment: 'Installment 04', dueDate: '15 Mar 2024', amount: '25,00,000', status: 'Pending', statusPill: 'bg-[#E1EFFE] text-[#1E429F]', active: true },
-        { id: 'inst_5', propertyId: 'prop_1', installment: 'Installment 05', dueDate: '10 Apr 2024', amount: '25,00,000', status: 'Upcoming', statusPill: 'bg-slate-100 text-slate-600' },
-    ]);
+    // ─── Global Action Methods (Writes to Supabase) ─────────
 
-    const [transactions, setTransactions] = useState([
-        { id: 'tx1', propertyId: 'prop_1', date: '05 Mar 2024', type: 'Online Payment', amount: '5,00,000' },
-        { id: 'tx2', propertyId: 'prop_1', date: '10 Feb 2024', type: 'Bank Transfer', amount: '20,00,000' },
-        { id: 'tx3', propertyId: 'prop_1', date: '10 Jan 2024', type: 'Initial Deposit', amount: '25,00,000' },
-    ]);
-
-    const [siteUpdates, setSiteUpdates] = useState([
-        { id: 101, projectId: 'p1', date: '28 Jul 2026', title: 'Floor 3 Concrete Poured', type: 'Site Photo', desc: 'Third-floor slab concrete was poured yesterday. Curing process underway for the next 72 hours.' },
-        { id: 102, projectId: 'p1', date: '22 Jul 2026', title: 'Structural Inspection Passed', type: 'Document', desc: 'City inspector signed off on Floor 1-2 steel framework. No red flags.' },
-    ]);
-
-    const [tickets, setTickets] = useState([
-        { id: 'TKT-2026-081', clientId: 'client_1', subject: 'Change Order: Lobby Flooring Material', status: 'In Review', date: '01 Aug 2026', message: 'I would like to change the flooring material to marble.' },
-        { id: 'TKT-2026-064', clientId: 'client_1', subject: 'Inquiry regarding Q2 invoice discrepancy', status: 'Resolved', date: '15 Jul 2026', message: 'There seems to be an extra charge on my Q2 invoice.' },
-        { id: 'TKT-2026-092', clientId: 'client_2', subject: 'Delay in handing over keys', status: 'Pending', date: '04 Aug 2026', message: 'When will I get the keys to my new apartment?' }
-    ]);
-
-    // Global Admin Action Methods
-    const updateProjectPhase = (projectId, newPhase) => {
-        setProjects(prev => prev.map(p => p.id === projectId ? { ...p, progressPhase: newPhase } : p));
+    const updateProjectPhase = async (projectId, newPhase) => {
+        const { error } = await supabase.from('projects').update({ progress_phase: newPhase }).eq('id', projectId);
+        if (!error) {
+            setProjects(prev => prev.map(p => p.id === projectId ? { ...p, progressPhase: newPhase } : p));
+        }
     };
 
-    const resolveTicket = (ticketId) => {
-        setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'Resolved' } : t));
+    const resolveTicket = async (id) => {
+        const { error } = await supabase.from('tickets').update({ status: 'Resolved' }).eq('id', id);
+        if (!error) setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'Resolved' } : t));
     };
 
-    const addClientTicket = (clientId, type, subject, message) => {
+    const addProject = async (newProject) => {
+        const dbPayload = {
+            id: newProject.id, // e.g., 'p3'
+            name: newProject.name,
+            total_units: parseInt(newProject.totalUnits) || 0,
+            progress_phase: 1
+        };
+        const { data, error } = await supabase.from('projects').insert([dbPayload]).select();
+        if (error) {
+            console.error("Error adding project:", error);
+            alert("Error adding project");
+            return false;
+        }
+        if (data) {
+            setProjects(prev => [...prev, { ...data[0], progressPhase: data[0].progress_phase, totalUnits: data[0].total_units }]);
+            return true;
+        }
+    };
+
+    const addClientTicket = async (clientId, type, subject, message) => {
         const newTicket = {
             id: `TKT-${new Date().getFullYear()}-${Math.floor(Math.random() * 900) + 100}`,
-            clientId,
+            client_id: clientId,
             subject: subject || `${type} Inquiry`,
             status: 'Pending',
             date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
             message
         };
-        setTickets(prev => [newTicket, ...prev]);
+        const { data, error } = await supabase.from('tickets').insert([newTicket]).select();
+        if (!error && data) setTickets(prev => [data[0], ...prev]);
     };
 
-    const addSiteUpdate = (projectId, subject, message) => {
+    const addSiteUpdate = async (projectId, subject, message) => {
         const newUpdate = {
-            id: Date.now(),
-            projectId,
+            project_id: projectId,
             date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
             title: subject,
             type: 'Announcement',
             desc: message
         };
-        setSiteUpdates(prev => [newUpdate, ...prev]);
+        const { data, error } = await supabase.from('site_updates').insert([newUpdate]).select();
+        if (!error && data) setSiteUpdates(prev => [data[0], ...prev]);
     };
 
-    const addLead = (lead) => {
-        setLeads(prev => [{ ...lead, id: `L-${100 + prev.length + 1}`, date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }, ...prev]);
+    const addLead = async (lead) => {
+        const newLead = {
+            ...lead,
+            date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+        };
+        const { data, error } = await supabase.from('leads').insert([newLead]).select();
+        if (!error && data) setLeads(prev => [data[0], ...prev]);
     };
 
-    const updateLeadStatus = (id, newStatus) => {
-        setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
+    const updateLeadStatus = async (id, newStatus) => {
+        const { error } = await supabase.from('leads').update({ status: newStatus }).eq('id', id);
+        if (!error) setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
     };
 
-    const addClient = (client) => {
-        setClients(prev => [{ ...client, id: `client_${prev.length + 1}` }, ...prev]);
+    const addClient = async (client) => {
+        const { data, error } = await supabase.from('clients').insert([client]).select();
+        if (!error && data) setClients(prev => [data[0], ...prev]);
     };
 
-    const updateClient = (id, updatedClient) => {
-        setClients(prev => prev.map(c => c.id === id ? { ...c, ...updatedClient } : c));
+    const updateClient = async (id, updatedClient) => {
+        const { error } = await supabase.from('clients').update(updatedClient).eq('id', id);
+        if (!error) setClients(prev => prev.map(c => c.id === id ? { ...c, ...updatedClient } : c));
     };
 
-    const advanceApplicationStage = (id) => {
+    const updateProperty = async (id, updatedProperty) => {
+        // Map back to snake_case
+        const dbPayload = {
+            ...(updatedProperty.unitName && { unit_name: updatedProperty.unitName }),
+            ...(updatedProperty.location && { location: updatedProperty.location }),
+            ...(updatedProperty.area && { area: updatedProperty.area }),
+            ...(updatedProperty.handoverDate && { handover_date: updatedProperty.handoverDate }),
+            ...(updatedProperty.totalValuation && { total_valuation: updatedProperty.totalValuation }),
+            ...(updatedProperty.totalPaid && { total_paid: updatedProperty.totalPaid }),
+            ...(updatedProperty.otherCharges && { other_charges: updatedProperty.otherCharges }),
+            ...(updatedProperty.dueBalance && { due_balance: updatedProperty.dueBalance }),
+        };
+        const { error } = await supabase.from('properties').update(dbPayload).eq('id', id);
+        if (!error) setProperties(prev => prev.map(p => p.id === id ? { ...p, ...updatedProperty } : p));
+    };
+
+    const addInstallment = async (installmentData) => {
+        const dbPayload = {
+            property_id: installmentData.propertyId,
+            installment: installmentData.installment,
+            due_date: installmentData.dueDate,
+            amount: installmentData.amount,
+            status: installmentData.status,
+            status_pill: installmentData.statusPill,
+            active: installmentData.active
+        };
+        const { data, error } = await supabase.from('installments').insert([dbPayload]).select();
+        if (!error && data) setInstallments(prev => [...prev, { ...data[0], propertyId: data[0].property_id, dueDate: data[0].due_date, statusPill: data[0].status_pill }]);
+    };
+
+    const updateInstallment = async (id, updatedInstallment) => {
+        const dbPayload = {
+            ...(updatedInstallment.status && { status: updatedInstallment.status }),
+            ...(updatedInstallment.statusPill && { status_pill: updatedInstallment.statusPill }),
+            ...(updatedInstallment.active !== undefined && { active: updatedInstallment.active }),
+        };
+        const { error } = await supabase.from('installments').update(dbPayload).eq('id', id);
+        if (!error) setInstallments(prev => prev.map(i => i.id === id ? { ...i, ...updatedInstallment } : i));
+    };
+
+    const addTransaction = async (transactionData) => {
+        const dbPayload = {
+            property_id: transactionData.propertyId,
+            date: transactionData.date,
+            type: transactionData.type,
+            amount: transactionData.amount
+        };
+        const { data, error } = await supabase.from('transactions').insert([dbPayload]).select();
+        if (!error && data) setTransactions(prev => [{ ...data[0], propertyId: data[0].property_id }, ...prev]);
+    };
+
+    const addPublicProject = (project) => {
+        setPublicProjects(prev => [...prev, { ...project, id: Date.now() }]);
+    };
+
+    const updatePublicProject = (id, updatedProject) => {
+        setPublicProjects(prev => prev.map(p => p.id === id ? { ...p, ...updatedProject } : p));
+    };
+
+    const advanceApplicationStage = async (id) => {
+        const app = applications.find(a => a.id === id);
+        if (!app) return;
+        
         const stages = ['KYC Verification', 'Financial Review', 'Management Approval', 'Completed'];
         const statuses = ['Pending', 'In Progress', 'Action Required', 'Approved'];
-        setApplications(prev => prev.map(app => {
-            if (app.id === id) {
-                const currentIndex = stages.indexOf(app.stage);
-                if (currentIndex < stages.length - 1) {
-                    return { ...app, stage: stages[currentIndex + 1], status: statuses[currentIndex + 1] };
-                }
+        const currentIndex = stages.indexOf(app.stage);
+        
+        if (currentIndex < stages.length - 1) {
+            const newStage = stages[currentIndex + 1];
+            const newStatus = statuses[currentIndex + 1];
+            
+            const { error } = await supabase.from('applications').update({ stage: newStage, status: newStatus }).eq('id', id);
+            if (!error) {
+                setApplications(prev => prev.map(a => a.id === id ? { ...a, stage: newStage, status: newStatus } : a));
             }
-            return app;
-        }));
+        }
     };
 
-    const approveAllApplications = () => {
-        setApplications(prev => prev.map(app => ({ ...app, stage: 'Completed', status: 'Approved' })));
+    const approveAllApplications = async () => {
+        // Simplified for bulk update
+        const { error } = await supabase.from('applications').update({ stage: 'Completed', status: 'Approved' }).neq('status', 'Approved');
+        if (!error) {
+            setApplications(prev => prev.map(app => ({ ...app, stage: 'Completed', status: 'Approved' })));
+        }
+    };
+
+    const onboardClient = async (applicationId) => {
+        const app = applications.find(a => a.id === applicationId);
+        if (!app) return;
+
+        // Note: Real world onboarding might require calling a Supabase Edge Function to create the auth.users account first.
+        // For simplicity, we just create the public.client record here.
+        const newClient = {
+            name: app.name,
+            email: `${app.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+            phone: '+880 1800-000000',
+            status: 'Active'
+        };
+
+        const { data: clientData, error: clientError } = await supabase.from('clients').insert([newClient]).select();
+        if (clientError || !clientData) return;
+
+        const newClientId = clientData[0].id;
+        
+        const newProperty = {
+            client_id: newClientId,
+            project_id: 'p1', // Defaulting to p1 for mock
+            unit_name: app.unit,
+            location: 'Main Block',
+            area: '1,500 sqft',
+            handover_date: 'Jan 2027',
+            total_valuation: '1,00,00,000',
+            total_paid: '0',
+            other_charges: '0',
+            due_balance: '1,00,00,000'
+        };
+
+        const { data: propData } = await supabase.from('properties').insert([newProperty]).select();
+
+        await supabase.from('applications').delete().eq('id', applicationId);
+        
+        setClients(prev => [clientData[0], ...prev]);
+        if (propData) setProperties(prev => [...prev, propData[0]]);
+        setApplications(prev => prev.filter(a => a.id !== applicationId));
     };
 
     const value = {
@@ -144,8 +313,18 @@ export const DatabaseProvider = ({ children }) => {
         updateLeadStatus,
         addClient,
         updateClient,
+        updateProperty,
+        addInstallment,
+        updateInstallment,
+        addTransaction,
+        addProject,
+        publicProjects,
+        addPublicProject,
+        updatePublicProject,
         advanceApplicationStage,
-        approveAllApplications
+        approveAllApplications,
+        onboardClient,
+        loading
     };
 
     return (

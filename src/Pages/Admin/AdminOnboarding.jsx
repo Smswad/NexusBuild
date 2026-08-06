@@ -3,7 +3,7 @@ import { Search, Filter, Download, UserCheck, ChevronRight } from 'lucide-react'
 import { useAdminData } from '../../Context/AdminDataContext';
 
 const AdminOnboarding = () => {
-    const { applications, advanceApplicationStage, approveAllApplications } = useAdminData();
+    const { applications, advanceApplicationStage, approveAllApplications, onboardClient } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredApplications = applications.filter(app => 
@@ -32,8 +32,8 @@ const AdminOnboarding = () => {
                     <p className="text-slate-500 text-sm mt-1">Review, verify, and approve new client applications.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
-                        <Filter size={14} /> Filter Stages
+                    <button onClick={() => alert("Advanced filtering will be available soon.")} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
+                        <Filter size={14} /> Filter
                     </button>
                     <button onClick={approveAllApplications} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
                         <UserCheck size={14} /> Auto-Approve Batch
@@ -121,7 +121,9 @@ const AdminOnboarding = () => {
                                             Approve Stage <ChevronRight size={12} />
                                         </button>
                                     ) : (
-                                        <span className="text-slate-400 font-bold text-xs">Done</span>
+                                        <button onClick={() => onboardClient(app.id)} className="flex items-center gap-1 text-emerald-600 font-bold text-xs hover:underline bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                                            Onboard as Client <ChevronRight size={12} />
+                                        </button>
                                     )}
                                 </td>
                             </tr>

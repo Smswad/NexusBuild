@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
 import { Link, useNavigate } from 'react-router';
 import { Lock, Eye, EyeOff, ArrowRight, AtSign } from 'lucide-react';
 import login_image from '../../assets/pics/login_pic.png';
@@ -7,51 +6,42 @@ import Footer from '../../Components/Footer/Footer';
 import Navbar from '../../Components/Header/Navbar';
 import ForgotPasswordModal from '../../Components/ForgotPasswordModal/ForgotPasswordModal';
 import { useAuth } from '../../Context/AuthContext';
-// ─── Login logging is handled inline below via supabase.rpc() ────────────────
-
+import { useDatabase } from '../../Context/DatabaseContext';
 const Login = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, signIn } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showForgotModal, setShowForgotModal] = useState(false);
-    const [redirecting, setRedirecting] = useState(false);
 
     // Navigate only after AuthContext has the user
     useEffect(() => {
-        if (redirecting && user) {
-            navigate('/dashboard', { replace: true });
+        if (user) {
+            if (user.role === 'admin') navigate('/admin', { replace: true });
+            else navigate('/dashboard', { replace: true });
         }
-    }, [redirecting, user, navigate]);
+    }, [user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
+        // 1. Check Admin
+        const isAdmin = (email.trim().toLowerCase() === 'admin' || email.trim().toLowerCase() === 'admin@reliance.com') && password === 'Admin123';
+        if (isAdmin) {
+            signIn({ id: 'admin_1', role: 'admin', name: 'Super Admin' });
+            return;
+        }
+
         try {
-            const isAdmin = (email.trim().toLowerCase() === 'admin' || email.trim().toLowerCase() === 'admin@reliance.com') && password === 'Admin123';
-
-            if (isAdmin) {
-                navigate('/admin', { replace: true });
-                return;
-            }
-
-            const { data, error: authError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-
-            if (authError) {
-                console.warn('[Login Note] Supabase Auth fallback:', authError.message);
-            }
-            navigate('/dashboard', { replace: true });
+            await signIn(email, password);
+            // Redirection is handled by the useEffect above
         } catch (err) {
-            navigate('/dashboard', { replace: true });
-        } finally {
+            setError(err.message || 'Invalid email or password. Please use a registered client email, or "admin@reliance.com".');
             setLoading(false);
         }
     };
@@ -290,7 +280,7 @@ const Login = () => {
                                 {/* CTA Button — Figma: 448x52, fill=#fe762a (accent token), radius=8px, 16px V pad, 8px gap */}
                                 <button
                                     type="submit"
-                                    disabled={loading || redirecting}
+                                    disabled={loading}
                                     className="
                                         w-full flex items-center justify-center gap-2
                                         bg-[#fe762a] hover:bg-[#a14000]
@@ -302,7 +292,7 @@ const Login = () => {
                                         cursor-pointer
                                     "
                                 >
-                                    {redirecting ? 'Redirecting...' : loading ? 'Signing in...' : (
+                                    {loading ? 'Signing in...' : (
                                         <>
                                             Sign In <ArrowRight size={16} />
                                         </>

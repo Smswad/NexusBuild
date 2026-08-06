@@ -1,14 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
-import { Search, Download, Filter, Eye } from 'lucide-react';
+import { Search, Download, Filter, Eye, Plus } from 'lucide-react';
 
 const AdminFinancials = () => {
-    const { properties } = useAdminData();
+    const { properties, clients, transactions, installments } = useAdminData();
+    const [searchTerm, setSearchTerm] = useState('');
 
     const formatBDT = (amount) => {
         if (!amount) return '0';
-        return new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(parseInt(amount.replace(/,/g, '')));
+        return new Intl.NumberFormat('en-IN').format(parseInt(String(amount).replace(/,/g, '')));
     };
+
+    // Global Stats
+    const totalRevenue = transactions.reduce((sum, tx) => sum + parseInt(String(tx.amount).replace(/,/g, '')), 0);
+    const netOutstanding = properties.reduce((sum, p) => sum + parseInt(String(p.dueBalance).replace(/,/g, '')), 0);
+    const totalOverdue = installments.filter(i => i.status === 'Overdue').reduce((sum, i) => sum + parseInt(String(i.amount).replace(/,/g, '')), 0);
+
+    const enrichedProperties = properties.map(prop => {
+        const client = clients.find(c => c.id === prop.clientId);
+        return {
+            ...prop,
+            clientName: client ? client.name : 'Unknown Client',
+            projectName: prop.projectId === 'p1' ? 'Sardar Tower' : 'Green Valley' // Simple mock for now
+        };
+    });
+
+    const filteredProperties = enrichedProperties.filter(p => 
+        p.clientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        p.unitName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
@@ -22,10 +42,10 @@ const AdminFinancials = () => {
                 </div>
                 <div className="flex gap-3">
                     <button onClick={() => window.print()} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
-                        <Download size={14} /> Download Report
+                        <Download size={14} /> Export CSV
                     </button>
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
-                        <Download size={14} /> Export Master
+                    <button onClick={() => alert("Please go to 'Clients' to add a transaction for a specific property.")} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
+                        <Plus size={14} /> New Transaction
                     </button>
                 </div>
             </div>
@@ -37,15 +57,15 @@ const AdminFinancials = () => {
                         <div className="w-1.5 h-1.5 rounded-full bg-[#1A4B9C]"></div>
                         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Revenue</div>
                     </div>
-                    <div className="text-2xl font-extrabold text-slate-800">৳4,250,000,000</div>
-                    <div className="text-[10px] text-slate-500 mt-1">Collected this year <br/> 88% of portfolio</div>
+                    <div className="text-2xl font-extrabold text-slate-800">৳{formatBDT(totalRevenue)}</div>
+                    <div className="text-[10px] text-slate-500 mt-1">Total confirmed payments</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Net Outstanding</div>
                     </div>
-                    <div className="text-2xl font-extrabold text-slate-800">৳2,890,500,000</div>
+                    <div className="text-2xl font-extrabold text-slate-800">৳{formatBDT(netOutstanding)}</div>
                     <div className="text-[10px] text-slate-500 mt-1">Current pending dues</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
@@ -53,16 +73,16 @@ const AdminFinancials = () => {
                         <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
                         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Overdue</div>
                     </div>
-                    <div className="text-2xl font-extrabold text-slate-800">৳1,245,000,000</div>
-                    <div className="text-[10px] text-slate-500 mt-1">Expected within 24 months</div>
+                    <div className="text-2xl font-extrabold text-slate-800">৳{formatBDT(totalOverdue)}</div>
+                    <div className="text-[10px] text-slate-500 mt-1">Needs immediate attention</div>
                 </div>
-                <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-red-50">
+                <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-blue-50">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                        <div className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Not Active</div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                        <div className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Active Ledgers</div>
                     </div>
-                    <div className="text-2xl font-extrabold text-red-700">৳114,500,000</div>
-                    <div className="text-[10px] text-red-600 mt-1 font-medium">42 Active accounts</div>
+                    <div className="text-2xl font-extrabold text-blue-700">{properties.length}</div>
+                    <div className="text-[10px] text-blue-600 mt-1 font-medium">Across all projects</div>
                 </div>
             </div>
 
@@ -75,6 +95,8 @@ const AdminFinancials = () => {
                         <input 
                             type="text" 
                             placeholder="Search client, ID, unit..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-9 pr-4 py-1.5 border border-[#E2E8F0] rounded-lg text-xs w-64 outline-none focus:border-[#1A4B9C]"
                         />
                     </div>
@@ -93,11 +115,11 @@ const AdminFinancials = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E2E8F0]">
-                        {properties.map(prop => (
+                        {filteredProperties.map(prop => (
                             <tr key={prop.id} className="hover:bg-slate-50 transition-colors">
                                 <td className="px-6 py-3">
-                                    <div className="font-bold text-slate-800 text-xs">{prop.clientId === 'client_1' ? 'M. A. Rahman' : 'Syeda Fatima'}</div>
-                                    <div className="text-[10px] text-slate-500">{prop.unitName} - {prop.projectId === 'p1' ? 'Sardar Tower' : 'Green Valley'}</div>
+                                    <div className="font-bold text-slate-800 text-xs">{prop.clientName}</div>
+                                    <div className="text-[10px] text-slate-500">{prop.unitName} - {prop.projectName}</div>
                                 </td>
                                 <td className="px-6 py-3 text-xs font-bold text-slate-800">
                                     ৳{formatBDT(prop.totalValuation)}
@@ -117,8 +139,8 @@ const AdminFinancials = () => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-3">
-                                    <button className="flex items-center gap-1 px-3 py-1.5 border border-[#E2E8F0] rounded text-slate-600 text-[10px] font-bold hover:bg-slate-100 uppercase tracking-wider">
-                                        <Eye size={12} /> View Ledger
+                                    <button onClick={() => window.print()} className="flex items-center gap-1 px-3 py-1.5 border border-[#E2E8F0] rounded text-slate-600 text-[10px] font-bold hover:bg-slate-100 uppercase tracking-wider">
+                                        <Download size={12} /> Receipt
                                     </button>
                                 </td>
                             </tr>

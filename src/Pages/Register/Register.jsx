@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
 import { Link } from 'react-router';
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
 import register_image from '../../assets/pics/register_pic.svg';
 import Footer from '../../Components/Footer/Footer';
 import Navbar from '../../Components/Header/Navbar';
+import { useDatabase } from '../../Context/DatabaseContext';
+import { supabase } from '../../lib/supabaseClient';
 
 // ─── Register ────────────────────────────────────────────────────────────────
 // Figma frame: 1280×1450, node-id=1:451
@@ -46,6 +47,7 @@ const inputCls = `
 `;
 
 const Register = () => {
+    const { addLead } = useDatabase();
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -61,42 +63,41 @@ const Register = () => {
         setSuccess('');
         setLoading(true);
 
-        // Step 1: Create the auth user
-        const { data, error: authError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    full_name: fullName,
-                    phone_number: phoneNumber,
-                },
-            },
-        });
+        try {
+            // 1. Register user in Supabase Auth
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                        phone: phoneNumber
+                    }
+                }
+            });
 
-        if (authError) {
-            setError(authError.message);
+            if (authError) throw authError;
+
+            // 2. Push to DB as a Lead
+            await addLead({
+                name: fullName,
+                email: email,
+                phone: phoneNumber,
+                interest: 'Not specified',
+                source: 'Website Registration',
+                status: 'New'
+            });
+
+            setSuccess('Registration successful! You can now log in, and our team will contact you shortly to complete KYC.');
+            setFullName('');
+            setEmail('');
+            setPhoneNumber('');
+            setPassword('');
+        } catch (err) {
+            setError(err.message || 'An error occurred during registration.');
+        } finally {
             setLoading(false);
-            return;
         }
-
-        // Supabase returns a user with empty identities when email already exists
-        if (data.user && data.user.identities?.length === 0) {
-            setError('This email is already registered. Please log in instead.');
-            setLoading(false);
-            return;
-        }
-
-        // Step 2: The Postgres trigger (handle_new_user) automatically inserts
-        // the profile row into public.Registration when the auth user is created.
-        // No client-side insert needed — the trigger runs with SECURITY DEFINER
-        // which bypasses RLS and works even before email confirmation.
-
-        setLoading(false);
-        setSuccess('Registration successful! Please check your email to confirm your account.');
-        setFullName('');
-        setEmail('');
-        setPhoneNumber('');
-        setPassword('');
     };
 
     return (

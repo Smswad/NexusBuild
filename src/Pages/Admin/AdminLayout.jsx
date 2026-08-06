@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import {
     LayoutDashboard, Users, BookOpen, HardHat,
-    Bell, LogOut, Building2, Search, UserPlus, FileText, Calendar, Settings, Grid, X, Check
+    Bell, LogOut, Building2, Search, UserPlus, FileText, Calendar, Settings, Grid, X, Check, Globe
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { AdminDataProvider, useAdminData } from '../../Context/AdminDataContext';
@@ -11,19 +11,22 @@ const NAV_LINKS = [
     { to: '/admin',            label: 'Dashboard',        icon: LayoutDashboard, end: true },
     { to: '/admin/leads',      label: 'Leads',            icon: UserPlus },
     { to: '/admin/onboarding', label: 'Onboarding',       icon: FileText },
-    { to: '/admin/directory',  label: 'Client Directory', icon: Users },
+    { to: '/admin/management',  label: 'Client Management', icon: Users },
     { to: '/admin/financials', label: 'Financial Ledgers',icon: BookOpen },
     { to: '/admin/installments',label: 'Installments',     icon: Calendar },
     { to: '/admin/progress',   label: 'Site Progress',    icon: HardHat },
+    { to: '/admin/website-projects', label: 'Website Projects', icon: Globe },
 ];
 
 const AdminLayoutContent = () => {
     const { signOut } = useAuth();
     const navigate = useNavigate();
+    const { projects, activeProject, setActiveProject, addProject } = useAdminData();
 
     const [showNotif, setShowNotif] = useState(false);
     const [isProjectSwitcherOpen, setIsProjectSwitcherOpen] = useState(false);
-    const [activeProject, setActiveProject] = useState('p1');
+    const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+    const [newProjectForm, setNewProjectForm] = useState({ id: '', name: '', totalUnits: '' });
     const notifRef = useRef(null);
 
     useEffect(() => {
@@ -35,6 +38,16 @@ const AdminLayoutContent = () => {
     }, []);
 
     const handleLogout = async () => { await signOut(); navigate('/'); };
+
+    const handleAddProject = async (e) => {
+        e.preventDefault();
+        const success = await addProject(newProjectForm);
+        if (success) {
+            setIsAddProjectOpen(false);
+            setNewProjectForm({ id: '', name: '', totalUnits: '' });
+            setActiveProject(newProjectForm.id); // Switch to the newly created project
+        }
+    };
 
     return (
         <div className="flex h-screen overflow-hidden font-sans bg-[#F3F4F6]">
@@ -155,38 +168,62 @@ const AdminLayoutContent = () => {
                                 <X size={20} />
                             </button>
                         </div>
-                        <div className="p-4 space-y-2">
-                            <button 
-                                onClick={() => { setActiveProject('p1'); setIsProjectSwitcherOpen(false); }}
-                                className={`w-full text-left p-4 rounded-lg border transition-colors flex justify-between items-center ${activeProject === 'p1' ? 'border-[#1A4B9C] bg-[#E1EFFE]' : 'border-[#E2E8F0] hover:border-[#1A4B9C]'}`}
-                            >
-                                <div>
-                                    <div className={`font-bold text-sm ${activeProject === 'p1' ? 'text-[#1A4B9C]' : 'text-slate-800'}`}>Sardar Tower - Block A</div>
-                                    <div className="text-xs text-slate-500 mt-0.5">Banani, Dhaka • 24 Units</div>
+                        
+                        {!isAddProjectOpen ? (
+                            <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto">
+                                <button 
+                                    onClick={() => { setActiveProject('all'); setIsProjectSwitcherOpen(false); }}
+                                    className={`w-full text-left p-4 rounded-lg border transition-colors flex justify-between items-center ${activeProject === 'all' ? 'border-[#1A4B9C] bg-[#E1EFFE]' : 'border-[#E2E8F0] hover:border-[#1A4B9C]'}`}
+                                >
+                                    <div>
+                                        <div className={`font-bold text-sm ${activeProject === 'all' ? 'text-[#1A4B9C]' : 'text-slate-800'}`}>All Projects Overview</div>
+                                        <div className="text-xs text-slate-500 mt-0.5">Master view for Super Admins</div>
+                                    </div>
+                                    {activeProject === 'all' && <Check size={18} className="text-[#1A4B9C]" />}
+                                </button>
+
+                                {projects?.map(proj => (
+                                    <button 
+                                        key={proj.id}
+                                        onClick={() => { setActiveProject(proj.id); setIsProjectSwitcherOpen(false); }}
+                                        className={`w-full text-left p-4 rounded-lg border transition-colors flex justify-between items-center ${activeProject === proj.id ? 'border-[#1A4B9C] bg-[#E1EFFE]' : 'border-[#E2E8F0] hover:border-[#1A4B9C]'}`}
+                                    >
+                                        <div>
+                                            <div className={`font-bold text-sm ${activeProject === proj.id ? 'text-[#1A4B9C]' : 'text-slate-800'}`}>{proj.name}</div>
+                                            <div className="text-xs text-slate-500 mt-0.5">ID: {proj.id} • {proj.totalUnits || 0} Units</div>
+                                        </div>
+                                        {activeProject === proj.id && <Check size={18} className="text-[#1A4B9C]" />}
+                                    </button>
+                                ))}
+                                
+                                <div className="pt-4 mt-2 border-t border-[#E2E8F0]">
+                                    <button onClick={() => setIsAddProjectOpen(true)} className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">
+                                        <Building2 size={16} /> Add New Project
+                                    </button>
                                 </div>
-                                {activeProject === 'p1' && <Check size={18} className="text-[#1A4B9C]" />}
-                            </button>
-                            <button 
-                                onClick={() => { setActiveProject('p2'); setIsProjectSwitcherOpen(false); }}
-                                className={`w-full text-left p-4 rounded-lg border transition-colors flex justify-between items-center ${activeProject === 'p2' ? 'border-[#1A4B9C] bg-[#E1EFFE]' : 'border-[#E2E8F0] hover:border-[#1A4B9C]'}`}
-                            >
+                            </div>
+                        ) : (
+                            <form onSubmit={handleAddProject} className="p-6 space-y-4">
+                                <h4 className="text-sm font-bold text-[#1A4B9C] border-b border-[#E2E8F0] pb-2 mb-4">Create New Project</h4>
                                 <div>
-                                    <div className={`font-bold text-sm ${activeProject === 'p2' ? 'text-[#1A4B9C]' : 'text-slate-800'}`}>Green Valley Residency</div>
-                                    <div className="text-xs text-slate-500 mt-0.5">Bashundhara R/A, Dhaka • 12 Units</div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Project ID</label>
+                                    <input type="text" placeholder="e.g. p3" required value={newProjectForm.id} onChange={e => setNewProjectForm({...newProjectForm, id: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                    <div className="text-[10px] text-slate-400 mt-1">Must be unique (e.g., p1, p2, p3).</div>
                                 </div>
-                                {activeProject === 'p2' && <Check size={18} className="text-[#1A4B9C]" />}
-                            </button>
-                            <button 
-                                onClick={() => { setActiveProject('all'); setIsProjectSwitcherOpen(false); }}
-                                className={`w-full text-left p-4 rounded-lg border transition-colors flex justify-between items-center ${activeProject === 'all' ? 'border-[#1A4B9C] bg-[#E1EFFE]' : 'border-[#E2E8F0] hover:border-[#1A4B9C]'}`}
-                            >
                                 <div>
-                                    <div className={`font-bold text-sm ${activeProject === 'all' ? 'text-[#1A4B9C]' : 'text-slate-800'}`}>All Projects Overview</div>
-                                    <div className="text-xs text-slate-500 mt-0.5">Master view for Super Admins</div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Project Name</label>
+                                    <input type="text" placeholder="e.g. Skyline Heights" required value={newProjectForm.name} onChange={e => setNewProjectForm({...newProjectForm, name: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
                                 </div>
-                                {activeProject === 'all' && <Check size={18} className="text-[#1A4B9C]" />}
-                            </button>
-                        </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Units</label>
+                                    <input type="number" placeholder="e.g. 50" required value={newProjectForm.totalUnits} onChange={e => setNewProjectForm({...newProjectForm, totalUnits: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                </div>
+                                <div className="pt-4 flex justify-end gap-3">
+                                    <button type="button" onClick={() => setIsAddProjectOpen(false)} className="px-4 py-2 text-slate-600 bg-slate-100 rounded-lg text-sm font-bold hover:bg-slate-200">Cancel</button>
+                                    <button type="submit" className="px-4 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold hover:bg-[#153B7C]">Save Project</button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}

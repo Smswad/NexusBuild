@@ -1,61 +1,17 @@
 import { Link } from "react-router";
-import { Search, MapPin, ArrowRight, Wrench, CalendarCheck } from "lucide-react";
+import { Search, MapPin, ArrowRight, Wrench, CalendarCheck, Banknote, Maximize } from "lucide-react";
 import Navbar from "../../Components/Header/Navbar";
 import Footer from "../../Components/Footer/Footer";
+import { useDatabase } from "../../Context/DatabaseContext";
 
 // ── Public image paths (files in /public/frontend/projects/) ──────────────────
 const IMG_HERO = "/Frontend/Projects/Hero_Section.svg";
-const IMG_ZENITH = "/Frontend/Projects/Reliance_Zenith_Towers.svg";
-const IMG_HUB = "/Frontend/Projects/Nexus_Business_Hub.svg";
-const IMG_HERITAGE = "/Frontend/Projects/The_Heritage_Plaza.svg";
 const IMG_SERVICES = "/Frontend/Projects/Professional_Services_Remodeling.svg";
 const IMG_ABOUT = "/Frontend/Projects/Decades_of_Trust_in_Narayanganj.svg";
 
-// ─── Projects ─────────────────────────────────────────────────────────────────
-// Figma frame: 1310×3783, node-id=1:753
-// Sections:
-//   1. Hero Section (1310×870): dark overlay, search/filter bar
-//   2. All Projects Section (1280×898): 3-card grid
-//   3. GIS Map Module (placeholder)
-//   4. Services & Remodeling Section (#000f22)
-//   5. About Us Section
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ── Figma project card data ────────────────────────────────────────────────
-const PROJECTS = [
-    {
-        id: 1,
-        name: "Reliance Zenith Towers",
-        status: "AVAILABLE",
-        statusBg: "#a14000",
-        location: "Narayanganj",
-        type: "Residential",
-        image: IMG_ZENITH,
-        description: "A masterpiece of urban living featuring panoramic river views, sky lounges, and smart-home integration across 32 premium floors.",
-    },
-    {
-        id: 2,
-        name: "Nexus Business Hub",
-        status: "SOLD OUT",
-        statusBg: "#000f22",
-        location: "BB Road",
-        type: "Commercial",
-        image: IMG_HUB,
-        description: "Premium commercial units designed for headquarters, featuring column-free open floors, fibre-optic connectivity, and a rooftop conference suite.",
-    },
-    {
-        id: 3,
-        name: "The Heritage Plaza",
-        status: "READY TO MOVE",
-        statusBg: "#a14000",
-        location: "Shamabay",
-        type: "Mixed Use",
-        image: IMG_HERITAGE,
-        description: "Exquisite residency located in the heart of Narayanganj's commercial district, blending heritage-inspired facades with modern interiors.",
-    },
-];
-
 const Projects = () => {
+    const { publicProjects } = useDatabase();
+    
     return (
         <div className="flex flex-col min-h-screen bg-white">
 
@@ -191,7 +147,7 @@ const Projects = () => {
 
                     {/* Project cards grid — Figma: 3 cards, 24px gap, each 379px wide */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {PROJECTS.map((project) => (
+                        {publicProjects.map((project) => (
                             <div
                                 key={project.id}
                                 className="bg-white border border-[#c4c6ce] flex flex-col"
@@ -224,7 +180,7 @@ const Projects = () => {
                                     </h3>
 
                                     {/* Meta row — location + type, 16px gap */}
-                                    <div className="flex items-center gap-4 text-[12px] text-[#74777e]">
+                                    <div className="flex flex-wrap items-center gap-4 text-[12px] text-[#74777e]">
                                         <span className="flex items-center gap-1">
                                             <MapPin size={12} />
                                             {project.location}
@@ -233,6 +189,18 @@ const Projects = () => {
                                             <Wrench size={12} />
                                             {project.type}
                                         </span>
+                                        {project.price && (
+                                            <span className="flex items-center gap-1">
+                                                <Banknote size={12} />
+                                                {project.price}
+                                            </span>
+                                        )}
+                                        {project.area && (
+                                            <span className="flex items-center gap-1">
+                                                <Maximize size={12} />
+                                                {project.area}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Figma: description — 16px fw=400 #43474d, 8px top / 16px bottom pad */}
@@ -241,15 +209,15 @@ const Projects = () => {
                                     </p>
 
                                     {/* Figma: "Project Details" btn — stroke #000f22, 46px tall, 12px V pad */}
-                                    <button className="w-full flex items-center justify-center gap-2 py-3 border border-[#000f22] text-[#000f22] text-[14px] font-bold hover:bg-[#000f22] hover:text-white transition-colors duration-200 cursor-pointer min-h-[44px]">
+                                    <a href={project.detailsLink || "#"} className="w-full flex items-center justify-center gap-2 py-3 border border-[#000f22] text-[#000f22] text-[14px] font-bold hover:bg-[#000f22] hover:text-white transition-colors duration-200 cursor-pointer min-h-[44px]">
                                         Project Details
-                                    </button>
+                                    </a>
 
                                     {/* Figma: "View Map" btn — stroke #c4c6ce, 42px tall */}
-                                    <button className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#c4c6ce] text-[#43474d] text-[14px] font-bold hover:border-[#0a2540] hover:text-[#0a2540] transition-colors duration-200 cursor-pointer min-h-[44px]">
+                                    <a href={project.mapLink || "#"} target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#c4c6ce] text-[#43474d] text-[14px] font-bold hover:border-[#0a2540] hover:text-[#0a2540] transition-colors duration-200 cursor-pointer min-h-[44px]">
                                         <MapPin size={14} />
                                         View Map
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         ))}

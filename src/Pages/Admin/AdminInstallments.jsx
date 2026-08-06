@@ -1,17 +1,52 @@
 import React, { useState } from 'react';
 import { Search, Filter, Download, BellRing, ChevronRight, X } from 'lucide-react';
+import { useAdminData } from '../../Context/AdminDataContext';
 
 const AdminInstallments = () => {
+    const { installments, properties, clients } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedInstallment, setSelectedInstallment] = useState(null);
 
-    // Mock Data
-    const installments = [
-        { id: 'INS-01', client: 'M. A. Rahman', unit: 'Sardar Tower - 5A', amount: '25,00,000', dueDate: '15 Mar 2026', status: 'Overdue' },
-        { id: 'INS-04', client: 'Syeda Fatima', unit: 'Sardar Tower - 4B', amount: '25,00,000', dueDate: '10 Apr 2026', status: 'Pending' },
-        { id: 'INS-12', client: 'Tariqul Islam', unit: 'Green Valley - 2A', amount: '15,00,000', dueDate: '15 Apr 2026', status: 'Upcoming' },
-        { id: 'INS-02', client: 'Kamal Uddin', unit: 'Sardar Tower - 8C', amount: '25,00,000', dueDate: '05 Mar 2026', status: 'Paid' },
-    ];
+    // Map propertyId to actual property and client
+    const enrichedInstallments = installments.map(inst => {
+        const prop = properties.find(p => p.id === inst.propertyId);
+        const client = prop ? clients.find(c => c.id === prop.clientId) : null;
+        return {
+            ...inst,
+            client: client ? client.name : 'Unknown Client',
+            unit: prop ? prop.unitName : 'Unknown Unit'
+        };
+    });
+
+    const formatBDT = (amount) => {
+        if (!amount) return '0';
+        return new Intl.NumberFormat('en-IN').format(parseInt(String(amount).replace(/,/g, '')));
+    };
+
+    let totalExpected = 0;
+    let totalCollected = 0;
+    let totalOverdue = 0;
+    let totalUpcoming = 0;
+    let overdueCount = 0;
+    let upcomingCount = 0;
+
+    installments.forEach(inst => {
+        const amt = parseInt(String(inst.amount).replace(/,/g, '')) || 0;
+        if (inst.status === 'Paid') {
+            totalCollected += amt;
+            totalExpected += amt;
+        } else if (inst.status === 'Overdue') {
+            totalOverdue += amt;
+            totalExpected += amt;
+            overdueCount++;
+        } else if (inst.status === 'Pending' || inst.status === 'Upcoming') {
+            totalUpcoming += amt;
+            totalExpected += amt;
+            upcomingCount++;
+        }
+    });
+
+    const collectionRate = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
     const getStatusStyle = (status) => {
         switch(status) {
@@ -30,7 +65,7 @@ const AdminInstallments = () => {
     const exportToCSV = () => {
         const csvContent = "data:text/csv;charset=utf-8," 
             + "ID,Client,Unit,Amount,DueDate,Status\n"
-            + installments.map(i => `${i.id},${i.client},${i.unit},${i.amount},${i.dueDate},${i.status}`).join("\n");
+            + enrichedInstallments.map(i => `${i.id},${i.client},${i.unit},"${i.amount}",${i.dueDate},${i.status}`).join("\n");
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -40,7 +75,7 @@ const AdminInstallments = () => {
         document.body.removeChild(link);
     };
 
-    const filteredInstallments = installments.filter(i => i.client.toLowerCase().includes(searchTerm.toLowerCase()) || i.unit.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredInstallments = enrichedInstallments.filter(i => i.client.toLowerCase().includes(searchTerm.toLowerCase()) || i.unit.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
@@ -53,7 +88,7 @@ const AdminInstallments = () => {
                     <p className="text-slate-500 text-sm mt-1">Monitor upcoming dues, collected amounts, and overdue payments.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
+                    <button onClick={() => alert("Advanced filtering will be available soon.")} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
                         <Filter size={14} /> Filter
                     </button>
                     <button onClick={handleReminders} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
@@ -65,24 +100,24 @@ const AdminInstallments = () => {
             {/* Stats Row */}
             <div className="grid grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
-                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected This Month</div>
-                    <div className="text-2xl font-extrabold text-slate-800 mt-1">৳ 2.50 Cr</div>
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Expected</div>
+                    <div className="text-2xl font-extrabold text-slate-800 mt-1">৳ {formatBDT(totalExpected)}</div>
                     <div className="text-[10px] text-slate-500 mt-1 uppercase">Total billed</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
-                    <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Collected (MTD)</div>
-                    <div className="text-2xl font-extrabold text-emerald-700 mt-1">৳ 1.75 Cr</div>
-                    <div className="text-[10px] text-emerald-600 mt-1 uppercase font-medium">70% Collection Rate</div>
+                    <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Collected</div>
+                    <div className="text-2xl font-extrabold text-emerald-700 mt-1">৳ {formatBDT(totalCollected)}</div>
+                    <div className="text-[10px] text-emerald-600 mt-1 uppercase font-medium">{collectionRate}% Collection Rate</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-red-50">
                     <div className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Overdue Payments</div>
-                    <div className="text-2xl font-extrabold text-red-700 mt-1">৳ 0.75 Cr</div>
-                    <div className="text-[10px] text-red-600 mt-1 uppercase font-medium">Across 8 Clients</div>
+                    <div className="text-2xl font-extrabold text-red-700 mt-1">৳ {formatBDT(totalOverdue)}</div>
+                    <div className="text-[10px] text-red-600 mt-1 uppercase font-medium">{overdueCount} Overdue Installments</div>
                 </div>
                 <div className="bg-[#1A4B9C] p-4 rounded-xl border border-[#153B7C] shadow-sm text-white">
-                    <div className="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Upcoming Next 30 Days</div>
-                    <div className="text-2xl font-extrabold mt-1">৳ 3.20 Cr</div>
-                    <div className="text-[10px] text-blue-200 mt-1 uppercase">14 Installments</div>
+                    <div className="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Upcoming Receivables</div>
+                    <div className="text-2xl font-extrabold mt-1">৳ {formatBDT(totalUpcoming)}</div>
+                    <div className="text-[10px] text-blue-200 mt-1 uppercase">{upcomingCount} Installments</div>
                 </div>
             </div>
 

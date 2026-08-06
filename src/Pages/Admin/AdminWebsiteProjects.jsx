@@ -1,0 +1,244 @@
+import React, { useState } from 'react';
+import { useAdminData } from '../../Context/AdminDataContext';
+import { Plus, Edit2, MapPin, Search, UploadCloud, Link as LinkIcon } from 'lucide-react';
+
+const AdminWebsiteProjects = () => {
+    const { publicProjects, addPublicProject, updatePublicProject } = useAdminData();
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+    const [currentId, setCurrentId] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        status: 'AVAILABLE',
+        statusBg: '#a14000',
+        location: '',
+        type: 'Residential',
+        image: '/Frontend/Projects/Reliance_Zenith_Towers.svg',
+        description: '',
+        detailsLink: '#',
+        mapLink: '#',
+        price: '',
+        area: ''
+    });
+
+    const statusOptions = [
+        { label: 'AVAILABLE', bg: '#a14000' },
+        { label: 'SOLD OUT', bg: '#000f22' },
+        { label: 'READY TO MOVE', bg: '#a14000' }
+    ];
+
+    const typeOptions = ['Residential', 'Commercial', 'Mixed Use'];
+
+    const filteredProjects = publicProjects.filter(p => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const openAddModal = () => {
+        setModalMode('add');
+        setFormData({
+            name: '', status: 'AVAILABLE', statusBg: '#a14000',
+            location: '', type: 'Residential',
+            image: '/Frontend/Projects/Reliance_Zenith_Towers.svg', 
+            description: '', detailsLink: '#', mapLink: '#',
+            price: '', area: ''
+        });
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (project) => {
+        setModalMode('edit');
+        setCurrentId(project.id);
+        setFormData({
+            name: project.name,
+            status: project.status,
+            statusBg: project.statusBg,
+            location: project.location,
+            type: project.type,
+            image: project.image,
+            description: project.description,
+            detailsLink: project.detailsLink || '#',
+            mapLink: project.mapLink || '#',
+            price: project.price || '',
+            area: project.area || ''
+        });
+        setIsModalOpen(true);
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        
+        // Find matching bg for status
+        const selectedStatusOption = statusOptions.find(o => o.label === formData.status);
+        const finalData = { ...formData, statusBg: selectedStatusOption ? selectedStatusOption.bg : '#000f22' };
+
+        if (modalMode === 'add') {
+            addPublicProject(finalData);
+        } else {
+            updatePublicProject(currentId, finalData);
+        }
+        setIsModalOpen(false);
+    };
+
+    const handleImageDrop = (e) => {
+        e.preventDefault();
+        // In a real app, you would upload the file here and get a URL.
+        // For demonstration, we simulate success with a placeholder local URL or user's typed input.
+        alert("Image file detected! (Mock Upload)");
+    };
+
+    return (
+        <div className="max-w-6xl mx-auto space-y-6">
+            
+            {/* Header */}
+            <div className="flex justify-between items-end mb-6">
+                <div>
+                    <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">Website Content</div>
+                    <h1 className="text-2xl font-bold text-slate-800">Public Projects Portfolio</h1>
+                    <p className="text-slate-500 text-sm mt-1">Manage the projects displayed on the public website.</p>
+                </div>
+                <div className="flex gap-3">
+                    <div className="relative">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input 
+                            type="text" 
+                            placeholder="Search projects..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="pl-9 pr-4 py-2 border border-[#E2E8F0] rounded-lg text-sm w-64 outline-none focus:border-[#1A4B9C]"
+                        />
+                    </div>
+                    <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-bold shadow-sm transition-colors">
+                        <Plus size={16} /> Add New Project
+                    </button>
+                </div>
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProjects.map(project => (
+                    <div key={project.id} className="bg-white border border-[#c4c6ce] rounded-lg overflow-hidden shadow-sm flex flex-col group">
+                        <div className="relative h-48 overflow-hidden">
+                            <img src={project.image} alt={project.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div className="absolute top-3 left-3">
+                                <span className="text-[10px] font-bold text-white px-2 py-1 uppercase tracking-wider" style={{ backgroundColor: project.statusBg }}>
+                                    {project.status}
+                                </span>
+                            </div>
+                            <div className="absolute top-3 right-3">
+                                <button onClick={() => openEditModal(project)} className="w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-[#1A4B9C] shadow-sm backdrop-blur-sm transition-colors">
+                                    <Edit2 size={14} />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-5 flex flex-col flex-1">
+                            <h3 className="text-lg font-bold text-slate-800 mb-2">{project.name}</h3>
+                            <div className="flex items-center gap-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">
+                                <span className="flex items-center gap-1"><MapPin size={12}/> {project.location}</span>
+                                <span>•</span>
+                                <span>{project.type}</span>
+                            </div>
+                            <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed flex-1">{project.description}</p>
+                        </div>
+                    </div>
+                ))}
+                {filteredProjects.length === 0 && (
+                    <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 rounded-lg border border-dashed border-[#c4c6ce]">
+                        No public projects match your search.
+                    </div>
+                )}
+            </div>
+
+            {/* Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden">
+                        <div className="px-6 py-4 border-b border-[#E2E8F0] flex justify-between items-center bg-slate-50">
+                            <h3 className="font-bold text-slate-800">{modalMode === 'add' ? 'Add New Project' : 'Edit Project'}</h3>
+                            <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                            <div className="grid grid-cols-2 gap-5">
+                                <div className="col-span-2">
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Project Name</label>
+                                    <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</label>
+                                    <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]">
+                                        {statusOptions.map(o => <option key={o.label} value={o.label}>{o.label}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Type</label>
+                                    <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]">
+                                        {typeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Location</label>
+                                    <input type="text" required value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Details Page Link</label>
+                                    <input type="text" placeholder="/projects/zenith" value={formData.detailsLink} onChange={e => setFormData({...formData, detailsLink: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Google Maps Link</label>
+                                    <input type="text" placeholder="https://maps.google.com/..." value={formData.mapLink} onChange={e => setFormData({...formData, mapLink: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Price Info</label>
+                                    <input type="text" placeholder="e.g. Starting from ৳1.2Cr" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Area / Size Info</label>
+                                    <input type="text" placeholder="e.g. 1,200 - 2,500 sqft" value={formData.area} onChange={e => setFormData({...formData, area: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                </div>
+                                
+                                <div className="col-span-2">
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Project Image</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {/* Drag and Drop Zone */}
+                                        <div 
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onDrop={handleImageDrop}
+                                            className="border-2 border-dashed border-[#c4c6ce] rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors"
+                                        >
+                                            <UploadCloud size={24} className="text-slate-400 mb-2" />
+                                            <span className="text-xs font-bold text-slate-700">Drag & Drop Image</span>
+                                            <span className="text-[10px] text-slate-500 mt-1">PNG, JPG, SVG up to 5MB</span>
+                                        </div>
+                                        {/* Direct Link Input */}
+                                        <div className="flex flex-col justify-center gap-2">
+                                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><LinkIcon size={12}/> Or Image URL</div>
+                                            <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                            {formData.image && (
+                                                <div className="mt-2 h-16 w-32 rounded border border-slate-200 overflow-hidden">
+                                                    <img src={formData.image} className="w-full h-full object-cover" alt="Preview" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="col-span-2">
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Description</label>
+                                    <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] h-24 resize-none"></textarea>
+                                </div>
+                            </div>
+                            <div className="pt-4 flex justify-end gap-3 border-t border-[#E2E8F0]">
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2 text-slate-600 bg-slate-100 rounded-lg text-sm font-bold hover:bg-slate-200">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold hover:bg-[#153B7C]">Save Project</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default AdminWebsiteProjects;

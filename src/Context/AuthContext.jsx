@@ -1,56 +1,66 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-// ─── Context ──────────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
 export const AuthProvider = ({ children }) => {
-    const [user, setUser]       = useState(null);
-    const [session, setSession] = useState(null);
+    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Get the initial session
+        // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
+            if (session?.user) {
+                // To keep the app logic working seamlessly, we'll map the role and id
+                // If it's the admin user, attach role 'admin', else 'client'
+                const isadmin = session.user.email === 'admin@reliance.com';
+                setUser({
+                    id: session.user.id,
+                    email: session.user.email,
+                    role: isadmin ? 'admin' : 'client'
+                });
+            } else {
+                setUser(null);
+            }
             setLoading(false);
         });
 
-        // Listen for auth changes (login / logout / token refresh)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (_event, session) => {
-                setSession(session);
-                setUser(session?.user ?? null);
-                setLoading(false);
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session?.user) {
+                const isadmin = session.user.email === 'admin@reliance.com';
+                setUser({
+                    id: session.user.id,
+                    email: session.user.email,
+                    role: isadmin ? 'admin' : 'client'
+                });
+            } else {
+                setUser(null);
             }
-        );
+            setLoading(false);
+        });
 
         return () => subscription.unsubscribe();
     }, []);
 
+    const signIn = async (email, password) => {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        return data;
+    };
+
     const signOut = async () => {
-        if (user) {
-            const { error: logErr } = await supabase.rpc('record_auth_log', { 
-                p_event_type: 'LOGOUT',
-                p_user_agent: navigator.userAgent ?? null
-            });
-            if (logErr) {
-                console.warn('[Logout Log] RPC error:', logErr.message);
-            }
-        }
-        await supabase.auth.signOut();
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signOut }}>
+        <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 export const useAuth = () => {
     const ctx = useContext(AuthContext);
     if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
