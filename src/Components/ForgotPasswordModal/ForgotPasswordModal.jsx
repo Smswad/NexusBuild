@@ -104,7 +104,12 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                                 disabled={loading}
                                 className="w-full bg-[#0c326f] hover:bg-[#092552] text-white py-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
                             >
-                                {loading ? 'Sending...' : (<>Send Reset Link <ArrowRight size={14} /></>)}
+                                {loading ? (
+                                    <span className="flex items-center gap-2">
+                                        <span className="loading loading-dots loading-sm text-white"></span>
+                                        Sending...
+                                    </span>
+                                ) : (<>Send Reset Link <ArrowRight size={14} /></>)}
                             </button>
 
                             <p className="text-center text-[11px] text-slate-400">

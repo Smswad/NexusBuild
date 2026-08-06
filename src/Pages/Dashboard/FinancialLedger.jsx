@@ -40,7 +40,22 @@ const PrintView = ({ financials, userProfile }) => (
 );
 
 const FinancialLedger = () => {
-    const { financials, userProfile, downloadStatement } = useClientData();
+    const { loading, financials, userProfile, downloadStatement } = useClientData();
+
+    if (loading) {
+        return (
+            <div className="flex flex-col gap-6 max-w-5xl animate-pulse">
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-4">
+                    <div className="skeleton h-6 w-56 rounded bg-slate-200" />
+                    <div className="skeleton h-36 w-full rounded bg-slate-100" />
+                </div>
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-4">
+                    <div className="skeleton h-6 w-48 rounded bg-slate-200" />
+                    <div className="skeleton h-48 w-full rounded bg-slate-100" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>

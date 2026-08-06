@@ -8,9 +8,40 @@ import { useClientData } from '../../Context/ClientDataContext';
 
 const Overview = () => {
     const navigate = useNavigate();
-    const { userProfile, financials, projects, downloadStatement } = useClientData();
+    const { loading, userProfile, financials, projects, downloadStatement } = useClientData();
     const activeProject = projects[0] || { progressPhase: 1 };
     
+    if (loading) {
+        return (
+            <div className="flex gap-6 items-start animate-pulse">
+                <div className="flex-1 flex flex-col gap-6">
+                    <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 pb-8 flex flex-col gap-4">
+                        <div className="skeleton h-6 w-64 rounded bg-slate-200" />
+                        <div className="skeleton h-16 w-full rounded-lg bg-slate-100" />
+                    </div>
+                    <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-4">
+                        <div className="skeleton h-6 w-48 rounded bg-slate-200" />
+                        <div className="skeleton h-32 w-full rounded bg-slate-100" />
+                    </div>
+                    <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-4">
+                        <div className="skeleton h-6 w-48 rounded bg-slate-200" />
+                        <div className="skeleton h-48 w-full rounded bg-slate-100" />
+                    </div>
+                </div>
+                <div className="w-[360px] flex-shrink-0 flex flex-col gap-6">
+                    <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-4">
+                        <div className="skeleton h-48 w-full rounded-lg bg-slate-200" />
+                        <div className="skeleton h-12 w-full rounded bg-slate-100" />
+                    </div>
+                    <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-4">
+                        <div className="skeleton h-6 w-40 rounded bg-slate-200" />
+                        <div className="skeleton h-32 w-full rounded bg-slate-100" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex gap-6 items-start">
             {/* ══ CENTER COLUMN (Flexible Main Content) ════════════════════════ */}

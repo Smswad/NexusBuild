@@ -451,20 +451,20 @@ const Gismap = () => {
                 </aside>
 
                 {/* ── MAP AREA ─────────────────────────────────────────────── */}
-                <div className="flex-grow relative overflow-hidden min-h-[400px] lg:min-h-0">
+                <div className="flex-grow relative overflow-hidden min-h-[400px] lg:min-h-0 bg-[#000f22]">
 
                     {/* OpenStreetMap embed */}
                     <iframe
                         title="NexusBuild GIS Property Map — Narayanganj"
                         src={mapUrl}
-                        className="absolute inset-0 w-full h-full border-0"
+                        className="absolute inset-0 w-full h-full border-0 z-0"
                         loading="lazy"
                         allowFullScreen
                         referrerPolicy="no-referrer-when-downgrade"
                     />
 
                     {/* Dark colour-grade overlay matching Figma desaturation */}
-                    <div className="absolute inset-0 bg-[#000f22]/10 pointer-events-none" />
+                    <div className="absolute inset-0 bg-[#000f22]/10 pointer-events-none z-10" />
 
                     {/* ── MAP MARKER PINS overlay (visual, non-interactive) ── */}
                     {/* These are positioned using % to mimic Figma placement */}

@@ -12,11 +12,26 @@ const ICONS = {
 };
 
 const ProjectProgress = () => {
-    const { projects, siteUpdates, downloadStatement } = useClientData();
+    const { loading, projects, siteUpdates, downloadStatement } = useClientData();
     const [activeProjectId, setActiveProjectId] = useState(projects[0]?.id);
 
     const activeProject = projects.find(p => p.id === activeProjectId) || projects[0];
     const phase = activeProject?.progressPhase || 1;
+
+    if (loading) {
+        return (
+            <div className="flex flex-col gap-6 max-w-5xl animate-pulse">
+                <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 pb-8 flex flex-col gap-4">
+                    <div className="skeleton h-6 w-64 rounded bg-slate-200" />
+                    <div className="skeleton h-20 w-full rounded-lg bg-slate-100" />
+                </div>
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-4">
+                    <div className="skeleton h-6 w-48 rounded bg-slate-200" />
+                    <div className="skeleton h-48 w-full rounded bg-slate-100" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-6 max-w-5xl">
