@@ -18,15 +18,23 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showForgotModal, setShowForgotModal] = useState(false);
-
+    const [redirecting, setRedirecting] = useState(false);
 
     // Navigate only after AuthContext has the user
     useEffect(() => {
         if (user) {
-            if (user.role === 'admin') navigate('/admin', { replace: true });
-            else navigate('/dashboard', { replace: true });
+            if (redirecting) {
+                const timer = setTimeout(() => {
+                    if (user.role === 'admin') navigate('/admin', { replace: true });
+                    else navigate('/dashboard', { replace: true });
+                }, 1000);
+                return () => clearTimeout(timer);
+            } else {
+                if (user.role === 'admin') navigate('/admin', { replace: true });
+                else navigate('/dashboard', { replace: true });
+            }
         }
-    }, [user, navigate]);
+    }, [user, navigate, redirecting]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -36,7 +44,7 @@ const Login = () => {
         try {
             const loginEmail = email.toLowerCase() === 'admin' ? 'admin@reliance.com' : email;
             await signIn(loginEmail, password);
-            // Redirection is handled by the useEffect above
+            setRedirecting(true);
         } catch (err) {
             setError(err.message || 'Invalid email or password. Please use a registered client email, or "admin@reliance.com".');
         } finally {
