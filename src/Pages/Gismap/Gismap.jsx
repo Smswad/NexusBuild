@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { MapPin, Home, Building2, Layers, CheckSquare, Square, ChevronDown, Info, Navigation, Hospital, GraduationCap, Bus, ShoppingCart } from 'lucide-react';
 import Navbar from '../../Components/Header/Navbar';
 import Footer from '../../Components/Footer/Footer';
+import { useDatabase } from '../../Context/DatabaseContext';
 
 // ─── GIS Map ──────────────────────────────────────────────────────────────────
 // Figma frame: 1280×800, node-id=1:2
@@ -25,42 +26,25 @@ const CLR = {
 };
 
 // ── Project pin data ───────────────────────────────────────────────────────────
-const PROJECTS = [
-    {
-        id: 1,
-        name: 'Reliance Zenith Towers',
-        type: 'Residential',
-        status: 'Available',
-        location: 'Narayanganj',
-        // Approximate lat/lng for iframe embed
-        lat: 23.6238,
-        lng: 90.4993,
-        color: '#a14000',
-        description: 'Premium residential tower with panoramic river views across 32 floors.',
-    },
-    {
-        id: 2,
-        name: 'Nexus Business Hub',
-        type: 'Commercial',
-        status: 'Sold Out',
-        location: 'BB Road, Narayanganj',
-        lat: 23.6158,
-        lng: 90.5010,
-        color: '#000f22',
-        description: 'Column-free commercial floors with fibre-optic connectivity.',
-    },
-    {
-        id: 3,
-        name: 'The Heritage Plaza',
-        type: 'Mixed Use',
-        status: 'Ready to Move',
-        location: 'Shamabay, Narayanganj',
-        lat: 23.6300,
-        lng: 90.4940,
-        color: '#0a3d2e',
-        description: 'Heritage-inspired mixed-use development in the commercial district.',
-    },
-];
+// Helper to get project coordinates
+const getCoordinates = (p) => {
+    if (!p) return { lat: 23.6238, lng: 90.4993 };
+    const strId = String(p.id);
+    if (strId === '1') return { lat: 23.6238, lng: 90.4993 };
+    if (strId === '2') return { lat: 23.6158, lng: 90.5010 };
+    if (strId === '3') return { lat: 23.6300, lng: 90.4940 };
+    return { lat: 23.6238, lng: 90.4993 };
+};
+
+// Helper to normalize status for the UI
+const normalizeStatus = (status) => {
+    if (!status) return '';
+    const upper = status.toUpperCase();
+    if (upper === 'AVAILABLE') return 'Available';
+    if (upper === 'SOLD OUT') return 'Sold Out';
+    if (upper === 'READY TO MOVE') return 'Ready to Move';
+    return status;
+};
 
 // ── Filter config ──────────────────────────────────────────────────────────────
 const TYPE_FILTERS   = ['Residential', 'Commercial', 'Mixed Use'];
@@ -82,6 +66,14 @@ const STATUS_COLORS = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 const Gismap = () => {
+    const { publicProjects } = useDatabase();
+    
+    // Normalize project data from Supabase
+    const normalizedProjects = publicProjects.map(p => ({
+        ...p,
+        status: normalizeStatus(p.status)
+    }));
+
     const [activeTypes,   setActiveTypes]   = useState(new Set(TYPE_FILTERS));
     const [activeStatuses, setActiveStatuses] = useState(new Set(STATUS_FILTERS));
     const [selectedProject, setSelectedProject] = useState(null);
@@ -118,13 +110,13 @@ const Gismap = () => {
             return next;
         });
 
-    const visibleProjects = PROJECTS.filter(
+    const visibleProjects = normalizedProjects.filter(
         p => activeTypes.has(p.type) && activeStatuses.has(p.status)
     );
 
-    // Build an OpenStreetMap embed URL centered on Narayanganj
-    const mapCenter = '23.6238,90.4993';
-    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=90.47%2C23.60%2C90.52%2C23.65&layer=mapnik&marker=${mapCenter}`;
+    // Build an OpenStreetMap embed URL dynamically centered on the selected project or Narayanganj center
+    const activeCoords = getCoordinates(selectedProject);
+    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${activeCoords.lng - 0.025}%2C${activeCoords.lat - 0.025}%2C${activeCoords.lng + 0.025}%2C${activeCoords.lat + 0.025}&layer=mapnik&marker=${activeCoords.lat}%2C${activeCoords.lng}`;
 
     return (
         <div className="flex flex-col min-h-screen bg-[#f3f4f5]">
@@ -312,7 +304,7 @@ const Gismap = () => {
                                     ))}
                                     <div className="mt-2 pt-2 border-t border-[#e1e3e4]">
                                         <p className="text-[11px] text-[#74777e]">
-                                            {visibleProjects.length} of {PROJECTS.length} sites visible
+                                            {visibleProjects.length} of {publicProjects.length} sites visible
                                         </p>
                                     </div>
                                 </div>

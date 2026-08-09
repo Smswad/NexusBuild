@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { PROJECTS } from '../data/projectsData';
 
 const DatabaseContext = createContext(null);
 
@@ -15,37 +16,8 @@ export const DatabaseProvider = ({ children }) => {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Mock public projects (keep this local as it's just for the marketing site)
-    const [publicProjects, setPublicProjects] = useState([
-        {
-            id: 1,
-            name: "Reliance Zenith Towers",
-            status: "AVAILABLE",
-            statusBg: "#a14000",
-            location: "Narayanganj",
-            type: "Residential",
-            image: "/Frontend/Projects/Reliance_Zenith_Towers.svg",
-            description: "A masterpiece of urban living featuring panoramic river views, sky lounges, and smart-home integration across 32 premium floors.",
-            detailsLink: "#",
-            mapLink: "#",
-            price: "Starting from ৳1.2Cr",
-            area: "1,200 - 2,500 sqft"
-        },
-        {
-            id: 2,
-            name: "Nexus Business Hub",
-            status: "SOLD OUT",
-            statusBg: "#000f22",
-            location: "BB Road",
-            type: "Commercial",
-            image: "/Frontend/Projects/Nexus_Business_Hub.svg",
-            description: "Premium commercial units designed for headquarters, featuring column-free open floors, fibre-optic connectivity, and a rooftop conference suite.",
-            detailsLink: "#",
-            mapLink: "#",
-            price: "Contact for Pricing",
-            area: "3,000 - 10,000 sqft"
-        }
-    ]);
+    // Mock public projects (use static PROJECTS list as default fallback)
+    const [publicProjects, setPublicProjects] = useState(PROJECTS);
 
     // Fetch everything on mount
     useEffect(() => {
@@ -54,7 +26,7 @@ export const DatabaseProvider = ({ children }) => {
             try {
                 const [
                     resClients, resLeads, resApps, resProjects,
-                    resProps, resInsts, resTrans, resUpdates, resTickets
+                    resProps, resInsts, resTrans, resUpdates, resTickets, resPublicProjects
                 ] = await Promise.all([
                     supabase.from('clients').select('*'),
                     supabase.from('leads').select('*'),
@@ -64,7 +36,8 @@ export const DatabaseProvider = ({ children }) => {
                     supabase.from('installments').select('*'),
                     supabase.from('transactions').select('*'),
                     supabase.from('site_updates').select('*'),
-                    supabase.from('tickets').select('*')
+                    supabase.from('tickets').select('*'),
+                    supabase.from('public_projects').select('*')
                 ]);
 
                 if (resClients.data) setClients(resClients.data);
@@ -76,6 +49,22 @@ export const DatabaseProvider = ({ children }) => {
                 if (resTrans.data) setTransactions(resTrans.data.map(t => ({ ...t, propertyId: t.property_id })));
                 if (resUpdates.data) setSiteUpdates(resUpdates.data.map(u => ({ ...u, projectId: u.project_id })));
                 if (resTickets.data) setTickets(resTickets.data.map(t => ({ ...t, clientId: t.client_id })));
+                if (resPublicProjects.data && resPublicProjects.data.length > 0) {
+                    setPublicProjects(resPublicProjects.data.map(p => ({
+                        id: p.id,
+                        name: p.name,
+                        status: p.status,
+                        statusBg: p.status_bg,
+                        location: p.location,
+                        type: p.type,
+                        image: p.image,
+                        description: p.description,
+                        price: p.price,
+                        area: p.area
+                    })));
+                } else if (resPublicProjects.error) {
+                    console.warn("[DatabaseContext] Could not load public_projects from Supabase, using static fallback:", resPublicProjects.error.message);
+                }
 
             } catch (err) {
                 console.error("Error fetching data from Supabase:", err);
@@ -159,9 +148,40 @@ export const DatabaseProvider = ({ children }) => {
         if (!error) setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
     };
 
-    const addClient = async (client) => {
+    const addClient = async (client, projectId = null) => {
         const { data, error } = await supabase.from('clients').insert([client]).select();
-        if (!error && data) setClients(prev => [data[0], ...prev]);
+        if (!error && data) {
+            setClients(prev => [data[0], ...prev]);
+            
+            if (projectId && projectId !== 'all') {
+                const newProperty = {
+                    client_id: data[0].id,
+                    project_id: projectId,
+                    unit_name: 'Pending Assignment',
+                    location: 'TBD',
+                    area: '0 sqft',
+                    handover_date: 'TBD',
+                    total_valuation: '0',
+                    total_paid: '0',
+                    other_charges: '0',
+                    due_balance: '0'
+                };
+                const { data: propData, error: propError } = await supabase.from('properties').insert([newProperty]).select();
+                if (!propError && propData) {
+                    setProperties(prev => [...prev, {
+                        ...propData[0],
+                        clientId: propData[0].client_id,
+                        projectId: propData[0].project_id,
+                        unitName: propData[0].unit_name,
+                        handoverDate: propData[0].handover_date,
+                        totalValuation: propData[0].total_valuation,
+                        totalPaid: propData[0].total_paid,
+                        otherCharges: propData[0].other_charges,
+                        dueBalance: propData[0].due_balance
+                    }]);
+                }
+            }
+        }
     };
 
     const updateClient = async (id, updatedClient) => {
@@ -220,12 +240,52 @@ export const DatabaseProvider = ({ children }) => {
         if (!error && data) setTransactions(prev => [{ ...data[0], propertyId: data[0].property_id }, ...prev]);
     };
 
-    const addPublicProject = (project) => {
-        setPublicProjects(prev => [...prev, { ...project, id: Date.now() }]);
+    const addPublicProject = async (newProj) => {
+        const id = String(Date.now());
+        const dbPayload = {
+            id,
+            name: newProj.name,
+            status: newProj.status,
+            status_bg: newProj.statusBg,
+            location: newProj.location,
+            type: newProj.type,
+            image: newProj.image,
+            description: newProj.description,
+            price: newProj.price,
+            area: newProj.area
+        };
+
+        // Optimistic UI update
+        setPublicProjects(prev => [...prev, { ...newProj, id }]);
+
+        const { error } = await supabase.from('public_projects').insert([dbPayload]);
+        if (error) {
+            console.error("Error adding public project to Supabase:", error.message);
+            alert("Error saving project to database: " + error.message);
+        }
     };
 
-    const updatePublicProject = (id, updatedProject) => {
-        setPublicProjects(prev => prev.map(p => p.id === id ? { ...p, ...updatedProject } : p));
+    const updatePublicProject = async (id, updatedProj) => {
+        const dbPayload = {
+            name: updatedProj.name,
+            status: updatedProj.status,
+            status_bg: updatedProj.statusBg,
+            location: updatedProj.location,
+            type: updatedProj.type,
+            image: updatedProj.image,
+            description: updatedProj.description,
+            price: updatedProj.price,
+            area: updatedProj.area
+        };
+
+        // Optimistic UI update
+        setPublicProjects(prev => prev.map(p => p.id === id ? { ...p, ...updatedProj } : p));
+
+        const { error } = await supabase.from('public_projects').update(dbPayload).eq('id', id);
+        if (error) {
+            console.error("Error updating public project in Supabase:", error.message);
+            alert("Error updating project in database: " + error.message);
+        }
     };
 
     const advanceApplicationStage = async (id) => {
@@ -295,7 +355,41 @@ export const DatabaseProvider = ({ children }) => {
         setApplications(prev => prev.filter(a => a.id !== applicationId));
     };
 
+    const deleteClient = async (id) => {
+        const { error } = await supabase.from('clients').delete().eq('id', id);
+        if (!error) {
+            setClients(prev => prev.filter(c => c.id !== id));
+            setProperties(prev => prev.filter(p => p.clientId !== id));
+            setTickets(prev => prev.filter(t => t.clientId !== id));
+        } else {
+            console.error("Error deleting client:", error.message);
+            alert("Error deleting client: " + error.message);
+        }
+    };
+
+    const deleteLead = async (id) => {
+        const { error } = await supabase.from('leads').delete().eq('id', id);
+        if (!error) {
+            setLeads(prev => prev.filter(l => l.id !== id));
+        } else {
+            console.error("Error deleting lead:", error.message);
+            alert("Error deleting lead: " + error.message);
+        }
+    };
+
+    const deletePublicProject = async (id) => {
+        setPublicProjects(prev => prev.filter(p => p.id !== id));
+        const { error } = await supabase.from('public_projects').delete().eq('id', id);
+        if (error) {
+            console.error("Error deleting public project:", error.message);
+            alert("Error deleting project: " + error.message);
+        }
+    };
+
     const value = {
+        deleteClient,
+        deleteLead,
+        deletePublicProject,
         clients,
         leads,
         applications,

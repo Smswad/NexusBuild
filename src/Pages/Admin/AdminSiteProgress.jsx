@@ -3,9 +3,10 @@ import { useAdminData } from '../../Context/AdminDataContext';
 import { Camera, Image as ImageIcon, Send, Clock, CheckCircle, Circle } from 'lucide-react';
 
 const AdminSiteProgress = () => {
-    const { projects, updateProjectPhase, addSiteUpdate } = useAdminData();
-    const activeProject = projects[0]; // Sardar Tower
-    const currentPhase = activeProject.progressPhase;
+    const { projects, activeProject, updateProjectPhase, addSiteUpdate } = useAdminData();
+
+    // Find matching project. If activeProject is 'all', default to the first project in the list.
+    const selectedProject = projects.find(p => p.id === activeProject) || projects[0];
 
     const [broadcastSubject, setBroadcastSubject] = useState('');
     const [broadcastMsg, setBroadcastMsg] = useState('');
@@ -17,14 +18,25 @@ const AdminSiteProgress = () => {
         { id: 4, name: 'Handover', date: 'Target: Dec 24', progress: 0 },
     ];
 
+    if (!selectedProject) {
+        return (
+            <div className="max-w-5xl mx-auto p-12 text-center text-slate-500">
+                <span className="loading loading-spinner loading-md text-[#1A4B9C] mb-2"></span>
+                <p className="text-sm font-semibold">Loading construction projects...</p>
+            </div>
+        );
+    }
+
+    const currentPhase = selectedProject.progressPhase;
+
     const handlePhaseChange = (phaseId) => {
-        updateProjectPhase(activeProject.id, phaseId);
+        updateProjectPhase(selectedProject.id, phaseId);
     };
 
     const handleBroadcast = (e) => {
         e.preventDefault();
-        addSiteUpdate(activeProject.id, broadcastSubject, broadcastMsg);
-        alert('Broadcast sent to all clients in this project!');
+        addSiteUpdate(selectedProject.id, broadcastSubject, broadcastMsg);
+        alert(`Broadcast sent to all clients in ${selectedProject.name}!`);
         setBroadcastSubject('');
         setBroadcastMsg('');
     };
@@ -35,7 +47,7 @@ const AdminSiteProgress = () => {
             {/* Header */}
             <div>
                 <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">Project Switcher</div>
-                <h1 className="text-2xl font-bold text-slate-800">{activeProject.name} Construction</h1>
+                <h1 className="text-2xl font-bold text-slate-800">{selectedProject.name} Construction</h1>
                 <p className="text-slate-500 text-sm mt-1">Real-time site progress and milestone tracking.</p>
             </div>
 

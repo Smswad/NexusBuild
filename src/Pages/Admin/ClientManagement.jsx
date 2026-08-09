@@ -6,7 +6,8 @@ const ClientManagement = () => {
     const { 
         clients, properties, installments, transactions, tickets, leads,
         addClient, updateClient, updateProperty, 
-        addInstallment, updateInstallment, addTransaction, resolveTicket 
+        addInstallment, updateInstallment, addTransaction, resolveTicket,
+        deleteClient, activeProject
     } = useAdminData();
     
     const [searchTerm, setSearchTerm] = useState('');
@@ -38,7 +39,7 @@ const ClientManagement = () => {
 
     const handleAddClient = (e) => {
         e.preventDefault();
-        addClient(newClient);
+        addClient(newClient, activeProject);
         setIsAddModalOpen(false);
         setNewClient({ name: '', email: '', phone: '', status: 'Active' });
     };
@@ -433,7 +434,19 @@ const ClientManagement = () => {
                                                 This client does not have any assigned properties yet.
                                             </div>
                                         )}
-                                        <div className="pt-4 border-t border-[#E2E8F0]">
+                                        <div className="pt-4 border-t border-[#E2E8F0] flex justify-between">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => {
+                                                    if (window.confirm(`Are you sure you want to delete ${selectedClient.name}? This will remove all their properties, transactions, and installment schedules.`)) {
+                                                        deleteClient(selectedClient.id);
+                                                        setIsEditModalOpen(false);
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm"
+                                            >
+                                                Delete Client
+                                            </button>
                                             <button type="submit" className="px-6 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold hover:bg-[#153B7C] transition-colors shadow-sm">
                                                 Save Profile & Property
                                             </button>

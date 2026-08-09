@@ -49,7 +49,7 @@ const Overview = () => {
                 
                 {/* 1. Construction Progress Card */}
                 <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 pb-8">
-                    <h2 className="text-[#003178] font-bold text-[18px] mb-10">Sardar Tower Construction Progress</h2>
+                    <h2 className="text-[#003178] font-bold text-[18px] mb-10">{activeProject?.name || 'Project'} Construction Progress</h2>
                     
                     <div className="relative mt-8">
                         {/* Connecting Lines */}

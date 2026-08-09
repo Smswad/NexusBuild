@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { Search, MapPin, ArrowRight, Wrench, CalendarCheck, RotateCcw } from "lucide-react";
-import { PROJECTS } from "../../data/projectsData";
+import { useDatabase } from "../../Context/DatabaseContext";
 
 // ── Public image paths (files in /public/frontend/projects/) ──────────────────
 const IMG_HERO = "/Frontend/Projects/Hero_Section.svg";
@@ -34,6 +34,7 @@ const ImageWithSkeleton = ({ src, alt, className }) => {
 };
 
 const Projects = () => {
+    const { publicProjects } = useDatabase();
     // ── Filter State ──────────────────────────────────────────────────────────
     const [locationFilter, setLocationFilter] = useState("");
     const [typeFilter, setTypeFilter] = useState("");
@@ -63,7 +64,7 @@ const Projects = () => {
     };
 
     // Filter projects based on active applied criteria
-    const filteredProjects = PROJECTS.filter((project) => {
+    const filteredProjects = publicProjects.filter((project) => {
         // Location filter match
         if (
             appliedFilters.location &&
@@ -249,7 +250,7 @@ const Projects = () => {
                                 onClick={handleResetFilters}
                                 className="flex items-center gap-2 text-[14px] font-bold text-[#a14000] hover:text-[#5e2200] transition-colors flex-shrink-0 cursor-pointer"
                             >
-                                View All Projects ({PROJECTS.length})
+                                View All Projects ({publicProjects.length})
                                 <ArrowRight size={14} />
                             </button>
                         )}

@@ -3,7 +3,7 @@ import { useAdminData } from '../../Context/AdminDataContext';
 import { Plus, Edit2, MapPin, Search, UploadCloud, Link as LinkIcon } from 'lucide-react';
 
 const AdminWebsiteProjects = () => {
-    const { publicProjects, addPublicProject, updatePublicProject } = useAdminData();
+    const { publicProjects, addPublicProject, updatePublicProject, deletePublicProject } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
     
     // Modal state
@@ -229,9 +229,25 @@ const AdminWebsiteProjects = () => {
                                     <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] h-24 resize-none"></textarea>
                                 </div>
                             </div>
-                            <div className="pt-4 flex justify-end gap-3 border-t border-[#E2E8F0]">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2 text-slate-600 bg-slate-100 rounded-lg text-sm font-bold hover:bg-slate-200">Cancel</button>
-                                <button type="submit" className="px-5 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold hover:bg-[#153B7C]">Save Project</button>
+                            <div className="pt-4 flex justify-between gap-3 border-t border-[#E2E8F0]">
+                                {modalMode === 'edit' && (
+                                    <button 
+                                        type="button" 
+                                        onClick={() => {
+                                            if (window.confirm(`Are you sure you want to delete ${formData.name}?`)) {
+                                                deletePublicProject(currentId);
+                                                setIsModalOpen(false);
+                                            }
+                                        }}
+                                        className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm"
+                                    >
+                                        Delete Project
+                                    </button>
+                                )}
+                                <div className="flex gap-3 ml-auto">
+                                    <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2 text-slate-600 bg-slate-100 rounded-lg text-sm font-bold hover:bg-slate-200">Cancel</button>
+                                    <button type="submit" className="px-5 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold hover:bg-[#153B7C]">Save Project</button>
+                                </div>
                             </div>
                         </form>
                     </div>

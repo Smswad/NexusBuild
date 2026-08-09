@@ -58,7 +58,11 @@ export const router = createBrowserRouter([
     // ── Protected Dashboard ───────────────────────────────────────────────────
     {
         path: '/dashboard',
-        element: <Dashboard />,
+        element: (
+            <ProtectedRoute>
+                <Dashboard />
+            </ProtectedRoute>
+        ),
         children: [
             { index: true,              Component: Overview },
             { path: 'financials',       Component: FinancialLedger },

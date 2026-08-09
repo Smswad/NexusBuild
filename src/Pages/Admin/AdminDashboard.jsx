@@ -26,8 +26,11 @@ const StatCard = ({ title, value, subtitle, trend, trendUp, icon: Icon }) => (
 );
 
 const AdminDashboard = () => {
-    const { clients, properties, transactions, applications, leads, projects } = useAdminData();
+    const { clients, properties, transactions, applications, leads, projects, activeProject } = useAdminData();
     const navigate = useNavigate();
+
+    const isGlobal = activeProject === 'all';
+    const currentProject = projects.find(p => p.id === activeProject);
 
     // Calculate dynamic stats
     const totalRevenue = transactions.reduce((sum, tx) => sum + parseInt(tx.amount.replace(/,/g, '')), 0);
@@ -37,7 +40,10 @@ const AdminDashboard = () => {
     const pendingApprovals = applications.filter(a => a.status === 'Pending').length;
     const newLeads = leads.filter(l => l.status === 'New').length;
     const activeProjectsCount = projects.length;
-    const totalGlobalUnits = projects.reduce((sum, p) => sum + (parseInt(p.totalUnits) || 0), 0);
+    
+    const totalUnitsCount = isGlobal 
+        ? projects.reduce((sum, p) => sum + (parseInt(p.totalUnits) || 0), 0)
+        : (currentProject ? parseInt(currentProject.totalUnits) || 0 : 0);
 
     // Format currency
     const formatBDT = (amount) => new Intl.NumberFormat('en-IN').format(amount);
@@ -48,11 +54,20 @@ const AdminDashboard = () => {
             {/* Header */}
             <div className="flex justify-between items-end">
                 <div>
-                    <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">Global Portfolio Context</div>
+                    <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">
+                        {isGlobal ? "Global Portfolio Context" : "Project Portfolio Context"}
+                    </div>
                     <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                        All Projects <span className="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">({activeProjectsCount} Active)</span>
+                        {isGlobal ? "All Projects" : currentProject?.name}{' '}
+                        <span className="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                            {isGlobal ? `(${activeProjectsCount} Active)` : "Active"}
+                        </span>
                     </h1>
-                    <p className="text-slate-500 text-sm mt-1">Aggregate executive summary and operational metrics across all active developments.</p>
+                    <p className="text-slate-500 text-sm mt-1">
+                        {isGlobal 
+                            ? "Aggregate executive summary and operational metrics across all active developments."
+                            : `Operational summary and key metrics specifically for ${currentProject?.name}.`}
+                    </p>
                 </div>
                 <button onClick={() => window.print()} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
                     <Download size={14} />
@@ -72,7 +87,9 @@ const AdminDashboard = () => {
                     </div>
                     <div className="text-3xl font-extrabold text-slate-800 mb-2">৳{formatBDT(totalRevenue)}</div>
                     <div className="flex items-center justify-between mt-4">
-                        <div className="text-xs text-slate-500">Across all projects • Fiscal Year 2023-2024</div>
+                        <div className="text-xs text-slate-500">
+                            {isGlobal ? "Across all projects" : `For ${currentProject?.name}`} • Fiscal Year 2023-2024
+                        </div>
                         <div className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded flex items-center gap-1">
                             <TrendingUp size={12} /> +23.4%
                         </div>
@@ -86,7 +103,7 @@ const AdminDashboard = () => {
                             <span>Total Net Receivables</span>
                         </div>
                         <div className="px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded uppercase">
-                            Global Outstanding
+                            {isGlobal ? "Global Outstanding" : "Project Outstanding"}
                         </div>
                     </div>
                     <div className="text-3xl font-extrabold text-slate-800 mb-2">৳{formatBDT(totalReceivables)}</div>
@@ -106,8 +123,10 @@ const AdminDashboard = () => {
                         <Building size={16} className="text-[#1A4B9C]" />
                         <span>Units Sold</span>
                     </div>
-                    <div className="text-2xl font-extrabold text-slate-800 mb-1">{unitsSold} <span className="text-slate-400 text-lg font-medium">/ {totalGlobalUnits}</span></div>
-                    <div className="text-xs text-slate-500">Across {activeProjectsCount} Active Projects</div>
+                    <div className="text-2xl font-extrabold text-slate-800 mb-1">{unitsSold} <span className="text-slate-400 text-lg font-medium">/ {totalUnitsCount}</span></div>
+                    <div className="text-xs text-slate-500">
+                        {isGlobal ? `Across ${activeProjectsCount} Active Projects` : `For ${currentProject?.name}`}
+                    </div>
                 </div>
 
                 <div className="bg-white p-5 rounded-xl border border-[#E2E8F0] shadow-sm">
@@ -135,7 +154,7 @@ const AdminDashboard = () => {
             <div>
                 <h3 className="text-sm font-bold text-slate-800 mb-3">Quick Actions</h3>
                 <div className="flex gap-3">
-                    <button onClick={() => navigate('/admin/clients')} className="flex items-center gap-2 px-4 py-2 bg-[#1A4B9C] text-white rounded-lg font-medium hover:bg-[#153B7C] transition-colors shadow-sm text-sm">
+                    <button onClick={() => navigate('/admin/management')} className="flex items-center gap-2 px-4 py-2 bg-[#1A4B9C] text-white rounded-lg font-medium hover:bg-[#153B7C] transition-colors shadow-sm text-sm">
                         <UserPlus size={16} /> Add Client
                     </button>
                     <button onClick={() => navigate('/admin/financials')} className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm">
@@ -144,7 +163,7 @@ const AdminDashboard = () => {
                     <button onClick={() => navigate('/admin/onboarding')} className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm">
                         <CheckSquare size={16} /> Approve Registration
                     </button>
-                    <button onClick={() => navigate('/admin/site-progress')} className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm">
+                    <button onClick={() => navigate('/admin/progress')} className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm">
                         <Megaphone size={16} /> Publish Announcement
                     </button>
                 </div>

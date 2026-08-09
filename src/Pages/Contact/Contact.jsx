@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../Components/Header/Navbar';
 import Footer from '../../Components/Footer/Footer';
+import { useDatabase } from '../../Context/DatabaseContext';
 
 // ─── Contact ──────────────────────────────────────────────────────────────────
 // Figma frame: node-id=1:1038
@@ -57,6 +58,7 @@ const SUBJECTS = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 const Contact = () => {
+    const { addLead } = useDatabase();
     const [form, setForm] = useState({
         fullName: '',
         email:    '',
@@ -69,15 +71,26 @@ const Contact = () => {
     const handleChange = (e) =>
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            await addLead({
+                name: form.fullName,
+                phone: form.email,
+                interest: `${form.subject}: ${form.message}`,
+                source: 'Website Contact Form',
+                status: 'New'
+            });
             setSubmitted(true);
             setTimeout(() => setSubmitted(false), 4000);
             setForm({ fullName: '', email: '', subject: '', message: '' });
-        }, 400);
+        } catch (err) {
+            console.error("Error submitting lead:", err);
+            alert("Failed to submit inquiry. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     // OpenStreetMap embed — Shamabay New Market, Narayanganj

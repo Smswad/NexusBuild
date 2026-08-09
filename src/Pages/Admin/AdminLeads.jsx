@@ -3,7 +3,7 @@ import { Search, Filter, Download, Plus, ChevronRight, X } from 'lucide-react';
 import { useAdminData } from '../../Context/AdminDataContext';
 
 const AdminLeads = () => {
-    const { leads, addLead, updateLeadStatus } = useAdminData();
+    const { leads, addLead, updateLeadStatus, deleteLead } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newLead, setNewLead] = useState({ name: '', phone: '', interest: '', source: 'Manual Entry', status: 'New' });
@@ -50,7 +50,7 @@ const AdminLeads = () => {
 
     const newLeadsCount = leads.filter(l => l.status === 'New').length;
     const pipelineCount = leads.filter(l => ['Contacted', 'Meeting Scheduled', 'Qualified'].includes(l.status)).length;
-    const convertedCount = leads.filter(l => l.status === 'Application Submitted').length;
+    const convertedCount = leads.filter(l => l.status === 'Converted').length;
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
@@ -150,13 +150,25 @@ const AdminLeads = () => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-3">
-                                    {lead.status !== 'Converted' ? (
-                                        <button onClick={() => handleUpdateStatus(lead.id, lead.status)} className="flex items-center gap-1 text-[#1A4B9C] font-bold text-xs hover:underline">
-                                            Advance <ChevronRight size={12} />
+                                    <div className="flex items-center gap-3">
+                                        {lead.status !== 'Converted' ? (
+                                            <button onClick={() => handleUpdateStatus(lead.id, lead.status)} className="flex items-center gap-1 text-[#1A4B9C] font-bold text-xs hover:underline">
+                                                Advance <ChevronRight size={12} />
+                                            </button>
+                                        ) : (
+                                            <span className="text-slate-400 text-xs font-bold">Done</span>
+                                        )}
+                                        <button 
+                                            onClick={() => {
+                                                if (window.confirm(`Are you sure you want to delete lead ${lead.name}?`)) {
+                                                    deleteLead(lead.id);
+                                                }
+                                            }}
+                                            className="text-red-600 hover:text-red-800 font-bold text-xs hover:underline"
+                                        >
+                                            Delete
                                         </button>
-                                    ) : (
-                                        <span className="text-slate-400 text-xs font-bold">Done</span>
-                                    )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}

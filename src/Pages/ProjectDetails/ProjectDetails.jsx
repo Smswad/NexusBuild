@@ -4,9 +4,9 @@ import {
     MapPin, Wrench, Calendar, Building, CheckCircle2,
     ArrowLeft, Compass, Mail, ShieldCheck, Tag, Layers, ArrowRight
 } from "lucide-react";
-import { getProjectById } from "../../data/projectsData";
 import Navbar from "../../Components/Header/Navbar";
 import Footer from "../../Components/Footer/Footer";
+import { useDatabase } from "../../Context/DatabaseContext";
 
 // ─── Project Details Page ─────────────────────────────────────────────────────
 // Displays comprehensive information for an individual project.
@@ -30,7 +30,12 @@ const ImageWithSkeleton = ({ src, alt, className }) => {
 
 const ProjectDetails = () => {
     const { id } = useParams();
-    const project = getProjectById(id);
+    const { publicProjects } = useDatabase();
+    
+    const project = publicProjects.find(p => 
+        String(p.id).toLowerCase() === String(id).toLowerCase() || 
+        (p.slug && String(p.slug).toLowerCase() === String(id).toLowerCase())
+    );
 
     const [activeImage, setActiveImage] = useState(0);
 
