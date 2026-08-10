@@ -212,7 +212,7 @@ const Home = () => {
             {/* ══════════════════════════════════════════════════════════════
              * 2. FEATURED DEVELOPMENTS SECTION (LIMITED PREVIEW OF 3 PROJECTS)
              * ══════════════════════════════════════════════════════════════ */}
-            {/* <section className="bg-white py-16 lg:py-24 px-6 lg:px-12">
+            <section className="bg-white py-16 lg:py-24 px-6 lg:px-12">
                 <div className="max-w-[1280px] mx-auto flex flex-col gap-12">
 
                     <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -292,7 +292,7 @@ const Home = () => {
                         ))}
                     </div>
                 </div>
-            </section> */}
+            </section>
 
             {/* ══════════════════════════════════════════════════════════════
              * 3. EXPLORE NEIGHBORHOODS & GIS MAP

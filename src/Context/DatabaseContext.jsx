@@ -43,7 +43,29 @@ export const DatabaseProvider = ({ children }) => {
                 if (resClients.data) setClients(resClients.data);
                 if (resLeads.data) setLeads(resLeads.data);
                 if (resApps.data) setApplications(resApps.data);
-                if (resProjects.data) setProjects(resProjects.data.map(p => ({ ...p, progressPhase: p.progress_phase, totalUnits: p.total_units })));
+                if (resProjects.data) {
+                    setProjects(resProjects.data.map(p => {
+                        let localMilestones = null;
+                        try {
+                            const stored = localStorage.getItem(`project_milestones_${p.id}`);
+                            if (stored) localMilestones = JSON.parse(stored);
+                        } catch(e) {}
+
+                        const defaultPhases = [
+                            { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
+                            { id: 2, name: 'Structural Basement & Columns', date: 'Completed Feb 24', progress: 100 },
+                            { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 85 },
+                            { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 10 },
+                        ];
+
+                        return { 
+                            ...p, 
+                            progressPhase: p.progress_phase, 
+                            totalUnits: p.total_units,
+                            phases: localMilestones || p.phases || defaultPhases
+                        };
+                    }));
+                }
                 if (resProps.data) setProperties(resProps.data.map(p => ({ ...p, clientId: p.client_id, projectId: p.project_id, unitName: p.unit_name, handoverDate: p.handover_date, totalValuation: p.total_valuation, totalPaid: p.total_paid, otherCharges: p.other_charges, dueBalance: p.due_balance })));
                 if (resInsts.data) setInstallments(resInsts.data.map(i => ({ ...i, propertyId: i.property_id, dueDate: i.due_date, statusPill: i.status_pill })));
                 if (resTrans.data) setTransactions(resTrans.data.map(t => ({ ...t, propertyId: t.property_id })));
@@ -85,28 +107,63 @@ export const DatabaseProvider = ({ children }) => {
         }
     };
 
+    const updateProjectMilestones = async (projectId, updatedPhases) => {
+        // 1. Update state
+        setProjects(prev => prev.map(p => p.id === projectId ? { ...p, phases: updatedPhases } : p));
+        
+        // 2. Persist to localStorage
+        try {
+            localStorage.setItem(`project_milestones_${projectId}`, JSON.stringify(updatedPhases));
+        } catch (e) {
+            console.error("Error saving milestones to localStorage:", e);
+        }
+
+        // 3. Update Supabase if column exists
+        try {
+            await supabase.from('projects').update({ phases: updatedPhases }).eq('id', projectId);
+        } catch (err) {
+            console.warn("Supabase phase update note:", err);
+        }
+    };
+
     const resolveTicket = async (id) => {
         const { error } = await supabase.from('tickets').update({ status: 'Resolved' }).eq('id', id);
         if (!error) setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'Resolved' } : t));
     };
 
     const addProject = async (newProject) => {
-        const dbPayload = {
-            id: newProject.id, // e.g., 'p3'
+        const projId = newProject.id || `p${projects.length + 1}`;
+        const totalU = parseInt(newProject.totalUnits) || 0;
+        const projectItem = {
+            id: projId,
             name: newProject.name,
-            total_units: parseInt(newProject.totalUnits) || 0,
+            totalUnits: totalU,
+            progressPhase: 1,
+            phases: [
+                { id: 1, name: 'Piling & Foundation', date: 'Target: Q1 2026', progress: 0 },
+                { id: 2, name: 'Structural Basement & Columns', date: 'Target: Q2 2026', progress: 0 },
+                { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: Q3 2026', progress: 0 },
+                { id: 4, name: 'Finishing & Handover', date: 'Target: Q4 2026', progress: 0 },
+            ]
+        };
+
+        // 1. Optimistic state update
+        setProjects(prev => [...prev, projectItem]);
+
+        // 2. Supabase insert
+        const dbPayload = {
+            id: projId,
+            name: newProject.name,
+            total_units: totalU,
             progress_phase: 1
         };
-        const { data, error } = await supabase.from('projects').insert([dbPayload]).select();
-        if (error) {
-            console.error("Error adding project:", error);
-            alert("Error adding project");
-            return false;
+        try {
+            const { error } = await supabase.from('projects').insert([dbPayload]);
+            if (error) console.warn("Supabase project insert note:", error.message);
+        } catch (err) {
+            console.error("Error inserting project to Supabase:", err);
         }
-        if (data) {
-            setProjects(prev => [...prev, { ...data[0], progressPhase: data[0].progress_phase, totalUnits: data[0].total_units }]);
-            return true;
-        }
+        return true;
     };
 
     const addClientTicket = async (clientId, type, subject, message) => {
@@ -145,7 +202,26 @@ export const DatabaseProvider = ({ children }) => {
 
     const updateLeadStatus = async (id, newStatus) => {
         const { error } = await supabase.from('leads').update({ status: newStatus }).eq('id', id);
-        if (!error) setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
+        if (!error) {
+            setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
+            
+            if (newStatus === 'Converted') {
+                const lead = leads.find(l => l.id === id);
+                if (lead) {
+                    const newApp = {
+                        name: lead.name,
+                        unit: lead.interest || 'Pending Unit Assignment',
+                        stage: 'KYC Verification',
+                        status: 'Pending',
+                        date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                    };
+                    const { data: appData, error: appErr } = await supabase.from('applications').insert([newApp]).select();
+                    if (!appErr && appData) {
+                        setApplications(prev => [appData[0], ...prev]);
+                    }
+                }
+            }
+        }
     };
 
     const addClient = async (client, projectId = null) => {
@@ -315,16 +391,17 @@ export const DatabaseProvider = ({ children }) => {
         }
     };
 
-    const onboardClient = async (applicationId) => {
+    const onboardClient = async (applicationId, installmentConfig = null) => {
         const app = applications.find(a => a.id === applicationId);
         if (!app) return;
 
-        // Note: Real world onboarding might require calling a Supabase Edge Function to create the auth.users account first.
-        // For simplicity, we just create the public.client record here.
+        // Fetch lead detail matching by name to fetch real email and phone credentials
+        const { data: leadData } = await supabase.from('leads').select('*').eq('name', app.name).maybeSingle();
+
         const newClient = {
             name: app.name,
-            email: `${app.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
-            phone: '+880 1800-000000',
+            email: leadData?.email || `${app.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+            phone: leadData?.phone || '+880 1800-000000',
             status: 'Active'
         };
 
@@ -346,12 +423,61 @@ export const DatabaseProvider = ({ children }) => {
             due_balance: '1,00,00,000'
         };
 
-        const { data: propData } = await supabase.from('properties').insert([newProperty]).select();
+        const { data: propData, error: propErr } = await supabase.from('properties').insert([newProperty]).select();
+        if (propErr || !propData) return;
+
+        const insertedProperty = propData[0];
+
+        // Generate installments if config is present
+        if (installmentConfig) {
+            const { numInstallments, freq, startDate } = installmentConfig;
+            const valuation = 10000000; // default 1Cr
+            const installmentAmount = Math.round(valuation / numInstallments);
+            let currentD = new Date(startDate);
+            
+            const listToInsert = [];
+            for (let i = 1; i <= numInstallments; i++) {
+                const installmentName = `${i}${i === 1 ? 'st' : i === 2 ? 'nd' : i === 3 ? 'rd' : 'th'} Installment`;
+                const dateStr = currentD.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                
+                listToInsert.push({
+                    property_id: insertedProperty.id,
+                    installment: installmentName,
+                    due_date: dateStr,
+                    amount: installmentAmount.toLocaleString('en-IN'),
+                    status: 'Pending',
+                    status_pill: 'bg-amber-100 text-amber-700',
+                    active: i === 1
+                });
+
+                if (freq === 'Monthly') {
+                    currentD.setMonth(currentD.getMonth() + 1);
+                } else if (freq === 'Quarterly') {
+                    currentD.setMonth(currentD.getMonth() + 3);
+                } else if (freq === 'Semi-Annually') {
+                    currentD.setMonth(currentD.getMonth() + 6);
+                }
+            }
+            const { data: instData } = await supabase.from('installments').insert(listToInsert).select();
+            if (instData) {
+                setInstallments(prev => [...prev, ...instData.map(i => ({ ...i, propertyId: i.property_id, dueDate: i.due_date, statusPill: i.status_pill }))]);
+            }
+        }
 
         await supabase.from('applications').delete().eq('id', applicationId);
         
         setClients(prev => [clientData[0], ...prev]);
-        if (propData) setProperties(prev => [...prev, propData[0]]);
+        setProperties(prev => [...prev, {
+            ...insertedProperty,
+            clientId: insertedProperty.client_id,
+            projectId: insertedProperty.project_id,
+            unitName: insertedProperty.unit_name,
+            handoverDate: insertedProperty.handover_date,
+            totalValuation: insertedProperty.total_valuation,
+            totalPaid: insertedProperty.total_paid,
+            otherCharges: insertedProperty.other_charges,
+            dueBalance: insertedProperty.due_balance
+        }]);
         setApplications(prev => prev.filter(a => a.id !== applicationId));
     };
 
@@ -400,6 +526,7 @@ export const DatabaseProvider = ({ children }) => {
         siteUpdates,
         tickets,
         updateProjectPhase,
+        updateProjectMilestones,
         resolveTicket,
         addClientTicket,
         addSiteUpdate,

@@ -16,11 +16,39 @@ const NAV_LINKS = [
 
 const DashboardContent = () => {
     const { signOut } = useAuth();
-    const { userProfile } = useClientData(); // Fetch dynamic user info
+    const { userProfile, activeClient, updateProfile, financials } = useClientData(); // Fetch dynamic user info
     const navigate = useNavigate();
 
     const [showNotif, setShowNotif] = useState(false);
     const notifRef = useRef(null);
+
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [editName, setEditName] = useState('');
+    const [editPhone, setEditPhone] = useState('');
+    const [editEmail, setEditEmail] = useState('');
+
+    useEffect(() => {
+        if (activeClient) {
+            setEditName(activeClient.name || '');
+            setEditPhone(activeClient.phone || '');
+            setEditEmail(activeClient.email || '');
+        }
+    }, [activeClient]);
+
+    const handleSaveProfile = async (e) => {
+        e.preventDefault();
+        try {
+            await updateProfile({
+                name: editName,
+                phone: editPhone,
+                email: editEmail
+            });
+            setShowProfileModal(false);
+            alert('Profile updated successfully!');
+        } catch (err) {
+            alert('Error updating profile: ' + err.message);
+        }
+    };
 
     useEffect(() => {
         const handler = (e) => {
@@ -32,13 +60,41 @@ const DashboardContent = () => {
 
     const handleLogout = async () => { await signOut(); navigate('/'); };
 
+    const clientNotifications = [
+        {
+            id: 'sys-1',
+            title: 'Welcome to Client Portal',
+            desc: `Unit ${financials.unitName || 'Allocation'} account overview is active.`,
+            date: 'System',
+            badge: 'bg-blue-100 text-[#003178]'
+        },
+        ...financials.transactions.slice(0, 3).map(t => ({
+            id: `tx-${t.id}`,
+            title: 'Payment Confirmation',
+            desc: `৳${t.amount} confirmed for ${t.type}`,
+            date: t.date,
+            badge: 'bg-emerald-100 text-emerald-700'
+        })),
+        ...financials.installments.filter(i => i.status === 'Pending' || i.status === 'Overdue').slice(0, 2).map(i => ({
+            id: `inst-${i.id}`,
+            title: i.status === 'Overdue' ? 'Installment Overdue' : 'Upcoming Installment Due',
+            desc: `${i.installment} of ৳${i.amount} due on ${i.dueDate}`,
+            date: i.dueDate,
+            badge: i.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+        }))
+    ];
+
     return (
-        <div className="flex h-screen overflow-hidden font-sans bg-[#F0F4F8]">
+        <div className="flex h-screen overflow-hidden font-sans bg-[#F0F4F8] print:block print:h-auto print:overflow-visible">
             {/* ══ SIDEBAR (340px) ══════════════════════════════════════════════ */}
-            <aside className="w-[340px] flex-shrink-0 flex flex-col bg-[#003178] text-white">
+            <aside className="w-[340px] flex-shrink-0 flex flex-col bg-[#003178] text-white print:hidden">
                 
                 {/* Header Logo Area */}
-                <div className="p-8 pb-10">
+                <div 
+                    onClick={() => navigate('/')}
+                    className="p-8 pb-10 cursor-pointer hover:bg-[#002660] transition-colors"
+                    title="Go to Home"
+                >
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-[#003178] flex-shrink-0">
                             <Building2 size={24} />
@@ -60,7 +116,7 @@ const DashboardContent = () => {
                                     isActive 
                                         ? 'bg-[#0F4C9E] text-white border-l-4 border-white' 
                                         : 'text-[#A0B2C6] border-l-4 border-transparent hover:text-white'
-                                }`}>
+                                    }`}>
                                     <Icon size={20} className={isActive ? 'text-white' : 'text-[#A0B2C6]'} />
                                     <span className="text-base font-medium">{label}</span>
                                 </div>
@@ -95,10 +151,10 @@ const DashboardContent = () => {
             </aside>
 
             {/* ══ MAIN AREA ════════════════════════════════════════════════════ */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden print:block print:h-auto print:overflow-visible">
                 
                 {/* Top Header (70px) */}
-                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-6 flex items-center justify-between z-10">
+                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-6 flex items-center justify-between z-10 print:hidden">
                     <div className="text-slate-800 font-bold text-xl">
                         Welcome Back, {userProfile.name}
                     </div>
@@ -108,24 +164,49 @@ const DashboardContent = () => {
                         <div ref={notifRef} className="relative">
                             <button
                                 onClick={() => setShowNotif(p => !p)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full border border-[#003178] text-[#003178] hover:bg-blue-50 transition-colors"
+                                className="w-10 h-10 flex items-center justify-center rounded-full border border-[#003178] text-[#003178] hover:bg-blue-50 transition-colors cursor-pointer relative"
                             >
                                 <Bell size={18} />
-                                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>
+                                {clientNotifications.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white font-bold text-[9px] flex items-center justify-center rounded-full border-2 border-white">
+                                        {clientNotifications.length}
+                                    </span>
+                                )}
                             </button>
                             
-                            {/* Dummy dropdown */}
+                            {/* Live Notification Dropdown */}
                             {showNotif && (
-                                <div className="absolute right-0 top-12 w-64 bg-white border border-[#E2E8F0] shadow-lg p-4 rounded text-sm text-slate-600">
-                                    No new notifications.
+                                <div className="absolute right-0 top-12 w-80 bg-white border border-[#E2E8F0] shadow-xl rounded-xl p-4 text-xs text-slate-700 z-50 divide-y divide-slate-100">
+                                    <div className="font-bold text-sm text-[#003178] pb-2 flex justify-between items-center">
+                                        <span>Notifications</span>
+                                        <span className="text-[10px] bg-blue-100 text-[#003178] px-2 py-0.5 rounded-full font-bold">{clientNotifications.length} New</span>
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 py-1">
+                                        {clientNotifications.map(n => (
+                                            <div key={n.id} className="py-2.5 hover:bg-slate-50 px-1 rounded transition-colors space-y-1">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="font-bold text-slate-800">{n.title}</span>
+                                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${n.badge}`}>{n.date}</span>
+                                                </div>
+                                                <p className="text-slate-500">{n.desc}</p>
+                                            </div>
+                                        ))}
+                                        {clientNotifications.length === 0 && (
+                                            <div className="py-6 text-center text-slate-400">No new notifications.</div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
 
-                        {/* Profile Icon */}
-                        <div className="w-10 h-10 flex items-center justify-center rounded-full border border-[#003178] text-[#003178]">
+                        {/* Profile Icon Button */}
+                        <button 
+                            onClick={() => setShowProfileModal(true)}
+                            className="w-10 h-10 flex items-center justify-center rounded-full border border-[#003178] text-[#003178] hover:bg-blue-50 transition-colors cursor-pointer"
+                            aria-label="Edit Profile"
+                        >
                             <User size={18} />
-                        </div>
+                        </button>
                     </div>
                 </header>
 
@@ -134,6 +215,66 @@ const DashboardContent = () => {
                     <Outlet />
                 </main>
             </div>
+
+            {/* Profile Modal */}
+            {showProfileModal && (
+                <div className="fixed inset-0 bg-[#000f22]/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+                        <div className="bg-[#003178] text-white p-6">
+                            <h3 className="text-xl font-bold">Edit Profile Information</h3>
+                            <p className="text-[#A0B2C6] text-sm mt-1">Update your basic details in the NexusBuild portal</p>
+                        </div>
+                        <form onSubmit={handleSaveProfile} className="p-6 flex flex-col gap-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Full Name</label>
+                                <input 
+                                    type="text" 
+                                    value={editName} 
+                                    onChange={(e) => setEditName(e.target.value)} 
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#003178]"
+                                    required 
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Phone Number</label>
+                                <input 
+                                    type="text" 
+                                    value={editPhone} 
+                                    onChange={(e) => setEditPhone(e.target.value)} 
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#003178]" 
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Email Address</label>
+                                <input 
+                                    type="email" 
+                                    value={editEmail} 
+                                    onChange={(e) => setEditEmail(e.target.value)} 
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#003178]" 
+                                    required
+                                    disabled
+                                />
+                            </div>
+                            <div className="flex gap-4 mt-4 justify-end">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowProfileModal(false)}
+                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    className="px-4 py-2 bg-[#fe762a] hover:bg-[#a14000] text-[#5e2200] hover:text-white font-semibold rounded-md transition-colors cursor-pointer"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

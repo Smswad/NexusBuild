@@ -11,6 +11,7 @@ const ClientManagement = () => {
     } = useAdminData();
     
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
     
     // Add Client Modal State
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -136,7 +137,11 @@ const ClientManagement = () => {
         document.body.removeChild(link);
     };
 
-    const filteredClients = clients.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredClients = clients.filter(c => {
+        const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'All' || c.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
 
     // Filtered data for the active client
     const clientInstallments = editForm.propertyId ? installments.filter(i => i.propertyId === editForm.propertyId) : [];
@@ -156,9 +161,18 @@ const ClientManagement = () => {
                     <p className="text-slate-500 text-sm mt-1">Manage all active clients, update financial standing, and resolve tickets.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button onClick={() => alert("Advanced filtering will be available soon.")} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
-                        <Filter size={14} /> Filter
-                    </button>
+                    <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
+                        <Filter size={14} className="text-slate-400" />
+                        <select 
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="bg-transparent font-medium outline-none cursor-pointer text-slate-700"
+                        >
+                            <option value="All">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                    </div>
                     <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
                         <Plus size={14} /> Add Client
                     </button>
@@ -224,7 +238,6 @@ const ClientManagement = () => {
                             <th className="px-6 py-3">Total Value</th>
                             <th className="px-6 py-3">Total Paid</th>
                             <th className="px-6 py-3">Net Due</th>
-                            <th className="px-6 py-3">Manager</th>
                             <th className="px-6 py-3">Action</th>
                         </tr>
                     </thead>
@@ -270,9 +283,6 @@ const ClientManagement = () => {
                                                 ৳{formatBDT(prop.dueBalance)}
                                             </div>
                                         ) : '-'}
-                                    </td>
-                                    <td className="px-6 py-3">
-                                        <div className="text-xs font-bold text-slate-700">M. Kabir</div>
                                     </td>
                                     <td className="px-6 py-3">
                                         <button onClick={() => openEditModal(client, prop)} className="flex items-center gap-1 text-[#1A4B9C] font-bold text-xs hover:underline">

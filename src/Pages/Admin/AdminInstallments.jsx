@@ -5,6 +5,7 @@ import { useAdminData } from '../../Context/AdminDataContext';
 const AdminInstallments = () => {
     const { installments, properties, clients } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
     const [selectedInstallment, setSelectedInstallment] = useState(null);
 
     // Map propertyId to actual property and client
@@ -75,7 +76,11 @@ const AdminInstallments = () => {
         document.body.removeChild(link);
     };
 
-    const filteredInstallments = enrichedInstallments.filter(i => i.client.toLowerCase().includes(searchTerm.toLowerCase()) || i.unit.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredInstallments = enrichedInstallments.filter(i => {
+        const matchesSearch = i.client.toLowerCase().includes(searchTerm.toLowerCase()) || i.unit.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'All' || i.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
@@ -88,10 +93,21 @@ const AdminInstallments = () => {
                     <p className="text-slate-500 text-sm mt-1">Monitor upcoming dues, collected amounts, and overdue payments.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button onClick={() => alert("Advanced filtering will be available soon.")} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
-                        <Filter size={14} /> Filter
-                    </button>
-                    <button onClick={handleReminders} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
+                    <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
+                        <Filter size={14} className="text-slate-400" />
+                        <select 
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="bg-transparent font-medium outline-none cursor-pointer text-slate-700"
+                        >
+                            <option value="All">All Statuses</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Upcoming">Upcoming</option>
+                            <option value="Overdue">Overdue</option>
+                        </select>
+                    </div>
+                    <button onClick={handleReminders} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors cursor-pointer">
                         <BellRing size={14} /> Send Reminders
                     </button>
                 </div>

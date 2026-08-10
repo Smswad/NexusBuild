@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
 import register_image from '../../assets/pics/register_pic.svg';
 import Footer from '../../Components/Footer/Footer';
@@ -47,6 +47,7 @@ const inputCls = `
 `;
 
 const Register = () => {
+    const navigate = useNavigate();
     const { addLead } = useDatabase();
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
@@ -78,6 +79,9 @@ const Register = () => {
 
             if (authError) throw authError;
 
+            // Immediately sign out to prevent automatic login / dashboard access
+            await supabase.auth.signOut();
+
             // 2. Push to DB as a Lead
             await addLead({
                 name: fullName,
@@ -88,11 +92,16 @@ const Register = () => {
                 status: 'New'
             });
 
-            setSuccess('Registration successful! You can now log in, and our team will contact you shortly to complete KYC.');
+            setSuccess('Registration successful! Redirecting to login page...');
             setFullName('');
             setEmail('');
             setPhoneNumber('');
             setPassword('');
+
+            // Redirect to login page after 3 seconds
+            setTimeout(() => {
+                navigate('/login');
+            }, 3000);
         } catch (err) {
             setError(err.message || 'An error occurred during registration.');
         } finally {
@@ -335,9 +344,9 @@ const Register = () => {
                                             className="text-[14px] font-semibold text-[#43474d] leading-snug select-none cursor-pointer"
                                         >
                                             I agree to the{' '}
-                                            <a href="#" className="text-[#0a2540] hover:text-[#fe762a] transition-colors">Terms of Service</a>
+                                            <Link to="/terms" className="text-[#0a2540] hover:text-[#fe762a] transition-colors">Terms of Service</Link>
                                             {' '}and{' '}
-                                            <a href="#" className="text-[#0a2540] hover:text-[#fe762a] transition-colors">Privacy Policy</a>
+                                            <Link to="/privacy" className="text-[#0a2540] hover:text-[#fe762a] transition-colors">Privacy Policy</Link>
                                         </label>
                                     </div>
 

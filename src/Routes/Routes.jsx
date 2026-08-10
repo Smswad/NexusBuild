@@ -10,6 +10,8 @@ import About from '../Pages/About/About';
 import Contact from '../Pages/Contact/Contact';
 import ResetPassword from '../Pages/ResetPassword/ResetPassword';
 import ProjectDetails from '../Pages/ProjectDetails/ProjectDetails';
+import TermsOfService from '../Pages/About/TermsOfService';
+import PrivacyPolicy from '../Pages/About/PrivacyPolicy';
 
 // Dashboard
 import Dashboard from '../Pages/Dashboard/Dashboard';
@@ -29,7 +31,9 @@ import AdminInstallments from '../Pages/Admin/AdminInstallments';
 import AdminFinancials from '../Pages/Admin/AdminFinancials';
 import AdminSiteProgress from '../Pages/Admin/AdminSiteProgress';
 import AdminWebsiteProjects from '../Pages/Admin/AdminWebsiteProjects';
+import AdminProjectDetails from '../Pages/Admin/AdminProjectDetails';
 import AdminSettings from '../Pages/Admin/AdminSettings';
+import AdminTickets from '../Pages/Admin/AdminTickets';
 
 export const router = createBrowserRouter([
     {
@@ -49,6 +53,8 @@ export const router = createBrowserRouter([
     },
     { path: '/login',          Component: Login },
     { path: '/register',       Component: Register },
+    { path: '/terms',          Component: TermsOfService },
+    { path: '/privacy',        Component: PrivacyPolicy },
     { path: '/gismap',         Component: Gismap },
     { path: '/about',          Component: About },
     { path: '/contact',        Component: Contact },
@@ -86,8 +92,10 @@ export const router = createBrowserRouter([
             { path: 'installments',     Component: AdminInstallments },
             { path: 'financials',       Component: AdminFinancials },
             { path: 'progress',         Component: AdminSiteProgress },
+            { path: 'project-details',  Component: AdminProjectDetails },
             { path: 'website-projects', Component: AdminWebsiteProjects },
             { path: 'settings',         Component: AdminSettings },
+            { path: 'tickets',          Component: AdminTickets },
         ]
     },
 

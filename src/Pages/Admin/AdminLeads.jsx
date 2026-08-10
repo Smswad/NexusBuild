@@ -5,6 +5,7 @@ import { useAdminData } from '../../Context/AdminDataContext';
 const AdminLeads = () => {
     const { leads, addLead, updateLeadStatus, deleteLead } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('All');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newLead, setNewLead] = useState({ name: '', phone: '', interest: '', source: 'Manual Entry', status: 'New' });
 
@@ -36,7 +37,12 @@ const AdminLeads = () => {
         document.body.removeChild(link);
     };
 
-    const filteredLeads = leads.filter(l => l.name.toLowerCase().includes(searchTerm.toLowerCase()) || l.phone.includes(searchTerm));
+    const filteredLeads = leads.filter(l => {
+        const matchesSearch = (l.name && l.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
+                              (l.phone && l.phone.includes(searchTerm));
+        const matchesStatus = selectedStatus === 'All' || l.status === selectedStatus;
+        return matchesSearch && matchesStatus;
+    });
 
     const getStatusStyle = (status) => {
         switch(status) {
@@ -63,10 +69,21 @@ const AdminLeads = () => {
                     <p className="text-slate-500 text-sm mt-1">Track and manage potential clients across all projects.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button onClick={() => alert("Advanced filtering will be available soon.")} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
-                        <Filter size={14} /> Filter
-                    </button>
-                    <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
+                    <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
+                        <Filter size={14} className="text-slate-400" />
+                        <select 
+                            value={selectedStatus}
+                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            className="bg-transparent font-medium outline-none cursor-pointer text-slate-700"
+                        >
+                            <option value="All">All Statuses</option>
+                            <option value="New">New</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Qualified">Qualified</option>
+                            <option value="Converted">Converted</option>
+                        </select>
+                    </div>
+                    <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors cursor-pointer">
                         <Plus size={14} /> Add Lead
                     </button>
                 </div>
@@ -99,7 +116,7 @@ const AdminLeads = () => {
             {/* Leads Table */}
             <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm overflow-hidden mb-10">
                 <div className="px-6 py-4 border-b border-[#E2E8F0] flex justify-between items-center bg-slate-50">
-                    <h3 className="text-sm font-bold text-slate-800">Active Leads</h3>
+                    <h3 className="text-sm font-bold text-slate-800">Active Leads ({filteredLeads.length})</h3>
                     <div className="flex items-center gap-3">
                         <div className="relative">
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />

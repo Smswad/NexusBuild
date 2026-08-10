@@ -5,11 +5,19 @@ import { useAdminData } from '../../Context/AdminDataContext';
 const AdminOnboarding = () => {
     const { applications, advanceApplicationStage, approveAllApplications, onboardClient } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
+    const [showSchedulerModal, setShowSchedulerModal] = useState(false);
+    const [selectedAppId, setSelectedAppId] = useState(null);
+    const [numInstallments, setNumInstallments] = useState(12);
+    const [freq, setFreq] = useState('Monthly');
+    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
 
-    const filteredApplications = applications.filter(app => 
-        app.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        app.id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredApplications = applications.filter(app => {
+        const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              app.id.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'All' || app.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
 
     const getStatusStyle = (status) => {
         switch(status) {
@@ -32,10 +40,20 @@ const AdminOnboarding = () => {
                     <p className="text-slate-500 text-sm mt-1">Review, verify, and approve new client applications.</p>
                 </div>
                 <div className="flex gap-3">
-                    <button onClick={() => alert("Advanced filtering will be available soon.")} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium shadow-sm transition-colors">
-                        <Filter size={14} /> Filter
-                    </button>
-                    <button onClick={approveAllApplications} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
+                    <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
+                        <Filter size={14} className="text-slate-400" />
+                        <select 
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="bg-transparent font-medium outline-none cursor-pointer text-slate-700"
+                        >
+                            <option value="All">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Approved">Approved</option>
+                        </select>
+                    </div>
+                    <button onClick={approveAllApplications} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors cursor-pointer">
                         <UserCheck size={14} /> Auto-Approve Batch
                     </button>
                 </div>
@@ -121,18 +139,109 @@ const AdminOnboarding = () => {
                                             Approve Stage <ChevronRight size={12} />
                                         </button>
                                     ) : (
-                                        <button onClick={() => onboardClient(app.id)} className="flex items-center gap-1 text-emerald-600 font-bold text-xs hover:underline bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                                            Onboard as Client <ChevronRight size={12} />
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                                         <button 
+                                             onClick={() => {
+                                                 setSelectedAppId(app.id);
+                                                 setShowSchedulerModal(true);
+                                             }} 
+                                             className="flex items-center gap-1 text-emerald-600 font-bold text-xs hover:underline bg-emerald-50 px-2 py-1 rounded border border-emerald-200 cursor-pointer"
+                                         >
+                                             Onboard as Client <ChevronRight size={12} />
+                                         </button>
+                                     )}
+                                 </td>
+                             </tr>
+                         ))}
+                     </tbody>
+                 </table>
+             </div>
 
-        </div>
+             {/* Onboarding Scheduler Modal */}
+             {showSchedulerModal && (
+                 <div className="fixed inset-0 bg-[#000f22]/50 flex items-center justify-center z-50 p-4">
+                     <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all text-slate-800">
+                         <div className="bg-[#1A4B9C] text-white p-6">
+                             <h3 className="text-xl font-bold">Configure Installment Plan</h3>
+                             <p className="text-blue-100 text-sm mt-1">
+                                 Configure an installment plan for onboarding client or skip to configure later.
+                             </p>
+                         </div>
+                         <div className="p-6 flex flex-col gap-4">
+                             <div>
+                                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Number of Installments</label>
+                                 <select 
+                                     value={numInstallments} 
+                                     onChange={(e) => setNumInstallments(parseInt(e.target.value))}
+                                     className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#1A4B9C]"
+                                 >
+                                     <option value={6}>6 Installments</option>
+                                     <option value={12}>12 Installments (1 Year)</option>
+                                     <option value={18}>18 Installments</option>
+                                     <option value={24}>24 Installments (2 Years)</option>
+                                     <option value={36}>36 Installments (3 Years)</option>
+                                 </select>
+                             </div>
+                             <div>
+                                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Payment Frequency</label>
+                                 <select 
+                                     value={freq} 
+                                     onChange={(e) => setFreq(e.target.value)}
+                                     className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#1A4B9C]"
+                                 >
+                                     <option value="Monthly">Monthly</option>
+                                     <option value="Quarterly">Quarterly</option>
+                                     <option value="Semi-Annually">Semi-Annually</option>
+                                 </select>
+                             </div>
+                             <div>
+                                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">First Payment Start Date</label>
+                                 <input 
+                                     type="date" 
+                                     value={startDate} 
+                                     onChange={(e) => setStartDate(e.target.value)} 
+                                     className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#1A4B9C]"
+                                     required 
+                                 />
+                             </div>
+                             <div className="flex gap-3 mt-4 justify-between">
+                                 <button 
+                                     type="button" 
+                                     onClick={async () => {
+                                         await onboardClient(selectedAppId);
+                                         setShowSchedulerModal(false);
+                                         alert('Client onboarded successfully. Installment plan skipped.');
+                                     }}
+                                     className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 cursor-pointer"
+                                 >
+                                     Skip & Onboard
+                                 </button>
+                                 <div className="flex gap-2">
+                                     <button 
+                                         type="button" 
+                                         onClick={() => setShowSchedulerModal(false)}
+                                         className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 cursor-pointer"
+                                     >
+                                         Cancel
+                                     </button>
+                                     <button 
+                                         type="button"
+                                         onClick={async () => {
+                                             await onboardClient(selectedAppId, { numInstallments, freq, startDate });
+                                             setShowSchedulerModal(false);
+                                             alert('Client onboarded successfully with installment plan!');
+                                         }}
+                                         className="px-4 py-2 bg-[#1A4B9C] hover:bg-[#153B7C] text-white font-semibold rounded-md transition-colors cursor-pointer"
+                                     >
+                                         Confirm & Onboard
+                                     </button>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             )}
+
+         </div>
     );
 };
 

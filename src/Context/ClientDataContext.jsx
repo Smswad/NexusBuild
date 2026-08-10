@@ -28,6 +28,7 @@ export const ClientDataProvider = ({ children }) => {
     };
 
     const financials = {
+        propertyId: activeProperty?.id,
         totalValuation: activeProperty?.totalValuation,
         totalPaid: activeProperty?.totalPaid,
         otherCharges: activeProperty?.otherCharges,
@@ -70,15 +71,23 @@ export const ClientDataProvider = ({ children }) => {
         window.print();
     };
 
+    const updateProfile = async (updatedData) => {
+        await db.updateClient(activeClientId, updatedData);
+    };
+
     const value = {
         loading,
         userProfile,
+        activeClient,
+        activeClientId,
         financials,
         projects,
         siteUpdates,
         support,
         submitTicket,
-        downloadStatement
+        downloadStatement,
+        updateProfile,
+        addInstallment: db.addInstallment
     };
 
     return (

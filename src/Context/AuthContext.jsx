@@ -24,24 +24,66 @@ export const AuthProvider = ({ children }) => {
         });
 
         // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             if (session?.user) {
                 const isadmin = session.user.email === 'admin@reliance.com';
-                setUser({
-                    id: session.user.id,
-                    email: session.user.email,
-                    role: isadmin ? 'admin' : 'client'
-                });
+                if (isadmin) {
+                    setUser({
+                        id: session.user.id,
+                        email: session.user.email,
+                        role: 'admin'
+                    });
+                    setLoading(false);
+                } else {
+                    const { data: clientData, error: clientErr } = await supabase
+                        .from('clients')
+                        .select('*')
+                        .eq('email', session.user.email)
+                        .maybeSingle();
+
+                    if (clientData && clientData.status === 'Active') {
+                        setUser({
+                            id: session.user.id,
+                            email: session.user.email,
+                            role: 'client',
+                            clientId: clientData.id,
+                            name: clientData.name,
+                            phone: clientData.phone
+                        });
+                        setLoading(false);
+                    } else {
+                        // Unapproved or invalid -> sign out immediately
+                        await supabase.auth.signOut();
+                        setUser(null);
+                        setLoading(false);
+                    }
+                }
             } else {
                 setUser(null);
+                setLoading(false);
             }
-            setLoading(false);
         });
 
         return () => subscription.unsubscribe();
     }, []);
 
     const signIn = async (email, password) => {
+        const isadmin = email.toLowerCase() === 'admin@reliance.com';
+        if (!isadmin) {
+            const { data: clientData, error: clientErr } = await supabase
+                .from('clients')
+                .select('*')
+                .eq('email', email)
+                .maybeSingle();
+
+            if (clientErr || !clientData) {
+                throw new Error("Your account is pending admin approval. Our team will contact you soon.");
+            }
+            if (clientData.status !== 'Active') {
+                throw new Error("Your account is not active. Please contact support.");
+            }
+        }
+
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         

@@ -1,15 +1,163 @@
+import { useState } from 'react';
 import { 
     CheckCircle2, Circle, Lock, Download, 
-    CheckCircle, FileText, Mail, Phone, Send 
+    CheckCircle, FileText, Mail, Phone, Send, Calendar
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import heroImg from '../../assets/pics/hero_pic.png';
 import { useClientData } from '../../Context/ClientDataContext';
 
+const PrintView = ({ financials, userProfile }) => (
+    <div id="print-area" className="hidden print:block bg-white text-slate-800 p-12 font-sans max-w-4xl mx-auto border border-slate-300 rounded shadow-sm">
+        {/* Corporate Header Banner */}
+        <div className="flex justify-between items-start border-b border-slate-350 pb-8 mb-8">
+            <div className="space-y-1">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#003178] rounded flex items-center justify-center font-black text-xl text-white">R</div>
+                    <div>
+                        <h1 className="font-extrabold text-2xl tracking-wider text-[#003178] leading-none">RELIANCE HOUSING LTD.</h1>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Premier Property & Infrastructure Solutions</p>
+                    </div>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-2">
+                    Chashiara, Narayanganj • contact@reliancehousing.com • +880 1800-000000
+                </div>
+            </div>
+            <div className="text-right space-y-1">
+                <span className="px-3 py-1 bg-slate-100 text-[#003178] text-[10px] font-bold uppercase tracking-widest rounded-full border border-slate-200">
+                    Client Copy
+                </span>
+                <h2 className="text-xl font-black text-slate-800 tracking-wide mt-3 uppercase">STATEMENT OF ACCOUNT</h2>
+                <div className="text-[11px] text-slate-500 font-medium">Issue Date: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+            </div>
+        </div>
+
+        {/* Client & Allocation Details Grid */}
+        <div className="grid grid-cols-2 gap-8 mb-8 border-b border-slate-100 pb-8">
+            <div className="space-y-2">
+                <h3 className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">Prepared For</h3>
+                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200/60">
+                    <p className="text-sm font-bold text-slate-800">{userProfile.name}</p>
+                    <p className="text-xs text-slate-500 mt-1">Email: {userProfile.email || 'N/A'}</p>
+                    <p className="text-xs text-slate-500">Phone: {userProfile.phone || 'N/A'}</p>
+                </div>
+            </div>
+            <div className="space-y-2 text-right">
+                <h3 className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">Allocation Reference</h3>
+                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200/60 text-right">
+                    <p className="text-sm font-bold text-slate-800">{financials.unitName || 'Pending Unit Assignment'}</p>
+                    <p className="text-xs text-slate-500 mt-1">Project Name: Sardar Tower Block-A</p>
+                    <p className="text-xs text-slate-500">Scheduled Handover: Jan 2027</p>
+                </div>
+            </div>
+        </div>
+
+        {/* Financial Summary KPI Cards */}
+        <div className="mb-10">
+            <h3 className="font-bold text-[10px] text-slate-400 uppercase tracking-widest mb-3">Financial Standing</h3>
+            <div className="grid grid-cols-4 gap-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Total Contract Value</span>
+                    <span className="text-base font-bold text-slate-800 mt-1 block">৳ {financials.totalValuation}</span>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Other charges</span>
+                    <span className="text-base font-bold text-slate-800 mt-1 block">৳ {financials.otherCharges}</span>
+                </div>
+                <div className="bg-emerald-50/50 border border-emerald-200 rounded-lg p-4 text-center">
+                    <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider block">Total Settled</span>
+                    <span className="text-base font-extrabold text-emerald-700 mt-1 block">৳ {financials.totalPaid}</span>
+                </div>
+                <div className="bg-red-50/50 border border-red-200 rounded-lg p-4 text-center">
+                    <span className="text-[9px] font-bold text-red-600 uppercase tracking-wider block">Due Balance</span>
+                    <span className="text-base font-extrabold text-red-700 mt-1 block">৳ {financials.dueBalance}</span>
+                </div>
+            </div>
+        </div>
+
+        {/* Installment Breakdown Ledger */}
+        <div className="space-y-3">
+            <h3 className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">Installment Breakdown</h3>
+            <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr className="border-b border-gray-300 bg-slate-100">
+                            <th className="py-2.5 px-4 font-bold text-gray-600">Installment No.</th>
+                            <th className="py-2.5 px-4 font-bold text-gray-600">Due Date</th>
+                            <th className="py-2.5 px-4 font-bold text-gray-600 text-right">Amount</th>
+                            <th className="py-2.5 px-4 font-bold text-gray-600 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {financials.installments.map((t) => (
+                            <tr key={t.id}>
+                                <td className="py-2 px-4 font-semibold text-gray-700">{t.installment}</td>
+                                <td className="py-2 px-4 text-gray-500">{t.dueDate}</td>
+                                <td className="py-2 px-4 font-bold text-gray-800 text-right">৳ {t.amount}</td>
+                                <td className={`py-2 px-4 font-bold text-right ${t.status === 'Paid' ? 'text-emerald-600' : t.status === 'Overdue' ? 'text-red-600' : 'text-blue-600'}`}>{t.status}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {/* Signatures */}
+        <div className="flex justify-between items-end mt-16 pt-8 border-t border-gray-200">
+            <div className="text-center">
+                <div className="w-32 border-b border-gray-400 mb-1 mx-auto"></div>
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Client Signature</span>
+            </div>
+            <div className="text-center">
+                <div className="w-32 border-b border-gray-400 mb-1 mx-auto"></div>
+                <span className="text-[9px] font-bold text-[#1A4B9C] uppercase tracking-wider">Authorized Officer</span>
+            </div>
+        </div>
+    </div>
+);
+
 const Overview = () => {
     const navigate = useNavigate();
-    const { loading, userProfile, financials, projects, downloadStatement } = useClientData();
+    const { loading, userProfile, financials, projects, downloadStatement, addInstallment } = useClientData();
     const activeProject = projects[0] || { progressPhase: 1 };
+
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
+    const [numInstallments, setNumInstallments] = useState(12);
+    const [freq, setFreq] = useState('Monthly');
+    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+
+    const handleGenerateSchedule = async (e) => {
+        e.preventDefault();
+        const valuationStr = financials.totalValuation || '10000000';
+        const valuation = parseFloat(valuationStr.replace(/,/g, '')) || 10000000;
+        const installmentAmount = Math.round(valuation / numInstallments);
+
+        let currentD = new Date(startDate);
+        for (let i = 1; i <= numInstallments; i++) {
+            const installmentName = `${i}${i === 1 ? 'st' : i === 2 ? 'nd' : i === 3 ? 'rd' : 'th'} Installment`;
+            const dateStr = currentD.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            
+            await addInstallment({
+                propertyId: financials.propertyId,
+                installment: installmentName,
+                dueDate: dateStr,
+                amount: installmentAmount.toLocaleString('en-IN'),
+                status: 'Pending',
+                statusPill: 'bg-amber-100 text-amber-700',
+                active: i === 1
+            });
+
+            if (freq === 'Monthly') {
+                currentD.setMonth(currentD.getMonth() + 1);
+            } else if (freq === 'Quarterly') {
+                currentD.setMonth(currentD.getMonth() + 3);
+            } else if (freq === 'Semi-Annually') {
+                currentD.setMonth(currentD.getMonth() + 6);
+            }
+        }
+        setShowScheduleModal(false);
+        alert('Installment schedule generated successfully!');
+    };
     
     if (loading) {
         return (
@@ -43,7 +191,9 @@ const Overview = () => {
     }
 
     return (
-        <div className="flex gap-6 items-start">
+        <>
+            <PrintView financials={financials} userProfile={userProfile} />
+            <div className="flex gap-6 items-start print:hidden">
             {/* ══ CENTER COLUMN (Flexible Main Content) ════════════════════════ */}
             <div className="flex-1 flex flex-col gap-6">
                 
@@ -156,36 +306,54 @@ const Overview = () => {
                         <h2 className="text-[#003178] font-bold text-[18px]">Installment Schedule</h2>
                     </div>
                     
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-[#F7F9FB] border-y border-[#E2E8F0]">
-                                <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Installment No.</th>
-                                <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Due Date</th>
-                                <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Amount (৳)</th>
-                                <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#E2E8F0]">
-                            {financials.installments.map((inst) => (
-                                <tr key={inst.id} className={inst.active ? "bg-blue-50/30 border-l-4 border-[#003178]" : "hover:bg-slate-50"}>
-                                    <td className={`py-4 px-6 text-sm ${inst.active ? 'text-slate-800 font-bold pl-5' : 'text-slate-700 font-medium'}`}>
-                                        {inst.installment}
-                                    </td>
-                                    <td className={`py-4 px-6 text-sm ${inst.active ? 'text-[#003178] font-bold' : 'text-slate-500'}`}>
-                                        {inst.dueDate}
-                                    </td>
-                                    <td className={`py-4 px-6 text-sm text-right ${inst.active ? 'text-slate-800 font-bold' : 'text-slate-700 font-bold'}`}>
-                                        {inst.amount}
-                                    </td>
-                                    <td className="py-4 px-6 text-right">
-                                        <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${inst.statusPill}`}>
-                                            {inst.status}
-                                        </span>
-                                    </td>
+                    {(!financials.installments || financials.installments.length === 0) ? (
+                        <div className="p-8 text-center flex flex-col items-center gap-4">
+                            <Calendar size={48} className="text-[#003178] opacity-40" />
+                            <div>
+                                <h3 className="font-bold text-slate-800">No Installment Schedule Set</h3>
+                                <p className="text-slate-500 text-sm mt-1 max-w-sm mx-auto">
+                                    An installment schedule has not been configured for your property yet. You can create your schedule now.
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setShowScheduleModal(true)} 
+                                className="px-5 py-2 bg-[#fe762a] hover:bg-[#a14000] text-[#5e2200] hover:text-white font-bold rounded-lg shadow transition-colors cursor-pointer"
+                            >
+                                Configure Installment Schedule
+                            </button>
+                        </div>
+                    ) : (
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-[#F7F9FB] border-y border-[#E2E8F0]">
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Installment No.</th>
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Due Date</th>
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Amount (৳)</th>
+                                    <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Status</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                                {financials.installments.map((inst) => (
+                                    <tr key={inst.id} className={inst.active ? "bg-blue-50/30 border-l-4 border-[#003178]" : "hover:bg-slate-50"}>
+                                        <td className={`py-4 px-6 text-sm ${inst.active ? 'text-slate-800 font-bold pl-5' : 'text-slate-700 font-medium'}`}>
+                                            {inst.installment}
+                                        </td>
+                                        <td className={`py-4 px-6 text-sm ${inst.active ? 'text-[#003178] font-bold' : 'text-slate-500'}`}>
+                                            {inst.dueDate}
+                                        </td>
+                                        <td className={`py-4 px-6 text-sm text-right ${inst.active ? 'text-slate-800 font-bold' : 'text-slate-700 font-bold'}`}>
+                                            {inst.amount}
+                                        </td>
+                                        <td className="py-4 px-6 text-right">
+                                            <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${inst.statusPill}`}>
+                                                {inst.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
             </div>
@@ -255,42 +423,77 @@ const Overview = () => {
                     </button>
                 </div>
 
-                {/* 3. Support/Account Exec Contact Card */}
-                <div className="bg-[#0F3A70] rounded-lg shadow-sm p-6 text-white">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-14 h-14 rounded-full bg-white border-2 border-[#A0B2C6] overflow-hidden flex-shrink-0">
-                            {/* Avatar placeholder */}
-                            <img src="https://i.pravatar.cc/150?u=farhana" alt="Farhana Islam" className="w-full h-full object-cover" />
-                        </div>
-                        <div>
-                            <div className="font-bold text-[16px]">Farhana Islam</div>
-                            <div className="text-[#A0B2C6] text-xs mt-1">Dedicated Account Exec</div>
-                        </div>
-                    </div>
-                    
-                    <div className="flex flex-col gap-3 mb-6">
-                        <div className="flex items-center gap-3 text-[#A0B2C6] text-sm">
-                            <Mail size={16} /> farhana@reliance.com
-                        </div>
-                        <div className="flex items-center gap-3 text-[#A0B2C6] text-sm">
-                            <Phone size={16} /> +880 1700-123456
-                        </div>
-                    </div>
-
-                    <form className="relative" onSubmit={e => e.preventDefault()}>
-                        <textarea 
-                            rows="3" 
-                            className="w-full bg-white rounded-lg p-3 pr-12 text-sm text-slate-800 placeholder-slate-400 focus:outline-none resize-none"
-                            placeholder="Message Farhana regarding your account..."
-                        />
-                        <button className="absolute right-2 bottom-2 w-8 h-8 bg-[#003178] text-white rounded-md flex items-center justify-center hover:bg-[#0A2550] transition-colors shadow-sm">
-                            <Send size={14} />
-                        </button>
-                    </form>
-                </div>
-
+                {/* Dedicated Account Exec card removed */}
             </div>
+
+            {/* Installment Scheduler Modal */}
+            {showScheduleModal && (
+                <div className="fixed inset-0 bg-[#000f22]/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+                        <div className="bg-[#003178] text-white p-6">
+                            <h3 className="text-xl font-bold">Configure Installment Schedule</h3>
+                            <p className="text-[#A0B2C6] text-sm mt-1">
+                                Setup installment payments based on your property valuation: ৳ {financials.totalValuation || '10,00,000'}
+                            </p>
+                        </div>
+                        <form onSubmit={handleGenerateSchedule} className="p-6 flex flex-col gap-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Number of Installments</label>
+                                <select 
+                                    value={numInstallments} 
+                                    onChange={(e) => setNumInstallments(parseInt(e.target.value))}
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#003178]"
+                                >
+                                    <option value={6}>6 Installments</option>
+                                    <option value={12}>12 Installments (1 Year)</option>
+                                    <option value={18}>18 Installments</option>
+                                    <option value={24}>24 Installments (2 Years)</option>
+                                    <option value={36}>36 Installments (3 Years)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Payment Frequency</label>
+                                <select 
+                                    value={freq} 
+                                    onChange={(e) => setFreq(e.target.value)}
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#003178]"
+                                >
+                                    <option value="Monthly">Monthly</option>
+                                    <option value="Quarterly">Quarterly</option>
+                                    <option value="Semi-Annually">Semi-Annually</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">First Payment Start Date</label>
+                                <input 
+                                    type="date" 
+                                    value={startDate} 
+                                    onChange={(e) => setStartDate(e.target.value)} 
+                                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#003178]"
+                                    required 
+                                />
+                            </div>
+                            <div className="flex gap-4 mt-4 justify-end">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowScheduleModal(false)}
+                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    className="px-4 py-2 bg-[#fe762a] hover:bg-[#a14000] text-[#5e2200] hover:text-white font-semibold rounded-md transition-colors cursor-pointer"
+                                >
+                                    Generate Schedule
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
+        </>
     );
 };
 

@@ -7,3 +7,32 @@
     font-optical-sizing: auto;
     font-style: normal;
 }
+
+@media print {
+  /* Override outer containers to allow normal printing height and flow */
+  html, body, #root, #root > div, main, .h-screen, .overflow-hidden, .flex, .flex-col {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide navigation, sidebar, header and other non-printable components */
+  aside, header, nav, footer, button, .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset print area styling to fit perfectly on standard paper */
+  #print-area {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
