@@ -35,70 +35,90 @@ import AdminProjectDetails from '../Pages/Admin/AdminProjectDetails';
 import AdminSettings from '../Pages/Admin/AdminSettings';
 import AdminTickets from '../Pages/Admin/AdminTickets';
 
+import { Outlet } from 'react-router';
+import ChatWidget from '../Components/ChatWidget/ChatWidget';
+
+// ── AppLayout Wrapper ────────────────────────────────────────────────────────
+// Mounts ChatWidget globally across all pages without routing it.
+// It shares the react-router context.
+const AppLayout = () => {
+    return (
+        <>
+            <Outlet />
+            <ChatWidget />
+        </>
+    );
+};
+
 export const router = createBrowserRouter([
     {
         path: '/',
-        Component: Root,
-        errorElement: <Error />,
+        element: <AppLayout />,
         children: [
             {
-                index: true,
-                Component: Home,
+                path: '',
+                Component: Root,
+                errorElement: <Error />,
+                children: [
+                    {
+                        index: true,
+                        Component: Home,
+                    },
+                    {
+                        path: 'projects',
+                        Component: Projects,
+                    },
+                ],
             },
-            {
-                path: 'projects',
-                Component: Projects,
-            },
-        ],
-    },
-    { path: '/login',          Component: Login },
-    { path: '/register',       Component: Register },
-    { path: '/terms',          Component: TermsOfService },
-    { path: '/privacy',        Component: PrivacyPolicy },
-    { path: '/gismap',         Component: Gismap },
-    { path: '/about',          Component: About },
-    { path: '/contact',        Component: Contact },
-    { path: '/reset-password', Component: ResetPassword },
-    { path: '/project-details/:id', Component: ProjectDetails },
+            { path: 'login',          Component: Login },
+            { path: 'register',       Component: Register },
+            { path: 'terms',          Component: TermsOfService },
+            { path: 'privacy',        Component: PrivacyPolicy },
+            { path: 'gismap',         Component: Gismap },
+            { path: 'about',          Component: About },
+            { path: 'contact',        Component: Contact },
+            { path: 'reset-password', Component: ResetPassword },
+            { path: 'project-details/:id', Component: ProjectDetails },
 
-    // ── Protected Dashboard ───────────────────────────────────────────────────
-    {
-        path: '/dashboard',
-        element: (
-            <ProtectedRoute>
-                <Dashboard />
-            </ProtectedRoute>
-        ),
-        children: [
-            { index: true,              Component: Overview },
-            { path: 'financials',       Component: FinancialLedger },
-            { path: 'progress',         Component: ProjectProgress },
-            { path: 'support',          Component: Support },
-        ],
-    },
-    // ── Protected Admin ───────────────────────────────────────────────────────
-    {
-        path: '/admin',
-        element: (
-            <ProtectedRoute requireAdmin={true}>
-                <AdminLayout />
-            </ProtectedRoute>
-        ),
-        children: [
-            { index: true,              Component: AdminDashboard },
-            { path: 'management',       Component: ClientManagement },
-            { path: 'leads',            Component: AdminLeads },
-            { path: 'onboarding',       Component: AdminOnboarding },
-            { path: 'installments',     Component: AdminInstallments },
-            { path: 'financials',       Component: AdminFinancials },
-            { path: 'progress',         Component: AdminSiteProgress },
-            { path: 'project-details',  Component: AdminProjectDetails },
-            { path: 'website-projects', Component: AdminWebsiteProjects },
-            { path: 'settings',         Component: AdminSettings },
-            { path: 'tickets',          Component: AdminTickets },
+            // ── Protected Dashboard ───────────────────────────────────────────────────
+            {
+                path: 'dashboard',
+                element: (
+                    <ProtectedRoute>
+                        <Dashboard />
+                    </ProtectedRoute>
+                ),
+                children: [
+                    { index: true,              Component: Overview },
+                    { path: 'financials',       Component: FinancialLedger },
+                    { path: 'progress',         Component: ProjectProgress },
+                    { path: 'support',          Component: Support },
+                ],
+            },
+            // ── Protected Admin ───────────────────────────────────────────────────────
+            {
+                path: 'admin',
+                element: (
+                    <ProtectedRoute requireAdmin={true}>
+                        <AdminLayout />
+                    </ProtectedRoute>
+                ),
+                children: [
+                    { index: true,              Component: AdminDashboard },
+                    { path: 'management',       Component: ClientManagement },
+                    { path: 'leads',            Component: AdminLeads },
+                    { path: 'onboarding',       Component: AdminOnboarding },
+                    { path: 'installments',     Component: AdminInstallments },
+                    { path: 'financials',       Component: AdminFinancials },
+                    { path: 'progress',         Component: AdminSiteProgress },
+                    { path: 'project-details',  Component: AdminProjectDetails },
+                    { path: 'website-projects', Component: AdminWebsiteProjects },
+                    { path: 'settings',         Component: AdminSettings },
+                    { path: 'tickets',          Component: AdminTickets },
+                ]
+            },
+            // ── Catch-all Fallback Route ──────────────────────────────────────────────
+            { path: '*', Component: Error },
         ]
-    },
-
-    // ── Catch-all Fallback Route ──────────────────────────────────────────────
-    { path: '*', Component: Error },
+    }
 ]);

@@ -468,24 +468,6 @@ const Projects = () => {
                     </div>
                 </div>
             </section>
-
-            {/* Floating Action Button */}
-            <div className="fixed bottom-8 right-8 z-50 group">
-                <Link
-                    to="/contact"
-                    className="w-14 h-14 bg-[#a14000] rounded-[12px] shadow-[0px_10px_15px_#0000001a] flex items-center justify-center text-white hover:bg-[#5e2200] transition-colors duration-200"
-                    aria-label="Help Desk"
-                >
-                    <svg width="20" height="18" viewBox="0 0 20 18" fill="none">
-                        <path d="M10 0C4.48 0 0 3.58 0 8c0 1.85.75 3.55 2 4.85V18l4-2c1.29.33 2.61.5 4 .5 5.52 0 10-3.58 10-8S15.52 0 10 0z" fill="white" />
-                    </svg>
-                </Link>
-                <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="bg-[#000f22] text-white text-[12px] font-medium px-3 py-1 rounded-[2px] whitespace-nowrap">
-                        Help Desk
-                    </span>
-                </div>
-            </div>
         </div>
     );
 };
