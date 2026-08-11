@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "src/Backend/Auth/server.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
