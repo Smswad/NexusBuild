@@ -170,7 +170,25 @@ const AdminProjectDetails = () => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            await updatePublicProject(currentProject.id, formData);
+            let finalMapLink = formData.mapLink;
+            // Resolve shortened Google Maps URLs
+            if (finalMapLink && (finalMapLink.includes('maps.app.goo.gl') || finalMapLink.includes('goo.gl/maps'))) {
+                try {
+                    const res = await fetch(`/api/resolve-map?url=${encodeURIComponent(finalMapLink)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.resolvedUrl) {
+                            finalMapLink = data.resolvedUrl;
+                        }
+                    }
+                } catch (err) {
+                    console.warn("Failed to resolve shortened map link:", err);
+                }
+            }
+
+            const updatedForm = { ...formData, mapLink: finalMapLink };
+            await updatePublicProject(currentProject.id, updatedForm);
+            setFormData(updatedForm);
             alert(`Project Details for "${formData.name}" saved successfully!`);
         } catch (err) {
             alert('Error updating project details: ' + err.message);
