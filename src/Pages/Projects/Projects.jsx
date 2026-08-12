@@ -98,6 +98,22 @@ const Projects = () => {
     const [typeFilter, setTypeFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
 
+    // Dynamic filter options lists collected from all public projects
+    const locationsList = useMemo(() => {
+        const locSet = new Set(publicProjects.map(p => p.location?.trim()).filter(Boolean));
+        return Array.from(locSet).sort();
+    }, [publicProjects]);
+
+    const typesList = useMemo(() => {
+        const typeSet = new Set(publicProjects.map(p => p.type?.trim()).filter(Boolean));
+        return Array.from(typeSet).sort();
+    }, [publicProjects]);
+
+    const statusesList = useMemo(() => {
+        const statusSet = new Set(publicProjects.map(p => p.status?.trim()).filter(Boolean));
+        return Array.from(statusSet).sort();
+    }, [publicProjects]);
+
     // Applied filter state (triggered by Search button or immediate select)
     const [appliedFilters, setAppliedFilters] = useState({
         location: "",
@@ -211,9 +227,9 @@ const Projects = () => {
                                         className="text-[14px] font-medium text-[#191c1d] bg-transparent focus:outline-none cursor-pointer w-full"
                                     >
                                         <option value="">All Areas</option>
-                                        <option value="Narayanganj">Narayanganj</option>
-                                        <option value="BB Road">BB Road</option>
-                                        <option value="Shamabay">Shamabay</option>
+                                        {locationsList.map(loc => (
+                                            <option key={loc} value={loc}>{loc}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
@@ -232,9 +248,9 @@ const Projects = () => {
                                         className="text-[14px] font-medium text-[#191c1d] bg-transparent focus:outline-none cursor-pointer w-full"
                                     >
                                         <option value="">All Types</option>
-                                        <option value="Residential">Residential</option>
-                                        <option value="Commercial">Commercial</option>
-                                        <option value="Mixed Use">Mixed Use</option>
+                                        {typesList.map(t => (
+                                            <option key={t} value={t}>{t}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
@@ -253,9 +269,9 @@ const Projects = () => {
                                         className="text-[14px] font-medium text-[#191c1d] bg-transparent focus:outline-none cursor-pointer w-full"
                                     >
                                         <option value="">Any Status</option>
-                                        <option value="Available">Available</option>
-                                        <option value="Sold Out">Sold Out</option>
-                                        <option value="Ready to Move">Ready to Move</option>
+                                        {statusesList.map(s => (
+                                            <option key={s} value={s}>{s}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
