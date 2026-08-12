@@ -68,12 +68,6 @@ const Gismap = () => {
 
         let raw = (proj.mapLink || proj.map_link || '').trim();
 
-        // If empty or default placeholder '#', fallback to location search
-        if (!raw || raw === '#') {
-            const query = encodeURIComponent(`${proj.name || ''} ${proj.location || ''}`.trim());
-            return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
-        }
-
         // 1. If Admin pasted full iframe HTML snippet e.g. <iframe src="https://www.google.com/maps/embed?..." ...></iframe>
         if (raw.includes('<iframe') && raw.includes('src=')) {
             const match = raw.match(/src=["']([^"']+)["']/i);
@@ -112,7 +106,16 @@ const Gismap = () => {
             } catch(e) {}
         }
 
-        // 6. If it's a search URL or HTTP link
+        // 6. If it's a shortened share link (e.g. maps.app.goo.gl or goo.gl/maps)
+        if (raw.includes('maps.app.goo.gl') || raw.includes('goo.gl')) {
+            if (proj.coordinates && proj.coordinates.lat && proj.coordinates.lng) {
+                return `https://maps.google.com/maps?q=${proj.coordinates.lat},${proj.coordinates.lng}&z=16&output=embed`;
+            }
+            const queryLoc = proj.location || proj.name || 'Narayanganj, Bangladesh';
+            return `https://maps.google.com/maps?q=${encodeURIComponent(queryLoc)}&z=15&output=embed`;
+        }
+
+        // 7. If it's a search URL or HTTP link with query
         if (raw.startsWith('http://') || raw.startsWith('https://')) {
             try {
                 const urlObj = new URL(raw);
@@ -123,8 +126,8 @@ const Gismap = () => {
             } catch(e) {}
         }
 
-        // 7. Fallback based on project name & location
-        const query = encodeURIComponent(`${proj.name || ''} ${proj.location || ''}`.trim());
+        // 8. Fallback search Google Maps with project name & location
+        const query = encodeURIComponent(`${proj.name || ''} ${proj.location || ''}`.trim() || 'Narayanganj, Bangladesh');
         return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
     };
 

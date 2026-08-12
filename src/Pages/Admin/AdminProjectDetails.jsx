@@ -456,14 +456,20 @@ const AdminProjectDetails = () => {
                         </div>
 
                         <div className="col-span-2">
-                            <label className="block font-bold text-slate-600 uppercase tracking-wider mb-1">Google Maps Location Link / Embed URL</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="block font-bold text-slate-600 uppercase tracking-wider">Google Maps Location Link / Embed URL</label>
+                                <span className="text-[10px] text-slate-400">Accepts Embed HTML, Share Link, or Coordinates</span>
+                            </div>
                             <input 
                                 type="text"
                                 value={formData.mapLink}
                                 onChange={(e) => setFormData({ ...formData, mapLink: e.target.value })}
-                                placeholder="e.g. https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed"
+                                placeholder="e.g. https://maps.app.goo.gl/... or <iframe src='...'> or 23.6238,90.4993"
                                 className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1A4B9C]"
                             />
+                            <p className="text-[10px] text-slate-500 mt-1 italic">
+                                Note: You can paste Google Maps embed code (<code className="bg-slate-100 px-1 rounded">&lt;iframe src="..."&gt;</code>), share link (<code className="bg-slate-100 px-1 rounded">https://maps.app.goo.gl/...</code>), or latitude/longitude (<code className="bg-slate-100 px-1 rounded">23.6238,90.4993</code>).
+                            </p>
                         </div>
 
                         {/* Nearby Amenities (Within 2 km) Section */}
