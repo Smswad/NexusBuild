@@ -100,8 +100,9 @@ const Contact = () => {
         }
     };
 
-    // OpenStreetMap embed — Shamabay New Market, Narayanganj
-    const mapSrc = 'https://www.openstreetmap.org/export/embed.html?bbox=90.488%2C23.610%2C90.512%2C23.635&layer=mapnik&marker=23.622%2C90.500';
+    const lat = savedSettingsToUse.contactMapLat || '23.622';
+    const lng = savedSettingsToUse.contactMapLng || '90.500';
+    const mapSrc = `https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
 
     return (
         <div className="flex flex-col min-h-screen font-[Inter,sans-serif] bg-[#f3f4f5]">
@@ -138,12 +139,11 @@ const Contact = () => {
                     </div>
 
                     <h1 className="text-[48px] sm:text-[56px] font-bold text-white leading-[1.05] tracking-tight mb-5">
-                        Get In Touch
+                        {savedSettingsToUse.contactHeroTitle || 'Get In Touch'}
                     </h1>
 
                     <p className="text-[18px] font-normal text-[#b0c8eb] leading-[28px] max-w-[580px]">
-                        Whether you're enquiring about a project, exploring investment opportunities,
-                        or need support — our team is ready to assist you.
+                        {savedSettingsToUse.contactHeroSubtitle || "Whether you're enquiring about a project, exploring investment opportunities, or need support — our team is ready to assist you."}
                     </p>
 
                     {/* Quick contact link */}
@@ -171,42 +171,65 @@ const Contact = () => {
             <section className="py-16 bg-[#f3f4f5]">
                 <div className="max-w-[1184px] mx-auto px-6 sm:px-10 lg:px-12">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        {CARDS.map(({ id, icon: Icon, iconBg, title, lines }) => {
-                            const dynamicLines = lines.map(line => {
-                                if (id === 'general' && line.label === 'Email') return { ...line, value: savedSettingsToUse.supportEmail };
-                                if (id === 'general' && line.label === 'Phone') return { ...line, value: savedSettingsToUse.supportPhone };
-                                if (id === 'support' && line.label === 'Email') return { ...line, value: savedSettingsToUse.supportEmail };
-                                return line;
-                            });
-                            return (
+                        {[
+                            {
+                                id:       'general',
+                                icon:     Mail,
+                                iconBg:   '#0a2540',
+                                title:    savedSettingsToUse.contactGeneralTitle || 'General Inquiries',
+                                lines: [
+                                    savedSettingsToUse.contactGeneralEmail || savedSettingsToUse.supportEmail || 'info@reliancehousing.com',
+                                    savedSettingsToUse.contactGeneralPhone || savedSettingsToUse.supportPhone || '+880 1234 567890'
+                                ]
+                            },
+                            {
+                                id:       'sales',
+                                icon:     TrendingUp,
+                                iconBg:   '#fe762a',
+                                title:    savedSettingsToUse.contactSalesTitle || 'Sales & Investment',
+                                lines: [
+                                    savedSettingsToUse.contactSalesEmail || 'sales@nexusbuild.com',
+                                    savedSettingsToUse.contactSalesHours || 'Mon – Fri: 9:00 AM – 6:00 PM'
+                                ]
+                            },
+                            {
+                                id:       'support',
+                                icon:     HeadphonesIcon,
+                                iconBg:   '#000f22',
+                                title:    savedSettingsToUse.contactSupportTitle || 'Customer Support',
+                                lines: [
+                                    savedSettingsToUse.contactSupportEmail || 'support@reliancehousing.com',
+                                    savedSettingsToUse.contactSupportHours || 'Mon – Sat: 8:00 AM – 8:00 PM'
+                                ]
+                            }
+                        ].map(({ id, icon: Icon, iconBg, title, lines }) => (
+                            <div
+                                key={id}
+                                className="bg-white border border-[#c4c6ce] p-6 flex flex-col gap-2 rounded-[4px]"
+                            >
+                                {/* Icon badge — 48×48 */}
                                 <div
-                                    key={id}
-                                    className="bg-white border border-[#c4c6ce] p-6 flex flex-col gap-2"
+                                    className="w-12 h-12 flex items-center justify-center mb-2 flex-shrink-0"
+                                    style={{ background: iconBg }}
                                 >
-                                    {/* Icon badge — 48×48 */}
-                                    <div
-                                        className="w-12 h-12 flex items-center justify-center mb-2 flex-shrink-0"
-                                        style={{ background: iconBg }}
-                                    >
-                                        <Icon size={20} className="text-white" />
-                                    </div>
-
-                                    {/* Title */}
-                                    <h3 className="text-[20px] font-semibold text-[#191c1d] leading-[32px]">
-                                        {title}
-                                    </h3>
-
-                                    {/* Lines */}
-                                    <div className="flex flex-col gap-1">
-                                        {dynamicLines.map(({ label, value }) => (
-                                            <p key={label} className="text-[16px] font-normal text-[#43474d] leading-[24px]">
-                                                {value}
-                                            </p>
-                                        ))}
-                                    </div>
+                                    <Icon size={20} className="text-white" />
                                 </div>
-                            );
-                        })}
+
+                                {/* Title */}
+                                <h3 className="text-[20px] font-semibold text-[#191c1d] leading-[32px]">
+                                    {title}
+                                </h3>
+
+                                {/* Lines */}
+                                <div className="flex flex-col gap-1">
+                                    {lines.map((value, i) => (
+                                        <p key={i} className="text-[16px] font-normal text-[#43474d] leading-[24px]">
+                                            {value}
+                                        </p>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
@@ -428,17 +451,15 @@ const Contact = () => {
                                         <span className="text-[11px] font-semibold text-[#74777e] uppercase tracking-[0.1em]">
                                             Working Hours
                                         </span>
-                                        <p className="text-[14px] font-normal text-[#43474d] leading-[22px]">
-                                            Mon – Fri: 9:00 AM – 6:00 PM<br />
-                                            Saturday: 9:00 AM – 2:00 PM<br />
-                                            Sunday: Closed
+                                        <p className="text-[14px] font-normal text-[#43474d] leading-[22px] whitespace-pre-line">
+                                            {savedSettingsToUse.contactOfficeHours || `Mon – Fri: 9:00 AM – 6:00 PM\nSaturday: 9:00 AM – 2:00 PM\nSunday: Closed`}
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Open in Maps link */}
                                 <a
-                                    href="https://www.openstreetmap.org/#map=16/23.622/90.500"
+                                    href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="

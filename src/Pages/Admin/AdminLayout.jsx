@@ -18,6 +18,7 @@ const NAV_LINKS = [
     { to: '/admin/progress',   label: 'Site Progress',    icon: HardHat },
     { to: '/admin/website-projects', label: 'Website Projects', icon: Globe },
     { to: '/admin/tickets',     label: 'Support Tickets',  icon: MessageSquare },
+    { to: '/admin/contact',     label: 'Contact Settings',  icon: Settings },
 ];
 
 const AdminLayoutContent = () => {
