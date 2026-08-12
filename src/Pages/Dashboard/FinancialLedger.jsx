@@ -399,18 +399,18 @@ const FinancialLedger = () => {
                 
                 {/* ── Financial Ledger Overview (Center Column matching Figma) ── */}
                 <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm">
-                    <div className="p-6 flex items-center justify-between border-b border-[#E2E8F0]">
+                    <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#E2E8F0] gap-4">
                         <h2 className="text-[#003178] font-bold text-[18px]">Financial Ledger Overview</h2>
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
                             <button 
                                 onClick={exportStatementCSV}
-                                className="flex items-center gap-2 px-3 py-1.5 border border-[#E2E8F0] hover:bg-slate-50 rounded-lg font-bold text-xs cursor-pointer text-slate-700"
+                                className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-3 py-1.5 border border-[#E2E8F0] hover:bg-slate-50 rounded-lg font-bold text-xs cursor-pointer text-slate-700"
                             >
                                 <Download size={14} /> Export CSV
                             </button>
                             <button 
                                 onClick={downloadStatement}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-[#003178] hover:bg-[#00255a] text-white rounded-lg font-bold text-xs cursor-pointer"
+                                className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-3 py-1.5 bg-[#003178] hover:bg-[#00255a] text-white rounded-lg font-bold text-xs cursor-pointer"
                             >
                                 <Download size={14} /> Print Statement
                             </button>

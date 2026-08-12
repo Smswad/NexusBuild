@@ -436,72 +436,74 @@ const Overview = () => {
                 <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 pb-8">
                     <h2 className="text-[#003178] font-bold text-[18px] mb-10">{activeProject?.name || 'Project'} Construction Progress</h2>
                     
-                    <div className="relative mt-8">
-                        {(() => {
-                            const oPhases = activeProject?.phases || [
-                                { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
-                                { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 50 },
-                                { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
-                                { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 }
-                            ];
-                            const currentP = activeProject?.progressPhase || activeProject?.progress_phase || 1;
-                            
-                            return (
-                                <>
-                                    {/* Connecting Lines */}
-                                    <div className="absolute top-4 left-[12.5%] right-[12.5%] h-1 bg-[#E2E8F0] z-0 rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#006E1C] transition-all duration-500 ease-out" style={{ 
-                                            width: `${Math.min(100, (Math.max(0, (currentP - 1)) / (oPhases.length - 1 || 3)) * 100)}%` 
-                                        }} />
-                                    </div>
-                                    
-                                    <div className="flex justify-between items-start relative z-10">
-                                        {oPhases.map(step => {
-                                            const isCurrent = step.id === currentP;
-                                            const isCompleted = step.id < currentP;
-                                            return (
-                                                <div key={step.id} className="flex flex-col items-center flex-1">
-                                                    {isCompleted ? (
-                                                        <div className="w-9 h-9 rounded-full bg-[#006E1C] border-2 border-[#006E1C] flex items-center justify-center text-white z-10 relative shadow-sm">
-                                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                            </svg>
+                    <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
+                        <div className="relative mt-8 pb-4 min-w-[500px]">
+                            {(() => {
+                                const oPhases = activeProject?.phases || [
+                                    { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
+                                    { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 50 },
+                                    { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
+                                    { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 }
+                                ];
+                                const currentP = activeProject?.progressPhase || activeProject?.progress_phase || 1;
+                                
+                                return (
+                                    <>
+                                        {/* Connecting Lines */}
+                                        <div className="absolute top-4 left-[12.5%] right-[12.5%] h-1 bg-[#E2E8F0] z-0 rounded-full overflow-hidden">
+                                            <div className="h-full bg-[#006E1C] transition-all duration-500 ease-out" style={{ 
+                                                width: `${Math.min(100, (Math.max(0, (currentP - 1)) / (oPhases.length - 1 || 3)) * 100)}%` 
+                                            }} />
+                                        </div>
+                                        
+                                        <div className="flex justify-between items-start relative z-10">
+                                            {oPhases.map(step => {
+                                                const isCurrent = step.id === currentP;
+                                                const isCompleted = step.id < currentP;
+                                                return (
+                                                    <div key={step.id} className="flex flex-col items-center flex-1">
+                                                        {isCompleted ? (
+                                                            <div className="w-9 h-9 rounded-full bg-[#006E1C] border-2 border-[#006E1C] flex items-center justify-center text-white z-10 relative shadow-sm">
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </div>
+                                                        ) : isCurrent ? (
+                                                            <div className="w-9 h-9 rounded-full bg-white border-4 border-[#003178] flex items-center justify-center z-10 relative shadow-md">
+                                                                <div className="w-3.5 h-3.5 rounded-full bg-[#003178] animate-pulse" />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-9 h-9 rounded-full bg-white border-2 border-[#CBD5E1] flex items-center justify-center text-slate-400 font-bold text-xs z-10 relative">
+                                                                {step.id}
+                                                            </div>
+                                                        )}
+                                                        <div className={`text-[11px] uppercase tracking-wider text-center mt-4 whitespace-pre-line ${
+                                                            isCurrent 
+                                                                ? 'font-bold text-[#003178]' 
+                                                                : isCompleted 
+                                                                ? 'font-semibold text-[#006E1C]' 
+                                                                : 'font-medium text-slate-400'
+                                                        }`}>
+                                                            {step.name}
                                                         </div>
-                                                    ) : isCurrent ? (
-                                                        <div className="w-9 h-9 rounded-full bg-white border-4 border-[#003178] flex items-center justify-center z-10 relative shadow-md">
-                                                            <div className="w-3.5 h-3.5 rounded-full bg-[#003178] animate-pulse" />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-9 h-9 rounded-full bg-white border-2 border-[#CBD5E1] flex items-center justify-center text-slate-400 font-bold text-xs z-10 relative">
-                                                            {step.id}
-                                                        </div>
-                                                    )}
-                                                    <div className={`text-[11px] uppercase tracking-wider text-center mt-4 whitespace-pre-line ${
-                                                        isCurrent 
-                                                            ? 'font-bold text-[#003178]' 
-                                                            : isCompleted 
-                                                            ? 'font-semibold text-[#006E1C]' 
-                                                            : 'font-medium text-slate-400'
-                                                    }`}>
-                                                        {step.name}
+                                                        {step.date && (
+                                                            <div className={`text-[10px] text-center mt-1 font-medium ${isCurrent ? 'text-[#003178] font-bold' : 'text-slate-400'}`}>
+                                                                {step.date}
+                                                            </div>
+                                                        )}
+                                                        {step.progress > 0 && step.progress < 100 && (
+                                                            <span className="mt-1 px-2 py-0.5 bg-[#E1EFFE] text-[#003178] font-extrabold text-[9px] rounded-full border border-blue-200">
+                                                                {step.progress}% COMPLETE
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                    {step.date && (
-                                                        <div className={`text-[10px] text-center mt-1 font-medium ${isCurrent ? 'text-[#003178] font-bold' : 'text-slate-400'}`}>
-                                                            {step.date}
-                                                        </div>
-                                                    )}
-                                                    {step.progress > 0 && step.progress < 100 && (
-                                                        <span className="mt-1 px-2 py-0.5 bg-[#E1EFFE] text-[#003178] font-extrabold text-[9px] rounded-full border border-blue-200">
-                                                            {step.progress}% COMPLETE
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </>
-                            );
-                        })()}
+                                                );
+                                            })}
+                                        </div>
+                                    </>
+                                );
+                            })()}
+                        </div>
                     </div>
                 </div>
 
