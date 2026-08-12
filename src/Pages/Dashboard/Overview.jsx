@@ -428,13 +428,13 @@ const Overview = () => {
     return (
         <>
             <PrintView financials={financials} userProfile={userProfile} />
-            <div className="flex flex-col lg:flex-row gap-6 items-start print:hidden">
+            <div className="flex flex-col lg:flex-row gap-6 w-full items-start print:hidden">
             {/* ══ CENTER COLUMN (Flexible Main Content) ════════════════════════ */}
-            <div className="flex-1 flex flex-col gap-6 min-w-0">
+            <div className="flex-1 flex flex-col gap-6 min-w-0 w-full">
                 
                 {/* 1. Construction Progress Card */}
-                <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 pb-8">
-                    <h2 className="text-[#003178] font-bold text-[18px] mb-10">{activeProject?.name || 'Project'} Construction Progress</h2>
+                <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-4 sm:p-6 pb-8">
+                    <h2 className="text-[#003178] font-bold text-base sm:text-[18px] mb-6 sm:mb-10 truncate">{activeProject?.name || 'Project'} Construction Progress</h2>
                     
                     <div className="relative mt-8 sm:mt-12 pb-4">
                         {(() => {
@@ -482,7 +482,7 @@ const Overview = () => {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="flex flex-col sm:items-center w-full">
+                                                    <div className="flex flex-col sm:items-center flex-1">
                                                         <div className={`text-[11px] uppercase tracking-wider sm:mt-4 whitespace-pre-line ${
                                                             isCurrent 
                                                                 ? 'font-bold text-[#003178]' 

@@ -395,7 +395,7 @@ const FinancialLedger = () => {
         <>
             <PrintView financials={financials} userProfile={userProfile} />
             
-            <div className="flex flex-col gap-6 print:hidden max-w-5xl text-slate-800">
+            <div className="flex flex-col gap-6 print:hidden w-full max-w-5xl text-slate-800">
                 
                 {/* ── Financial Ledger Overview (Center Column matching Figma) ── */}
                 <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm">

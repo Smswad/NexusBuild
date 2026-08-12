@@ -38,7 +38,7 @@ const Support = () => {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row gap-6 max-w-6xl items-start">
+        <div className="flex flex-col lg:flex-row gap-6 w-full max-w-6xl items-start">
             
             {/* ══ LEFT COLUMN: Contact & Form ════════════════════════════════ */}
             <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-6">

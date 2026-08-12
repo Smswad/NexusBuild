@@ -38,7 +38,7 @@ const ProjectProgress = () => {
     }
 
     return (
-        <div className="flex flex-col gap-6 max-w-5xl">
+        <div className="flex flex-col gap-6 w-full max-w-5xl">
             
             {/* Top Bar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
@@ -65,8 +65,8 @@ const ProjectProgress = () => {
             </div>
 
             {/* 1. Construction Progress Card (Matched to Overview Figma style) */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 pb-8">
-                <h2 className="text-[#003178] font-bold text-[18px] mb-10">Overall Construction Progress</h2>
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-4 sm:p-6 pb-8">
+                <h2 className="text-[#003178] font-bold text-base sm:text-[18px] mb-6 sm:mb-10">Overall Construction Progress</h2>
                 
                 <div className="relative mt-8 sm:mt-12 pb-4">
                     {/* Mobile Vertical Line */}
@@ -107,7 +107,7 @@ const ProjectProgress = () => {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex flex-col sm:items-center w-full">
+                                    <div className="flex flex-col sm:items-center flex-1">
                                         <div className={`text-[11px] uppercase tracking-wider sm:mt-4 whitespace-pre-line ${
                                             isCurrent 
                                                 ? 'font-bold text-[#003178]' 
