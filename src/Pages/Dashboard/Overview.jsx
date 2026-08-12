@@ -396,7 +396,7 @@ const Overview = () => {
     
     if (loading) {
         return (
-            <div className="flex gap-6 items-start animate-pulse">
+            <div className="flex flex-col lg:flex-row gap-6 items-start animate-pulse">
                 <div className="flex-1 flex flex-col gap-6">
                     <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 pb-8 flex flex-col gap-4">
                         <div className="skeleton h-6 w-64 rounded bg-slate-200" />
@@ -411,7 +411,7 @@ const Overview = () => {
                         <div className="skeleton h-48 w-full rounded bg-slate-100" />
                     </div>
                 </div>
-                <div className="w-[360px] flex-shrink-0 flex flex-col gap-6">
+                <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-6">
                     <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-4">
                         <div className="skeleton h-48 w-full rounded-lg bg-slate-200" />
                         <div className="skeleton h-12 w-full rounded bg-slate-100" />
@@ -428,7 +428,7 @@ const Overview = () => {
     return (
         <>
             <PrintView financials={financials} userProfile={userProfile} />
-            <div className="flex gap-6 items-start print:hidden">
+            <div className="flex flex-col lg:flex-row gap-6 items-start print:hidden">
             {/* ══ CENTER COLUMN (Flexible Main Content) ════════════════════════ */}
             <div className="flex-1 flex flex-col gap-6">
                 
@@ -604,7 +604,7 @@ const Overview = () => {
 
 
             {/* ══ RIGHT COLUMN (Widgets - Fixed 360px) ═════════════════════════ */}
-            <div className="w-[360px] flex-shrink-0 flex flex-col gap-6">
+            <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-6">
                 
                 {/* 1. Property Hero Card */}
                 <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden flex flex-col">

@@ -41,18 +41,18 @@ const ProjectProgress = () => {
         <div className="flex flex-col gap-6 max-w-5xl">
             
             {/* Top Bar */}
-            <div className="flex items-end justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
                 <div>
                     <h1 className="font-bold text-2xl text-[#191C1E]">Project Progress</h1>
                     <p className="text-sm text-[#737783] mt-1">Track construction milestones and site updates.</p>
                 </div>
                 
-                <div className="flex items-center gap-2 bg-white border border-[#E2E8F0] p-1 rounded-sm shadow-sm">
+                <div className="flex flex-wrap items-center gap-2 bg-white border border-[#E2E8F0] p-1 rounded-sm shadow-sm w-full sm:w-auto">
                     {projects.map(p => (
                         <button
                             key={p.id}
                             onClick={() => setActiveProjectId(p.id)}
-                            className={`px-4 py-2 text-[10px] font-bold tracking-wider uppercase rounded-sm transition-all ${
+                            className={`flex-1 sm:flex-none px-4 py-2 text-[10px] font-bold tracking-wider uppercase rounded-sm transition-all ${
                                 activeProjectId === p.id
                                     ? 'bg-[#003178] text-white shadow-sm'
                                     : 'text-slate-500 hover:bg-[#F0F4F8]'

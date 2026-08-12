@@ -38,10 +38,10 @@ const Support = () => {
     };
 
     return (
-        <div className="flex gap-6 max-w-6xl items-start">
+        <div className="flex flex-col lg:flex-row gap-6 max-w-6xl items-start">
             
             {/* ══ LEFT COLUMN: Contact & Form ════════════════════════════════ */}
-            <div className="w-[360px] flex-shrink-0 flex flex-col gap-6">
+            <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-6">
                 
                 {/* Account Exec Contact Card (Matches Overview style) */}
                 <div className="bg-[#0F3A70] rounded-lg shadow-sm p-6 text-white">

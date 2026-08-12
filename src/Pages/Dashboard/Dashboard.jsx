@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import {
     LayoutDashboard, BookOpen, HardHat, Headphones,
-    Bell, LogOut, Building2, User
+    Bell, LogOut, Building2, User, Menu, X as XIcon
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { ClientDataProvider, useClientData } from '../../Context/ClientDataContext';
@@ -16,9 +16,10 @@ const NAV_LINKS = [
 
 const DashboardContent = () => {
     const { signOut } = useAuth();
-    const { userProfile, activeClient, updateProfile, financials, siteUpdates, support } = useClientData(); // Fetch dynamic user info
+    const { userProfile, activeClient, updateProfile, financials, siteUpdates, support } = useClientData();
     const navigate = useNavigate();
 
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showNotif, setShowNotif] = useState(false);
     const [readNotifIds, setReadNotifIds] = useState(() => {
         try {
@@ -130,8 +131,18 @@ const DashboardContent = () => {
 
     return (
         <div className="flex h-screen overflow-hidden font-sans bg-[#F0F4F8] print:block print:h-auto print:overflow-visible">
-            {/* ══ SIDEBAR (340px) ══════════════════════════════════════════════ */}
-            <aside className="w-[340px] flex-shrink-0 flex flex-col bg-[#003178] text-white print:hidden">
+            {/* ══ MOBILE OVERLAY ══════════════════════════════════════════════ */}
+            {sidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
+            {/* ══ SIDEBAR ══════════════════════════════════════════════════════ */}
+            <aside className={`fixed lg:relative inset-y-0 left-0 z-50 w-[280px] lg:w-[340px] flex-shrink-0 flex flex-col bg-[#003178] text-white print:hidden transition-transform duration-300 ease-in-out ${
+                sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+            }`}>
                 
                 {/* Header Logo Area */}
                 <div 
@@ -154,7 +165,7 @@ const DashboardContent = () => {
                 {/* Navigation Menu Items */}
                 <nav className="flex-1 flex flex-col gap-2 overflow-y-auto">
                     {NAV_LINKS.map(({ to, label, icon: Icon, end }) => (
-                        <NavLink key={to} to={to} end={end} className="no-underline block">
+                        <NavLink key={to} to={to} end={end} className="no-underline block" onClick={() => setSidebarOpen(false)}>
                             {({ isActive }) => (
                                 <div className={`flex items-center gap-4 px-6 py-3 transition-colors ${
                                     isActive 
@@ -195,12 +206,22 @@ const DashboardContent = () => {
             </aside>
 
             {/* ══ MAIN AREA ════════════════════════════════════════════════════ */}
-            <div className="flex-1 flex flex-col overflow-hidden print:block print:h-auto print:overflow-visible">
+            <div className="flex-1 flex flex-col overflow-hidden print:block print:h-auto print:overflow-visible min-w-0">
                 
-                {/* Top Header (70px) */}
-                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-6 flex items-center justify-between z-50 relative print:hidden">
-                    <div className="text-slate-800 font-bold text-xl">
-                        Welcome Back, {userProfile.name}
+                {/* Top Header */}
+                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-4 md:px-6 flex items-center justify-between z-50 relative print:hidden">
+                    <div className="flex items-center gap-4">
+                        {/* Hamburger for mobile */}
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+                            aria-label="Open Menu"
+                        >
+                            <Menu size={22} />
+                        </button>
+                        <div className="text-slate-800 font-bold text-lg truncate">
+                            Welcome Back, {userProfile.name}
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-6">

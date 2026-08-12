@@ -407,14 +407,14 @@ const ClientManagement = () => {
                             </button>
                         </div>
                         
-                        <div className="flex flex-1 overflow-hidden">
+                        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
                             {/* Sidebar Tabs */}
-                            <div className="w-64 bg-slate-50 border-r border-[#E2E8F0] flex flex-col p-4 gap-2 flex-shrink-0">
+                            <div className="w-full md:w-64 bg-slate-50 border-b md:border-b-0 md:border-r border-[#E2E8F0] flex flex-row md:flex-col overflow-x-auto p-4 gap-2 flex-shrink-0">
                                 <button 
                                     type="button"
                                     onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => setActiveTab('profile')}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'profile' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
+                                    className={`whitespace-nowrap flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'profile' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     <User size={18} /> Profile & Property
                                 </button>
@@ -422,7 +422,7 @@ const ClientManagement = () => {
                                     type="button"
                                     onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => setActiveTab('installments')}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'installments' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
+                                    className={`whitespace-nowrap flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'installments' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     <CreditCard size={18} /> Installment Schedule
                                 </button>
@@ -430,7 +430,7 @@ const ClientManagement = () => {
                                     type="button"
                                     onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => setActiveTab('transactions')}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'transactions' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
+                                    className={`whitespace-nowrap flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'transactions' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     <Wallet size={18} /> Transactions Log
                                 </button>
@@ -438,21 +438,21 @@ const ClientManagement = () => {
                                     type="button"
                                     onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => setActiveTab('tickets')}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'tickets' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
+                                    className={`whitespace-nowrap flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'tickets' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     <MessageSquare size={18} /> Support Tickets
                                 </button>
                             </div>
 
                             {/* Main Content Area */}
-                            <div className="flex-1 overflow-y-auto p-8 bg-white relative">
+                            <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-white relative">
                                 
                                 {/* ── TAB 1: PROFILE & PROPERTY ── */}
                                 {activeTab === 'profile' && (
                                     <form onSubmit={handleSaveProfile} className="space-y-8 max-w-3xl">
                                         <div>
                                             <h4 className="text-sm font-bold text-[#1A4B9C] border-b border-[#E2E8F0] pb-2 mb-4">Personal Information</h4>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
                                                     <input type="text" required value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
@@ -479,7 +479,7 @@ const ClientManagement = () => {
                                         {editForm.propertyId ? (
                                             <div>
                                                 <h4 className="text-sm font-bold text-[#1A4B9C] border-b border-[#E2E8F0] pb-2 mb-4">Property & Financial Details</h4>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div>
                                                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Property Location / Block</label>
                                                         <input type="text" value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
@@ -593,7 +593,7 @@ const ClientManagement = () => {
                                         ) : (
                                             <>
                                                 {/* Summary KPI Bar */}
-                                                <div className="grid grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-[#E2E8F0]">
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-[#E2E8F0]">
                                                     <div className="bg-white p-3 rounded-lg border border-[#E2E8F0] text-center">
                                                         <span className="text-[10px] font-bold text-slate-500 uppercase block">Total Installments</span>
                                                         <span className="text-lg font-extrabold text-slate-800 mt-1 block">{clientInstallments.length}</span>
@@ -626,7 +626,7 @@ const ClientManagement = () => {
                                                                 Auto Mode
                                                             </span>
                                                         </div>
-                                                        <form onSubmit={handleAutoGenerateInstallments} className="grid grid-cols-4 gap-4 items-end">
+                                                        <form onSubmit={handleAutoGenerateInstallments} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
                                                             <div>
                                                                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Total Valuation to Split (৳)</label>
                                                                 <input 
@@ -673,7 +673,7 @@ const ClientManagement = () => {
                                                                     required 
                                                                 />
                                                             </div>
-                                                            <div className="col-span-4 flex justify-end">
+                                                            <div className="col-span-1 sm:col-span-2 md:col-span-4 flex justify-end">
                                                                 <button 
                                                                     type="submit" 
                                                                     className="px-5 py-2.5 bg-[#1A4B9C] hover:bg-[#153B7C] text-white rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
@@ -689,12 +689,12 @@ const ClientManagement = () => {
                                                 {installmentMode === 'manual' && (
                                                     <div className="bg-slate-50 p-4 rounded-xl border border-[#E2E8F0]">
                                                         <h3 className="font-bold text-sm text-slate-800 mb-3">Add Manual Installment</h3>
-                                                        <form onSubmit={handleAddInstallment} className="flex gap-4 items-end">
-                                                            <div className="flex-1">
+                                                        <form onSubmit={handleAddInstallment} className="flex flex-col sm:flex-row gap-4 sm:items-end">
+                                                            <div className="w-full sm:flex-1">
                                                                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Installment Name</label>
                                                                 <input type="text" placeholder="e.g. 1st Installment" required value={newInstallment.installment} onChange={e => setNewInstallment({...newInstallment, installment: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white" />
                                                             </div>
-                                                            <div className="flex-1">
+                                                            <div className="w-full sm:flex-1">
                                                                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
                                                                 <input type="date" required value={newInstallment.dueDate} onChange={e => setNewInstallment({...newInstallment, dueDate: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white text-slate-800" />
                                                             </div>
@@ -710,7 +710,8 @@ const ClientManagement = () => {
                                                 )}
 
                                                 {/* Installments Table with Deletion & Status Toggle */}
-                                                <table className="w-full text-left border-collapse border border-[#E2E8F0] rounded-lg overflow-hidden">
+                                                <div className="overflow-x-auto border border-[#E2E8F0] rounded-lg">
+                                                    <table className="w-full text-left border-collapse min-w-[700px]">
                                                     <thead>
                                                         <tr className="bg-slate-100 border-b border-[#E2E8F0] text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                                                             <th className="px-4 py-3">Installment No.</th>
@@ -757,7 +758,8 @@ const ClientManagement = () => {
                                                             </tr>
                                                         )}
                                                     </tbody>
-                                                </table>
+                                                    </table>
+                                                </div>
                                             </>
                                         )}
                                     </div>
@@ -774,7 +776,7 @@ const ClientManagement = () => {
                                             <>
                                                 <div className="bg-slate-50 p-4 rounded-xl border border-[#E2E8F0]">
                                                     <h3 className="font-bold text-sm text-slate-800 mb-3">Log New Payment</h3>
-                                                    <form onSubmit={handleAddTransaction} className="flex gap-4 items-end">
+                                                    <form onSubmit={handleAddTransaction} className="flex flex-col sm:flex-row gap-4 sm:items-end">
                                                         <div className="flex-1">
                                                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Payment Type</label>
                                                             <input type="text" placeholder="e.g. Bank Transfer" required value={newTransaction.type} onChange={e => setNewTransaction({...newTransaction, type: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm" />
@@ -787,7 +789,7 @@ const ClientManagement = () => {
                                                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Amount (৳)</label>
                                                             <input type="text" placeholder="e.g. 15,00,000" required value={newTransaction.amount} onChange={e => setNewTransaction({...newTransaction, amount: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm" />
                                                         </div>
-                                                        <button type="submit" className="px-4 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold flex-shrink-0">
+                                                        <button type="submit" className="px-4 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold flex-shrink-0 w-full sm:w-auto">
                                                             Log Payment
                                                         </button>
                                                     </form>
