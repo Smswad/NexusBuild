@@ -50,8 +50,8 @@ export const PROJECTS = [
         name: "Green Valley Residency",
         status: "READY TO MOVE",
         statusBg: "#0a3d2e",
-        location: "Dhanmondi",
-        fullAddress: "Road 27, Dhanmondi, Dhaka",
+        location: "BB Road, Narayanganj",
+        fullAddress: "Green Valley Lane, Off BB Road, Narayanganj",
         type: "Residential",
         image: "/Frontend/Projects/The_Heritage_Plaza.svg",
         gallery: [
@@ -59,8 +59,8 @@ export const PROJECTS = [
             "/Frontend/Projects/Decades_of_Trust_in_Narayanganj.svg",
             "/Frontend/Projects/Hero_Section.svg"
         ],
-        description: "Eco-friendly luxury residential gated community featuring lush green balconies, solar power integration, and peaceful surroundings.",
-        fullDescription: "Green Valley Residency is a premier eco-inspired luxury residential sanctuary nestled in Dhanmondi, Dhaka. Designed for serene living with rooftop gardens, children's play areas, and energy-efficient building systems.",
+        description: "Eco-friendly luxury residential gated community featuring lush green balconies, solar power integration, and riverfront peaceful surroundings.",
+        fullDescription: "Green Valley Residency is a premier eco-inspired luxury residential sanctuary nestled in BB Road, Narayanganj. Designed for serene living with rooftop gardens, children's play areas, and energy-efficient building systems.",
         priceRange: "৳ 1.10 Cr – ৳ 2.60 Cr",
         totalUnits: 24,
         specs: [
