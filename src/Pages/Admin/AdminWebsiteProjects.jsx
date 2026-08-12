@@ -224,7 +224,7 @@ const AdminWebsiteProjects = () => {
             {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden">
+                    <div className="bg-white rounded-none shadow-2xl w-full max-w-2xl overflow-hidden">
                         <div className="px-6 py-4 border-b border-[#E2E8F0] flex justify-between items-center bg-slate-50">
                             <h3 className="font-bold text-slate-800">{modalMode === 'add' ? 'Add New Project' : 'Edit Project'}</h3>
                             <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
