@@ -156,10 +156,10 @@ const About = () => {
                             to="/gismap"
                             className="
                                 inline-flex items-center gap-2
-                                border border-white/20 hover:border-white/50
+                                border border-[#fe762a] hover:bg-[#fe762a]/10
                                 text-white text-[16px] font-normal
                                 px-10 py-6 rounded-[4px]
-                                transition-colors duration-200
+                                transition-all duration-200
                             "
                         >
                             <MapPin size={16} />
