@@ -39,6 +39,18 @@ const Gismap = () => {
         }
     };
 
+    // Handle project card click: select project and switch location tab to match it!
+    const handleSelectProject = (proj) => {
+        setSelectedProjectId(proj.id);
+        if (proj.location) {
+            const primaryLoc = proj.location.split(',')[0].trim();
+            const matchingArea = uniqueLocations.find(l => l.toLowerCase() === primaryLoc.toLowerCase());
+            if (matchingArea) {
+                setSelectedLocation(matchingArea);
+            }
+        }
+    };
+
     // Filter projects based on location & search query
     const filteredProjects = useMemo(() => {
         return publicProjects.filter(p => {
@@ -51,16 +63,10 @@ const Gismap = () => {
         });
     }, [publicProjects, selectedLocation, searchQuery]);
 
-    // Active selected project object (guaranteed to match current location selection)
+    // Active selected project object
     const activeProject = useMemo(() => {
-        const directMatch = publicProjects.find(p => p.id === selectedProjectId);
-        if (directMatch) {
-            if (selectedLocation === 'ALL' || (directMatch.location && directMatch.location.toLowerCase().includes(selectedLocation.toLowerCase()))) {
-                return directMatch;
-            }
-        }
-        return filteredProjects[0] || publicProjects[0] || {};
-    }, [publicProjects, selectedProjectId, selectedLocation, filteredProjects]);
+        return publicProjects.find(p => p.id === selectedProjectId) || filteredProjects[0] || publicProjects[0] || {};
+    }, [publicProjects, selectedProjectId, filteredProjects]);
 
     // Helper to format google map embed link or coordinates
     const getMapEmbedUrl = (proj) => {
@@ -249,7 +255,7 @@ const Gismap = () => {
                                     return (
                                         <div
                                             key={proj.id}
-                                            onClick={() => setSelectedProjectId(proj.id)}
+                                            onClick={() => handleSelectProject(proj)}
                                             className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
                                                 isSelected 
                                                     ? 'bg-blue-50/70 border-[#1A4B9C] shadow-md ring-1 ring-[#1A4B9C]' 

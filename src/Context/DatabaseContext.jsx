@@ -276,10 +276,24 @@ export const DatabaseProvider = ({ children }) => {
                             nearbyMarkets: p.nearby_markets || p.nearbyMarkets
                         }));
                     
+                    const savedSettings = resSettings?.data?.settings || {};
+                    const metaObj = savedSettings.projectsMeta || {};
+
                     if (validPublicProjects.length > 0) {
                         const mergedMap = new Map();
-                        PROJECTS.forEach(p => mergedMap.set(p.id, p));
-                        validPublicProjects.forEach(p => mergedMap.set(p.id, { ...mergedMap.get(p.id), ...p }));
+                        PROJECTS.forEach(proj => mergedMap.set(proj.id, proj));
+                        validPublicProjects.forEach(proj => {
+                            const meta = metaObj[proj.id] || {};
+                            mergedMap.set(proj.id, { 
+                                ...mergedMap.get(proj.id), 
+                                ...proj,
+                                mapLink: meta.mapLink || proj.mapLink || proj.map_link,
+                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || proj.nearby_hospitals,
+                                nearbySchools: meta.nearbySchools || proj.nearbySchools || proj.nearby_schools,
+                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || proj.nearby_colleges,
+                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || proj.nearby_markets
+                            });
+                        });
                         setPublicProjects(Array.from(mergedMap.values()));
                         publicProjectsLoaded = true;
                     }
@@ -288,14 +302,37 @@ export const DatabaseProvider = ({ children }) => {
                 if (!publicProjectsLoaded) {
                     try {
                         const local = JSON.parse(localStorage.getItem('all_public_projects') || '[]');
+                        const savedSettings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+                        const metaObj = savedSettings.projectsMeta || {};
+                        const mergedMap = new Map();
+                        
+                        PROJECTS.forEach(proj => {
+                            const meta = metaObj[proj.id] || {};
+                            mergedMap.set(proj.id, {
+                                ...proj,
+                                mapLink: meta.mapLink || proj.mapLink,
+                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
+                                nearbySchools: meta.nearbySchools || proj.nearbySchools,
+                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
+                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
+                            });
+                        });
+
                         if (local.length > 0) {
-                            const mergedMap = new Map();
-                            PROJECTS.forEach(p => mergedMap.set(p.id, p));
-                            local.forEach(p => mergedMap.set(p.id, { ...mergedMap.get(p.id), ...p }));
-                            setPublicProjects(Array.from(mergedMap.values()));
-                        } else {
-                            setPublicProjects(PROJECTS);
+                            local.forEach(proj => {
+                                const meta = metaObj[proj.id] || {};
+                                mergedMap.set(proj.id, { 
+                                    ...mergedMap.get(proj.id), 
+                                    ...proj,
+                                    mapLink: meta.mapLink || proj.mapLink || proj.map_link,
+                                    nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || proj.nearby_hospitals,
+                                    nearbySchools: meta.nearbySchools || proj.nearbySchools || proj.nearby_schools,
+                                    nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || proj.nearby_colleges,
+                                    nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || proj.nearby_markets
+                                });
+                            });
                         }
+                        setPublicProjects(Array.from(mergedMap.values()));
                     } catch(e) {
                         setPublicProjects(PROJECTS);
                     }
@@ -779,6 +816,7 @@ export const DatabaseProvider = ({ children }) => {
     };
 
     const updatePublicProject = async (id, updatedProj) => {
+        // Update public projects state
         setPublicProjects(prev => {
             const updated = prev.map(p => p.id === id ? { 
                 ...p, 
@@ -790,8 +828,27 @@ export const DatabaseProvider = ({ children }) => {
             return updated;
         });
 
+        // Update projects state
         setProjects(prev => prev.map(p => p.id === id ? { ...p, name: updatedProj.name || p.name } : p));
 
+        // Save map link and nearby amenities metadata inside system_settings
+        const currentMeta = systemSettings?.projectsMeta || {};
+        const updatedSettings = {
+            ...systemSettings,
+            projectsMeta: {
+                ...currentMeta,
+                [id]: {
+                    mapLink: updatedProj.mapLink || updatedProj.map_link,
+                    nearbyHospitals: updatedProj.nearbyHospitals,
+                    nearbySchools: updatedProj.nearbySchools,
+                    nearbyColleges: updatedProj.nearbyColleges,
+                    nearbyMarkets: updatedProj.nearbyMarkets
+                }
+            }
+        };
+        await updateSystemSettings(updatedSettings);
+
+        // Standard save (upsert) to public_projects (gracefully ignores if columns aren't in schema yet)
         try {
             const dbPayload = {
                 id: id,
