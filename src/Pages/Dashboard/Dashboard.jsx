@@ -210,21 +210,23 @@ const DashboardContent = () => {
                 
                 {/* Top Header */}
                 <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-4 md:px-6 flex items-center justify-between z-50 relative print:hidden">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                         {/* Hamburger for mobile */}
                         <button
                             onClick={() => setSidebarOpen(true)}
-                            className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+                            className="lg:hidden p-1.5 sm:p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors flex-shrink-0"
                             aria-label="Open Menu"
                         >
                             <Menu size={22} />
                         </button>
-                        <div className="text-slate-800 font-bold text-lg truncate">
-                            Welcome Back, {userProfile.name}
+                        <div className="text-slate-800 font-bold text-base sm:text-lg truncate">
+                            <span className="hidden sm:inline">Welcome Back, </span>
+                            <span className="sm:hidden">Welcome, </span>
+                            {userProfile.name}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
                         {/* Notification Bell */}
                         <div ref={notifRef} className="relative z-50">
                             {(() => {
@@ -314,8 +316,8 @@ const DashboardContent = () => {
                     </div>
                 </header>
 
-                {/* Page Content */}
-                <main className="flex-1 overflow-y-auto p-6 relative">
+                {/* Scrollable Content */}
+                <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 relative z-0">
                     <Outlet />
                 </main>
             </div>

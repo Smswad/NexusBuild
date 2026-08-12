@@ -107,7 +107,7 @@ const Support = () => {
             </div>
 
             {/* ══ RIGHT COLUMN: Tickets & FAQs ═══════════════════════════════ */}
-            <div className="flex-1 flex flex-col gap-6">
+            <div className="flex-1 flex flex-col gap-6 min-w-0">
                 
                 {/* Active Tickets Table */}
                 <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
