@@ -164,7 +164,7 @@ const AdminTickets = () => {
                                         placeholder={`Type your official response to ${client?.name || 'the client'}...`}
                                         className="w-full border border-[#E2E8F0] rounded-lg p-3 text-sm text-slate-800 bg-white focus:outline-none focus:border-[#1A4B9C]"
                                     />
-                                    <div className="flex justify-end gap-2">
+                                    <div className="flex flex-wrap justify-end gap-2">
                                         <button 
                                             type="button" 
                                             onClick={() => setReplyingTicketId(null)}
@@ -191,7 +191,7 @@ const AdminTickets = () => {
                             )}
 
                             {/* Card Footer */}
-                            <div className="flex justify-between items-center border-t border-[#E2E8F0] pt-4 mt-4">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t border-[#E2E8F0] pt-4 mt-4">
                                 <div className="flex items-center gap-2 text-slate-600">
                                     <div className="w-8 h-8 rounded-full bg-[#E1EFFE] text-[#1A4B9C] flex items-center justify-center font-bold text-xs">
                                         {client?.name?.charAt(0) || 'U'}
@@ -202,12 +202,12 @@ const AdminTickets = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                                     {!isReplying && (
                                         <button 
                                             type="button"
                                             onClick={() => handleOpenReply(ticket)}
-                                            className="px-3.5 py-1.5 bg-[#1A4B9C] hover:bg-[#153B7C] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                            className="flex-1 sm:flex-none justify-center px-3.5 py-1.5 bg-[#1A4B9C] hover:bg-[#153B7C] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                                         >
                                             <CornerDownRight size={14} /> Reply Back
                                         </button>
@@ -220,7 +220,7 @@ const AdminTickets = () => {
                                                 await resolveTicket(ticket.id);
                                                 alert(`Ticket ${ticket.id} marked as resolved!`);
                                             }}
-                                            className="px-3.5 py-1.5 bg-[#006E1C] hover:bg-[#005215] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                            className="flex-1 sm:flex-none justify-center px-3.5 py-1.5 bg-[#006E1C] hover:bg-[#005215] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                                         >
                                             <CheckCircle2 size={14} /> Mark as Resolved
                                         </button>
