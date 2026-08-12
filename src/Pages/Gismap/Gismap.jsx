@@ -245,7 +245,7 @@ const Gismap = () => {
 
                                             <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
                                                 <span className="text-slate-600 font-semibold">{proj.type || 'Residential'}</span>
-                                                <span className="text-[#1A4B9C] font-extrabold">{proj.price || 'Contact Sales'}</span>
+                                                <span className="text-slate-500 font-medium">{proj.area || ''}</span>
                                             </div>
                                         </div>
                                     );
