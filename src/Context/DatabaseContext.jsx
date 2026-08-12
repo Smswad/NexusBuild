@@ -258,23 +258,26 @@ export const DatabaseProvider = ({ children }) => {
                 if (resPublicProjects && resPublicProjects.data && resPublicProjects.data.length > 0) {
                     const validPublicProjects = resPublicProjects.data
                         .filter(p => p.id !== '1' && p.id !== '2' && p.id !== '3')
-                        .map(p => ({
-                            id: p.id,
-                            name: p.name,
-                            status: p.status,
-                            statusBg: p.status_bg,
-                            location: p.location,
-                            type: p.type,
-                            image: p.image,
-                            description: p.description,
-                            price: p.price,
-                            area: p.area,
-                            mapLink: p.map_link || p.mapLink,
-                            nearbyHospitals: p.nearby_hospitals || p.nearbyHospitals,
-                            nearbySchools: p.nearby_schools || p.nearbySchools,
-                            nearbyColleges: p.nearby_colleges || p.nearbyColleges,
-                            nearbyMarkets: p.nearby_markets || p.nearbyMarkets
-                        }));
+                        .map(p => {
+                            const obj = {
+                                id: p.id,
+                                name: p.name,
+                                status: p.status,
+                                statusBg: p.status_bg,
+                                location: p.location,
+                                type: p.type,
+                                image: p.image,
+                                description: p.description,
+                                price: p.price,
+                                area: p.area
+                            };
+                            if (p.map_link || p.mapLink) obj.mapLink = p.map_link || p.mapLink;
+                            if (p.nearby_hospitals || p.nearbyHospitals) obj.nearbyHospitals = p.nearby_hospitals || p.nearbyHospitals;
+                            if (p.nearby_schools || p.nearbySchools) obj.nearbySchools = p.nearby_schools || p.nearbySchools;
+                            if (p.nearby_colleges || p.nearbyColleges) obj.nearbyColleges = p.nearby_colleges || p.nearbyColleges;
+                            if (p.nearby_markets || p.nearbyMarkets) obj.nearbyMarkets = p.nearby_markets || p.nearbyMarkets;
+                            return obj;
+                        });
                     
                     const savedSettings = resSettings?.data?.settings || {};
                     const metaObj = savedSettings.projectsMeta || {};
@@ -284,14 +287,15 @@ export const DatabaseProvider = ({ children }) => {
                         PROJECTS.forEach(proj => mergedMap.set(proj.id, proj));
                         validPublicProjects.forEach(proj => {
                             const meta = metaObj[proj.id] || {};
+                            const defaultProj = mergedMap.get(proj.id) || {};
                             mergedMap.set(proj.id, { 
-                                ...mergedMap.get(proj.id), 
+                                ...defaultProj, 
                                 ...proj,
-                                mapLink: meta.mapLink || proj.mapLink || proj.map_link,
-                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || proj.nearby_hospitals,
-                                nearbySchools: meta.nearbySchools || proj.nearbySchools || proj.nearby_schools,
-                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || proj.nearby_colleges,
-                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || proj.nearby_markets
+                                mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
+                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || defaultProj.nearbyHospitals,
+                                nearbySchools: meta.nearbySchools || proj.nearbySchools || defaultProj.nearbySchools,
+                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || defaultProj.nearbyColleges,
+                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || defaultProj.nearbyMarkets
                             });
                         });
                         setPublicProjects(Array.from(mergedMap.values()));
@@ -321,14 +325,15 @@ export const DatabaseProvider = ({ children }) => {
                         if (local.length > 0) {
                             local.forEach(proj => {
                                 const meta = metaObj[proj.id] || {};
+                                const defaultProj = mergedMap.get(proj.id) || {};
                                 mergedMap.set(proj.id, { 
-                                    ...mergedMap.get(proj.id), 
+                                    ...defaultProj, 
                                     ...proj,
-                                    mapLink: meta.mapLink || proj.mapLink || proj.map_link,
-                                    nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || proj.nearby_hospitals,
-                                    nearbySchools: meta.nearbySchools || proj.nearbySchools || proj.nearby_schools,
-                                    nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || proj.nearby_colleges,
-                                    nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || proj.nearby_markets
+                                    mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
+                                    nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || defaultProj.nearbyHospitals,
+                                    nearbySchools: meta.nearbySchools || proj.nearbySchools || defaultProj.nearbySchools,
+                                    nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || defaultProj.nearbyColleges,
+                                    nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || defaultProj.nearbyMarkets
                                 });
                             });
                         }
