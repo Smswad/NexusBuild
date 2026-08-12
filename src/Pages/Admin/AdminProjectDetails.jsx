@@ -100,7 +100,7 @@ const AdminProjectDetails = () => {
                 nearbyMarkets: matchingPublicProj.nearbyMarkets || matchingPublicProj.nearby_markets || 'Shamabay New Market (0.3 km), Balur Math Market (0.7 km)'
             });
         }
-    }, [currentProject?.id, matchingPublicProj.mapLink, matchingPublicProj.map_link]);
+    }, [currentProject?.id]);
 
     const [isSaving, setIsSaving] = useState(false);
 

@@ -794,6 +794,7 @@ export const DatabaseProvider = ({ children }) => {
 
         try {
             const dbPayload = {
+                id: id,
                 name: updatedProj.name,
                 status: updatedProj.status,
                 status_bg: updatedProj.statusBg,
@@ -803,14 +804,14 @@ export const DatabaseProvider = ({ children }) => {
                 description: updatedProj.description,
                 price: updatedProj.price,
                 area: updatedProj.area,
-                map_link: updatedProj.mapLink,
+                map_link: updatedProj.mapLink || updatedProj.map_link,
                 nearby_hospitals: updatedProj.nearbyHospitals,
                 nearby_schools: updatedProj.nearbySchools,
                 nearby_colleges: updatedProj.nearbyColleges,
                 nearby_markets: updatedProj.nearbyMarkets
             };
-            const { error } = await supabase.from('public_projects').update(dbPayload).eq('id', id);
-            if (error) console.warn("[DatabaseContext] Supabase update note:", error.message);
+            const { error } = await supabase.from('public_projects').upsert([dbPayload]);
+            if (error) console.warn("[DatabaseContext] Supabase upsert note:", error.message);
         } catch (err) {
             console.warn("[DatabaseContext] Supabase update error:", err.message);
         }
