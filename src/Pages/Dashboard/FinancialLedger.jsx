@@ -399,8 +399,8 @@ const FinancialLedger = () => {
                 
                 {/* ── Financial Ledger Overview (Center Column matching Figma) ── */}
                 <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm">
-                    <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#E2E8F0] gap-4">
-                        <h2 className="text-[#003178] font-bold text-[18px]">Financial Ledger Overview</h2>
+                    <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#E2E8F0] gap-4">
+                        <h2 className="text-[#003178] font-bold text-base sm:text-[18px]">Financial Ledger Overview</h2>
                         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
                             <button 
                                 onClick={exportStatementCSV}
@@ -417,22 +417,22 @@ const FinancialLedger = () => {
                         </div>
                     </div>
                     
-                    <div className="divide-y divide-[#E2E8F0] px-6 py-2">
-                        <div className="flex flex-wrap justify-between items-center py-4 gap-2">
-                            <span className="text-slate-600 font-medium">Total Property Valuation</span>
-                            <span className="text-slate-800 font-bold text-base whitespace-nowrap">৳ {financials.totalValuation}</span>
+                    <div className="divide-y divide-[#E2E8F0] px-4 sm:px-6 py-2">
+                        <div className="flex flex-wrap justify-between items-center py-3 sm:py-4 gap-2">
+                            <span className="text-xs sm:text-sm text-slate-600 font-medium">Total Property Valuation</span>
+                            <span className="text-slate-800 font-bold text-sm sm:text-base whitespace-nowrap">৳ {financials.totalValuation}</span>
                         </div>
-                        <div className="flex flex-wrap justify-between items-center py-4 gap-2">
-                            <span className="text-slate-600 font-medium">Total Amount Paid to Date</span>
-                            <span className="text-[#006E1C] font-bold text-base whitespace-nowrap">৳ {financials.totalPaid}</span>
+                        <div className="flex flex-wrap justify-between items-center py-3 sm:py-4 gap-2">
+                            <span className="text-xs sm:text-sm text-slate-600 font-medium">Total Amount Paid to Date</span>
+                            <span className="text-[#006E1C] font-bold text-sm sm:text-base whitespace-nowrap">৳ {financials.totalPaid}</span>
                         </div>
-                        <div className="flex flex-wrap justify-between items-center py-4 gap-2">
-                            <span className="text-slate-600 font-medium">Utility/Other Charges</span>
-                            <span className="text-slate-800 font-bold text-base whitespace-nowrap">৳ {financials.otherCharges}</span>
+                        <div className="flex flex-wrap justify-between items-center py-3 sm:py-4 gap-2">
+                            <span className="text-xs sm:text-sm text-slate-600 font-medium">Utility/Other Charges</span>
+                            <span className="text-slate-800 font-bold text-sm sm:text-base whitespace-nowrap">৳ {financials.otherCharges}</span>
                         </div>
-                        <div className="flex flex-wrap justify-between items-center p-4 bg-[#FDF2F2] rounded my-2 border border-red-100 gap-2">
-                            <span className="text-[#9B1C1C] font-bold">Current Due Balance</span>
-                            <span className="text-[#9B1C1C] font-bold text-lg whitespace-nowrap">৳ {financials.dueBalance}</span>
+                        <div className="flex flex-wrap justify-between items-center p-3 sm:p-4 bg-[#FDF2F2] rounded my-2 border border-red-100 gap-2">
+                            <span className="text-[#9B1C1C] font-bold text-xs sm:text-sm">Current Due Balance</span>
+                            <span className="text-[#9B1C1C] font-bold text-base sm:text-lg whitespace-nowrap">৳ {financials.dueBalance}</span>
                         </div>
                     </div>
                 </div>

@@ -524,30 +524,30 @@ const Overview = () => {
                         </button>
                     </div>
                     
-                    <div className="p-6 pt-2">
+                    <div className="p-4 sm:p-6 pt-2">
                         <div className="border-t border-[#E2E8F0]" />
                         
-                        <div className="py-4 flex justify-between items-center">
-                            <span className="text-slate-600 font-medium">Total Property Valuation</span>
-                            <span className="text-slate-800 font-bold text-[15px]">৳ {financials.totalValuation}</span>
+                        <div className="py-3 sm:py-4 flex flex-wrap gap-2 justify-between items-center">
+                            <span className="text-xs sm:text-sm text-slate-600 font-medium">Total Property Valuation</span>
+                            <span className="text-slate-800 font-bold text-sm sm:text-[15px] whitespace-nowrap">৳ {financials.totalValuation}</span>
                         </div>
                         <div className="border-t border-[#E2E8F0]" />
 
-                        <div className="py-4 flex justify-between items-center">
-                            <span className="text-slate-600 font-medium">Total Amount Paid to Date</span>
-                            <span className="text-[#006E1C] font-bold text-[15px]">৳ {financials.totalPaid}</span>
+                        <div className="py-3 sm:py-4 flex flex-wrap gap-2 justify-between items-center">
+                            <span className="text-xs sm:text-sm text-slate-600 font-medium">Total Amount Paid to Date</span>
+                            <span className="text-[#006E1C] font-bold text-sm sm:text-[15px] whitespace-nowrap">৳ {financials.totalPaid}</span>
                         </div>
                         <div className="border-t border-[#E2E8F0]" />
 
-                        <div className="py-4 flex justify-between items-center">
-                            <span className="text-slate-600 font-medium">Utility/Other Charges</span>
-                            <span className="text-slate-800 font-bold text-[15px]">৳ {financials.otherCharges}</span>
+                        <div className="py-3 sm:py-4 flex flex-wrap gap-2 justify-between items-center">
+                            <span className="text-xs sm:text-sm text-slate-600 font-medium">Utility/Other Charges</span>
+                            <span className="text-slate-800 font-bold text-sm sm:text-[15px] whitespace-nowrap">৳ {financials.otherCharges}</span>
                         </div>
                         
                         {/* Highlighted Row for Due Balance */}
-                        <div className="py-4 px-4 -mx-4 bg-[#FDF2F2] flex justify-between items-center border-y border-[#E2E8F0]">
-                            <span className="text-slate-800 font-medium">Current Due Balance</span>
-                            <span className="text-[#9B1C1C] font-bold text-[16px]">৳ {financials.dueBalance}</span>
+                        <div className="py-3 px-3 sm:py-4 sm:px-4 -mx-3 sm:-mx-4 bg-[#FDF2F2] flex flex-wrap gap-2 justify-between items-center border-y border-[#E2E8F0] mt-2">
+                            <span className="text-slate-800 font-medium text-xs sm:text-sm">Current Due Balance</span>
+                            <span className="text-[#9B1C1C] font-bold text-base sm:text-[16px] whitespace-nowrap">৳ {financials.dueBalance}</span>
                         </div>
                     </div>
                 </div>
