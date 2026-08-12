@@ -136,10 +136,12 @@ const AdminSiteProgress = () => {
 
             <div className="flex flex-col lg:flex-row gap-6">
                 {/* Timeline Column */}
-                <div className="flex-1 bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6">
+                <div className="flex-1 bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
                         <div>
-                            <h3 className="text-sm font-bold text-slate-800">Milestone Tracker</h3>
+                            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <Activity size={16} className="text-[#1A4B9C]"/> Milestone Tracker
+                            </h3>
                             <p className="text-xs text-slate-500">Edit milestones, progress percentages, and target completion dates</p>
                         </div>
                         <div className="px-3 py-1 bg-[#E1EFFE] text-[#1A4B9C] rounded-full text-[10px] font-bold uppercase tracking-wider flex-shrink-0 self-start sm:self-auto">

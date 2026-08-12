@@ -418,21 +418,21 @@ const FinancialLedger = () => {
                     </div>
                     
                     <div className="divide-y divide-[#E2E8F0] px-6 py-2">
-                        <div className="flex justify-between items-center py-4">
+                        <div className="flex flex-wrap justify-between items-center py-4 gap-2">
                             <span className="text-slate-600 font-medium">Total Property Valuation</span>
-                            <span className="text-slate-800 font-bold text-base">৳ {financials.totalValuation}</span>
+                            <span className="text-slate-800 font-bold text-base whitespace-nowrap">৳ {financials.totalValuation}</span>
                         </div>
-                        <div className="flex justify-between items-center py-4">
+                        <div className="flex flex-wrap justify-between items-center py-4 gap-2">
                             <span className="text-slate-600 font-medium">Total Amount Paid to Date</span>
-                            <span className="text-[#006E1C] font-bold text-base">৳ {financials.totalPaid}</span>
+                            <span className="text-[#006E1C] font-bold text-base whitespace-nowrap">৳ {financials.totalPaid}</span>
                         </div>
-                        <div className="flex justify-between items-center py-4">
+                        <div className="flex flex-wrap justify-between items-center py-4 gap-2">
                             <span className="text-slate-600 font-medium">Utility/Other Charges</span>
-                            <span className="text-slate-800 font-bold text-base">৳ {financials.otherCharges}</span>
+                            <span className="text-slate-800 font-bold text-base whitespace-nowrap">৳ {financials.otherCharges}</span>
                         </div>
-                        <div className="flex justify-between items-center p-4 bg-[#FDF2F2] rounded my-2 border border-red-100">
+                        <div className="flex flex-wrap justify-between items-center p-4 bg-[#FDF2F2] rounded my-2 border border-red-100 gap-2">
                             <span className="text-[#9B1C1C] font-bold">Current Due Balance</span>
-                            <span className="text-[#9B1C1C] font-bold text-lg">৳ {financials.dueBalance}</span>
+                            <span className="text-[#9B1C1C] font-bold text-lg whitespace-nowrap">৳ {financials.dueBalance}</span>
                         </div>
                     </div>
                 </div>

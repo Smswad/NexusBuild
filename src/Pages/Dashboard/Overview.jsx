@@ -430,38 +430,42 @@ const Overview = () => {
             <PrintView financials={financials} userProfile={userProfile} />
             <div className="flex flex-col lg:flex-row gap-6 items-start print:hidden">
             {/* ══ CENTER COLUMN (Flexible Main Content) ════════════════════════ */}
-            <div className="flex-1 flex flex-col gap-6">
+            <div className="flex-1 flex flex-col gap-6 min-w-0">
                 
                 {/* 1. Construction Progress Card */}
                 <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 pb-8">
                     <h2 className="text-[#003178] font-bold text-[18px] mb-10">{activeProject?.name || 'Project'} Construction Progress</h2>
                     
-                    <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
-                        <div className="relative mt-8 pb-4 min-w-[500px]">
-                            {(() => {
-                                const oPhases = activeProject?.phases || [
-                                    { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
-                                    { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 50 },
-                                    { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
-                                    { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 }
-                                ];
-                                const currentP = activeProject?.progressPhase || activeProject?.progress_phase || 1;
-                                
-                                return (
-                                    <>
-                                        {/* Connecting Lines */}
-                                        <div className="absolute top-4 left-[12.5%] right-[12.5%] h-1 bg-[#E2E8F0] z-0 rounded-full overflow-hidden">
-                                            <div className="h-full bg-[#006E1C] transition-all duration-500 ease-out" style={{ 
-                                                width: `${Math.min(100, (Math.max(0, (currentP - 1)) / (oPhases.length - 1 || 3)) * 100)}%` 
-                                            }} />
-                                        </div>
-                                        
-                                        <div className="flex justify-between items-start relative z-10">
-                                            {oPhases.map(step => {
-                                                const isCurrent = step.id === currentP;
-                                                const isCompleted = step.id < currentP;
-                                                return (
-                                                    <div key={step.id} className="flex flex-col items-center flex-1">
+                    <div className="relative mt-8 sm:mt-12 pb-4">
+                        {(() => {
+                            const oPhases = activeProject?.phases || [
+                                { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
+                                { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 50 },
+                                { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
+                                { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 }
+                            ];
+                            const currentP = activeProject?.progressPhase || activeProject?.progress_phase || 1;
+                            const progressPercentage = Math.min(100, (Math.max(0, (currentP - 1)) / (oPhases.length - 1 || 3)) * 100);
+                            
+                            return (
+                                <>
+                                    {/* Mobile Vertical Line */}
+                                    <div className="absolute left-[17px] top-[24px] bottom-[24px] w-1 bg-[#E2E8F0] z-0 rounded-full overflow-hidden sm:hidden">
+                                        <div className="w-full bg-[#006E1C] transition-all duration-500 ease-out" style={{ height: `${progressPercentage}%` }} />
+                                    </div>
+                                    
+                                    {/* Desktop Horizontal Line */}
+                                    <div className="absolute top-4 left-[12.5%] right-[12.5%] h-1 bg-[#E2E8F0] z-0 rounded-full overflow-hidden hidden sm:block">
+                                        <div className="h-full bg-[#006E1C] transition-all duration-500 ease-out" style={{ width: `${progressPercentage}%` }} />
+                                    </div>
+                                    
+                                    <div className="flex flex-col sm:flex-row justify-between items-start relative z-10 gap-8 sm:gap-0">
+                                        {oPhases.map(step => {
+                                            const isCurrent = step.id === currentP;
+                                            const isCompleted = step.id < currentP;
+                                            return (
+                                                <div key={step.id} className="flex flex-row sm:flex-col items-center sm:flex-1 gap-4 sm:gap-0 w-full sm:w-auto text-left sm:text-center">
+                                                    <div className="flex-shrink-0 flex justify-center w-9">
                                                         {isCompleted ? (
                                                             <div className="w-9 h-9 rounded-full bg-[#006E1C] border-2 border-[#006E1C] flex items-center justify-center text-white z-10 relative shadow-sm">
                                                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
@@ -477,7 +481,9 @@ const Overview = () => {
                                                                 {step.id}
                                                             </div>
                                                         )}
-                                                        <div className={`text-[11px] uppercase tracking-wider text-center mt-4 whitespace-pre-line ${
+                                                    </div>
+                                                    <div className="flex flex-col sm:items-center w-full">
+                                                        <div className={`text-[11px] uppercase tracking-wider sm:mt-4 whitespace-pre-line ${
                                                             isCurrent 
                                                                 ? 'font-bold text-[#003178]' 
                                                                 : isCompleted 
@@ -487,23 +493,25 @@ const Overview = () => {
                                                             {step.name}
                                                         </div>
                                                         {step.date && (
-                                                            <div className={`text-[10px] text-center mt-1 font-medium ${isCurrent ? 'text-[#003178] font-bold' : 'text-slate-400'}`}>
+                                                            <div className={`text-[10px] mt-0.5 sm:mt-1 font-medium ${isCurrent ? 'text-[#003178] font-bold' : 'text-slate-400'}`}>
                                                                 {step.date}
                                                             </div>
                                                         )}
                                                         {step.progress > 0 && step.progress < 100 && (
-                                                            <span className="mt-1 px-2 py-0.5 bg-[#E1EFFE] text-[#003178] font-extrabold text-[9px] rounded-full border border-blue-200">
-                                                                {step.progress}% COMPLETE
-                                                            </span>
+                                                            <div className="mt-1.5 sm:mt-2">
+                                                                <span className="px-2 py-0.5 bg-[#E1EFFE] text-[#003178] font-extrabold text-[9px] rounded-full border border-blue-200">
+                                                                    {step.progress}% COMPLETE
+                                                                </span>
+                                                            </div>
                                                         )}
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </>
-                                );
-                            })()}
-                        </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </div>
                 </div>
 
