@@ -28,6 +28,17 @@ const Gismap = () => {
     const [selectedProjectId, setSelectedProjectId] = useState(publicProjects[0]?.id || 'p1');
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Handle switching location area tab: automatically pick first project in that area!
+    const handleSelectLocation = (loc) => {
+        setSelectedLocation(loc);
+        const firstMatching = publicProjects.find(p => 
+            loc === 'ALL' || (p.location && p.location.toLowerCase().includes(loc.toLowerCase()))
+        );
+        if (firstMatching) {
+            setSelectedProjectId(firstMatching.id);
+        }
+    };
+
     // Filter projects based on location & search query
     const filteredProjects = useMemo(() => {
         return publicProjects.filter(p => {
@@ -40,24 +51,51 @@ const Gismap = () => {
         });
     }, [publicProjects, selectedLocation, searchQuery]);
 
-    // Active selected project object
+    // Active selected project object (guaranteed to match current location selection)
     const activeProject = useMemo(() => {
-        return publicProjects.find(p => p.id === selectedProjectId) || filteredProjects[0] || publicProjects[0] || {};
-    }, [publicProjects, selectedProjectId, filteredProjects]);
+        const directMatch = publicProjects.find(p => p.id === selectedProjectId);
+        if (directMatch) {
+            if (selectedLocation === 'ALL' || (directMatch.location && directMatch.location.toLowerCase().includes(selectedLocation.toLowerCase()))) {
+                return directMatch;
+            }
+        }
+        return filteredProjects[0] || publicProjects[0] || {};
+    }, [publicProjects, selectedProjectId, selectedLocation, filteredProjects]);
 
     // Helper to format google map embed link or coordinates
     const getMapEmbedUrl = (proj) => {
-        if (proj.mapLink && proj.mapLink.includes('http')) {
-            return proj.mapLink;
+        if (!proj) return 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed';
+
+        let link = proj.mapLink || proj.map_link || '';
+        if (link && link.includes('google.com/maps') && !link.includes('output=embed')) {
+            if (link.includes('?')) {
+                link += '&output=embed';
+            } else {
+                link += '?output=embed';
+            }
+            return link;
         }
-        if (proj.map_link && proj.map_link.includes('http')) {
-            return proj.map_link;
+        if (link && link.includes('http')) {
+            return link;
         }
-        // Fallback default coordinates (Dhanmondi / Narayanganj)
-        const q = proj.location?.toLowerCase().includes('dhanmondi') 
-            ? '23.7461,90.3742' 
-            : '23.6238,90.4993';
-        return `https://maps.google.com/maps?q=${q}&z=15&output=embed`;
+
+        // Fallback coordinates based on location text
+        const locLower = (proj.location || '').toLowerCase();
+        if (locLower.includes('dhanmondi')) {
+            return 'https://maps.google.com/maps?q=23.7461,90.3742&z=15&output=embed';
+        }
+        if (locLower.includes('narayanganj') || locLower.includes('shamabay') || locLower.includes('balur')) {
+            return 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed';
+        }
+        if (locLower.includes('gulshan')) {
+            return 'https://maps.google.com/maps?q=23.7925,90.4078&z=15&output=embed';
+        }
+        if (locLower.includes('uttara')) {
+            return 'https://maps.google.com/maps?q=23.8759,90.3795&z=15&output=embed';
+        }
+
+        const query = encodeURIComponent(proj.location || proj.name || 'Bangladesh');
+        return `https://maps.google.com/maps?q=${query}&z=14&output=embed`;
     };
 
     // Helper to parse comma-separated amenity lists
@@ -128,7 +166,7 @@ const Gismap = () => {
                             {/* Location Pills */}
                             <div className="flex flex-wrap gap-1.5">
                                 <button
-                                    onClick={() => setSelectedLocation('ALL')}
+                                    onClick={() => handleSelectLocation('ALL')}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                         selectedLocation === 'ALL' 
                                             ? 'bg-[#1A4B9C] text-white shadow-sm' 
@@ -141,7 +179,7 @@ const Gismap = () => {
                                 {uniqueLocations.map(loc => (
                                     <button
                                         key={loc}
-                                        onClick={() => setSelectedLocation(loc)}
+                                        onClick={() => handleSelectLocation(loc)}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                                             selectedLocation === loc 
                                                 ? 'bg-[#1A4B9C] text-white shadow-sm' 
@@ -257,6 +295,7 @@ const Gismap = () => {
                         {/* Interactive Embedded Map Viewport */}
                         <div className="flex-1 bg-slate-100 relative">
                             <iframe
+                                key={activeProject.id || getMapEmbedUrl(activeProject)}
                                 title={`GIS Map for ${activeProject.name}`}
                                 src={getMapEmbedUrl(activeProject)}
                                 className="w-full h-full border-0"
@@ -278,7 +317,7 @@ const Gismap = () => {
                     </div>
                 </div>
 
-                {/* LOWER SECTION: Nearby Amenities (Within 2 km Radius) */}
+                {/* LOWER SECTION: Nearby Amenities */}
                 <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm p-6 space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
                         <div>
