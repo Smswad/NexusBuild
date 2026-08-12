@@ -848,7 +848,7 @@ export const DatabaseProvider = ({ children }) => {
         };
         await updateSystemSettings(updatedSettings);
 
-        // Standard save (upsert) to public_projects (gracefully ignores if columns aren't in schema yet)
+        // Standard save (upsert) to public_projects (safely excludes non-existent columns)
         try {
             const dbPayload = {
                 id: id,
@@ -861,11 +861,7 @@ export const DatabaseProvider = ({ children }) => {
                 description: updatedProj.description,
                 price: updatedProj.price,
                 area: updatedProj.area,
-                map_link: updatedProj.mapLink || updatedProj.map_link,
-                nearby_hospitals: updatedProj.nearbyHospitals,
-                nearby_schools: updatedProj.nearbySchools,
-                nearby_colleges: updatedProj.nearbyColleges,
-                nearby_markets: updatedProj.nearbyMarkets
+                map_link: updatedProj.mapLink || updatedProj.map_link
             };
             const { error } = await supabase.from('public_projects').upsert([dbPayload]);
             if (error) console.warn("[DatabaseContext] Supabase upsert note:", error.message);
