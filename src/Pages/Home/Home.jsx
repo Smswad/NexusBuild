@@ -207,7 +207,7 @@ const Home = () => {
 
                             <Link
                                 to="/gismap"
-                                className="flex items-center justify-center gap-2.5 px-8 py-4 border border-[#c4c6ce]/40 text-white hover:bg-white/10 text-[14px] font-bold transition-colors duration-200 min-h-[48px] rounded-[4px]"
+                                className="flex items-center justify-center gap-2.5 px-8 py-4 border border-[#fe762a] text-white hover:bg-[#fe762a]/10 text-[14px] font-bold transition-all duration-200 min-h-[48px] rounded-[4px]"
                             >
                                 <Globe size={16} className="text-[#fe762a]" />
                                 Interactive GIS Map
