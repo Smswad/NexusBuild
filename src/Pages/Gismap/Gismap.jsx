@@ -53,7 +53,12 @@ const Gismap = () => {
             return raw;
         }
 
-        // 3. If it contains @latitude,longitude e.g. https://www.google.com/maps/place/Sardar+Tower/@23.6238,90.4993,17z
+        // 3. Prioritize Location / Address text if available!
+        if (proj.location && proj.location.trim()) {
+            return `https://maps.google.com/maps?q=${encodeURIComponent(proj.location.trim())}&z=15&output=embed`;
+        }
+
+        // 4. Fallback parsing if coordinates or search params are embedded in the link
         if (raw.includes('@')) {
             const coordsMatch = raw.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
             if (coordsMatch) {
@@ -61,44 +66,12 @@ const Gismap = () => {
             }
         }
 
-        // 4. If it contains coordinate pair like 23.6238, 90.4993 or q=23.6238,90.4993
         const pairMatch = raw.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
         if (pairMatch) {
             return `https://maps.google.com/maps?q=${pairMatch[1]},${pairMatch[2]}&z=16&output=embed`;
         }
 
-        // 5. If it's a google maps place link like https://www.google.com/maps/place/Dhanmondi+32+Dhaka
-        if (raw.includes('google.com/maps/place/')) {
-            try {
-                const placePart = raw.split('google.com/maps/place/')[1].split('/')[0].split('?')[0];
-                if (placePart) {
-                    const decoded = decodeURIComponent(placePart).replace(/\+/g, ' ');
-                    return `https://maps.google.com/maps?q=${encodeURIComponent(decoded)}&z=16&output=embed`;
-                }
-            } catch(e) {}
-        }
-
-        // 6. If it's a shortened share link (e.g. maps.app.goo.gl or goo.gl/maps)
-        if (raw.includes('maps.app.goo.gl') || raw.includes('goo.gl')) {
-            if (proj.coordinates && proj.coordinates.lat && proj.coordinates.lng) {
-                return `https://maps.google.com/maps?q=${proj.coordinates.lat},${proj.coordinates.lng}&z=16&output=embed`;
-            }
-            const queryLoc = proj.location || proj.name || 'Narayanganj, Bangladesh';
-            return `https://maps.google.com/maps?q=${encodeURIComponent(queryLoc)}&z=15&output=embed`;
-        }
-
-        // 7. If it's a search URL or HTTP link with query
-        if (raw.startsWith('http://') || raw.startsWith('https://')) {
-            try {
-                const urlObj = new URL(raw);
-                const qParam = urlObj.searchParams.get('q') || urlObj.searchParams.get('query');
-                if (qParam) {
-                    return `https://maps.google.com/maps?q=${encodeURIComponent(qParam)}&z=15&output=embed`;
-                }
-            } catch(e) {}
-        }
-
-        // 8. Fallback search Google Maps with project name & location
+        // 5. Fallback search Google Maps with project name & location
         const query = encodeURIComponent(`${proj.name || ''} ${proj.location || ''}`.trim() || 'Narayanganj, Bangladesh');
         return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
     };
