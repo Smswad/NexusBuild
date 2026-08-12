@@ -13,12 +13,13 @@ const Gismap = () => {
 
     // Extract unique location names for sidebar filtering (e.g., Dhanmondi, Narayanganj)
     const uniqueLocations = useMemo(() => {
-        const locs = new Set();
+        const locs = new Set(['Dhanmondi', 'Narayanganj']);
         publicProjects.forEach(p => {
             if (p.location) {
-                // Split multi-word locations like "Dhanmondi, Dhaka" into primary city/area
                 const primaryLoc = p.location.split(',')[0].trim();
-                locs.add(primaryLoc);
+                if (primaryLoc) {
+                    locs.add(primaryLoc.charAt(0).toUpperCase() + primaryLoc.slice(1));
+                }
             }
         });
         return Array.from(locs);
@@ -39,16 +40,9 @@ const Gismap = () => {
         }
     };
 
-    // Handle project card click: select project and switch location tab to match it!
+    // Handle project card click: select project but keep list visible (no auto-filtering list)
     const handleSelectProject = (proj) => {
         setSelectedProjectId(proj.id);
-        if (proj.location) {
-            const primaryLoc = proj.location.split(',')[0].trim();
-            const matchingArea = uniqueLocations.find(l => l.toLowerCase() === primaryLoc.toLowerCase());
-            if (matchingArea) {
-                setSelectedLocation(matchingArea);
-            }
-        }
     };
 
     // Filter projects based on location & search query
