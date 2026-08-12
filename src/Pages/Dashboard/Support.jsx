@@ -7,6 +7,24 @@ const Support = () => {
     const { loading, support, submitTicket } = useClientData();
     const { exec, faqs, tickets } = support;
 
+    // ── All hooks must be declared before any early returns ──
+    const db = useDatabase();
+    const [openFaq, setOpenFaq] = useState(0);
+    const [inquiryType, setInquiryType] = useState('General Question');
+    const [subject, setSubject] = useState('');
+    const [expandedTicketId, setExpandedTicketId] = useState(null);
+    const [replyText, setReplyText] = useState('');
+
+    const handleTicketSubmit = async (e) => {
+        e.preventDefault();
+        if (!subject.trim()) {
+            alert('Please enter a subject for your ticket.');
+            return;
+        }
+        await submitTicket(inquiryType, subject, '');
+        setSubject('');
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col gap-6 max-w-5xl animate-pulse">
@@ -21,21 +39,6 @@ const Support = () => {
             </div>
         );
     }
-    const db = useDatabase();
-    const [openFaq, setOpenFaq] = useState(0);
-    const [inquiryType, setInquiryType] = useState('General Question');
-    const [subject, setSubject] = useState('');
-    const [expandedTicketId, setExpandedTicketId] = useState(null);
-    const [replyText, setReplyText] = useState('');
-    const handleTicketSubmit = async (e) => {
-        e.preventDefault();
-        if (!subject.trim()) {
-            alert('Please enter a subject for your ticket.');
-            return;
-        }
-        await submitTicket(inquiryType, subject, '');
-        setSubject('');
-    };
 
     return (
         <div className="w-full flex flex-col lg:flex-row gap-6 items-start">

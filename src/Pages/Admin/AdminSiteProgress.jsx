@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
-import { Camera, Image as ImageIcon, Send, Clock, CheckCircle, Circle, Edit3, Plus, X, Save } from 'lucide-react';
+import { Camera, Image as ImageIcon, Send, Clock, CheckCircle, Circle, Edit3, Plus, X, Save, Activity } from 'lucide-react';
 
 const AdminSiteProgress = () => {
     const { 
