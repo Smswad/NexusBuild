@@ -137,30 +137,30 @@ const AdminSiteProgress = () => {
             <div className="flex flex-col lg:flex-row gap-6">
                 {/* Timeline Column */}
                 <div className="flex-1 bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
                         <div>
                             <h3 className="text-sm font-bold text-slate-800">Milestone Tracker</h3>
                             <p className="text-xs text-slate-500">Edit milestones, progress percentages, and target completion dates</p>
                         </div>
-                        <div className="px-3 py-1 bg-[#E1EFFE] text-[#1A4B9C] rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        <div className="px-3 py-1 bg-[#E1EFFE] text-[#1A4B9C] rounded-full text-[10px] font-bold uppercase tracking-wider flex-shrink-0 self-start sm:self-auto">
                             {currentPhase > phases.length ? 'All Phases Complete' : `Phase ${currentPhase} Active`}
                         </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 mb-8 p-3 bg-slate-50 border border-[#E2E8F0] rounded-xl">
-                        <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mr-1">Set Active Site Phase:</span>
+                        <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider w-full sm:w-auto mr-1">Set Active Site Phase:</span>
                         {phases.map(p => (
                             <button
                                 key={p.id}
                                 type="button"
                                 onClick={() => handlePhaseChange(p.id)}
-                                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex-1 sm:flex-none text-center ${
                                     currentPhase === p.id 
                                         ? 'bg-[#1A4B9C] text-white shadow-sm' 
                                         : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
                                 }`}
                             >
-                                Phase {p.id}: {p.name.split('\n')[0]}
+                                P{p.id}: {p.name.split(' ').slice(0, 2).join(' ')}
                             </button>
                         ))}
                     </div>
@@ -174,7 +174,7 @@ const AdminSiteProgress = () => {
                                     <div className={`absolute -left-[37px] top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center bg-white ${isCompleted ? 'border-emerald-500 text-emerald-500' : isActive ? 'border-[#1A4B9C] text-[#1A4B9C]' : 'border-slate-300 text-slate-300'}`}>
                                         {isCompleted ? <CheckCircle size={14} /> : <Circle size={10} fill="currentColor" />}
                                     </div>
-                                    <div className="flex justify-between items-start mb-3">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className={`text-sm font-bold ${isActive ? 'text-[#1A4B9C]' : 'text-slate-800'}`}>{phase.name}</span>
@@ -188,7 +188,7 @@ const AdminSiteProgress = () => {
                                             </div>
                                             <div className="text-[10px] text-slate-500 font-medium mt-0.5">{phase.date}</div>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-shrink-0">
                                             {isActive && !isCompleted && (
                                                 <button onClick={() => handlePhaseChange(phase.id + 1)} className="text-[10px] bg-[#1A4B9C] text-white px-3 py-1 rounded font-bold uppercase tracking-wider hover:bg-[#153B7C] transition-colors cursor-pointer">
                                                     Mark Complete
