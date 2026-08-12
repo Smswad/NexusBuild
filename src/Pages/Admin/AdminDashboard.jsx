@@ -348,8 +348,6 @@ const AdminDashboard = () => {
                                         <th className="px-6 py-3 text-right">Revenue Billed</th>
                                         <th className="px-6 py-3 text-right">Revenue Collected</th>
                                         <th className="px-6 py-3 text-right">Net Due</th>
-                                        <th className="px-6 py-3 text-center">Collection Rate</th>
-                                        <th className="px-6 py-3 text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#E2E8F0] text-xs">
@@ -360,7 +358,6 @@ const AdminDashboard = () => {
                                         const projRevenue = projTxs.reduce((sum, tx) => sum + parseInt(String(tx.amount).replace(/,/g, '') || 0), 0);
                                         const projDue = projProps.reduce((sum, p) => sum + parseInt(String(p.dueBalance).replace(/,/g, '') || 0), 0);
                                         const projValuation = projRevenue + projDue;
-                                        const rate = projValuation > 0 ? Math.round((projRevenue / projValuation) * 100) : 0;
                                         
                                         return (
                                             <tr key={proj.id} className="hover:bg-slate-50 transition-colors">
@@ -373,22 +370,6 @@ const AdminDashboard = () => {
                                                 <td className="px-6 py-3 text-right font-bold text-slate-800">৳ {formatBDT(projValuation)}</td>
                                                 <td className="px-6 py-3 text-right font-bold text-emerald-600">৳ {formatBDT(projRevenue)}</td>
                                                 <td className="px-6 py-3 text-right font-bold text-red-600">৳ {formatBDT(projDue)}</td>
-                                                <td className="px-6 py-3 text-center">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <div className="w-16 bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                                            <div className="bg-[#1A4B9C] h-full" style={{ width: `${rate}%` }}></div>
-                                                        </div>
-                                                        <span className="font-bold text-[11px] text-slate-700">{rate}%</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-3 text-center">
-                                                    <button 
-                                                        onClick={() => setActiveProject(proj.id)}
-                                                        className="px-3 py-1 bg-[#1A4B9C] text-white rounded text-[11px] font-bold hover:bg-[#153B7C] transition-colors cursor-pointer"
-                                                    >
-                                                        View Scope
-                                                    </button>
-                                                </td>
                                             </tr>
                                         );
                                     })}

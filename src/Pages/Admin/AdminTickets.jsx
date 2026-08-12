@@ -1,16 +1,36 @@
 import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
-import { Search, Filter, CheckCircle2, MessageSquare, Clock, User } from 'lucide-react';
+import { Search, Filter, CheckCircle2, MessageSquare, Clock, CornerDownRight, Send, X } from 'lucide-react';
 
 const AdminTickets = () => {
-    const { tickets, clients, resolveTicket } = useAdminData();
+    const { tickets, clients, resolveTicket, replyToTicket } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
 
+    // Reply form state
+    const [replyingTicketId, setReplyingTicketId] = useState(null);
+    const [replyText, setReplyText] = useState('');
+
+    const handleOpenReply = (ticket) => {
+        setReplyingTicketId(ticket.id);
+        setReplyText(ticket.adminReply || '');
+    };
+
+    const handleSendReply = async (ticketId, resolve = true) => {
+        if (!replyText.trim()) {
+            alert('Please enter a reply message before sending.');
+            return;
+        }
+        await replyToTicket(ticketId, replyText.trim(), resolve);
+        setReplyingTicketId(null);
+        setReplyText('');
+        alert(`Reply sent to client successfully! ${resolve ? 'Ticket marked as Resolved.' : ''}`);
+    };
+
     const filteredTickets = tickets.filter(ticket => {
-        const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                              ticket.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              ticket.message.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (ticket.subject && ticket.subject.toLowerCase().includes(searchTerm.toLowerCase())) || 
+                              (ticket.id && ticket.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                              (ticket.message && ticket.message.toLowerCase().includes(searchTerm.toLowerCase()));
         
         const matchesStatus = statusFilter === 'All' || ticket.status === statusFilter;
         return matchesSearch && matchesStatus;
@@ -31,16 +51,17 @@ const AdminTickets = () => {
                 <div>
                     <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">Support Portal</div>
                     <h1 className="text-2xl font-bold text-slate-800">Client Support Tickets</h1>
-                    <p className="text-slate-500 text-sm mt-1">Review, follow up, and resolve incoming support requests from clients.</p>
+                    <p className="text-slate-500 text-sm mt-1">Review, reply back, and resolve incoming support requests from clients.</p>
                 </div>
             </div>
 
             {/* Filter Controls */}
             <div className="bg-white border border-[#E2E8F0] p-4 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex gap-2 w-full sm:w-auto">
-                    {['All', 'Pending', 'Resolved'].map(status => (
+                    {['All', 'Pending', 'In Review', 'Resolved'].map(status => (
                         <button
                             key={status}
+                            type="button"
                             onClick={() => setStatusFilter(status)}
                             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                 statusFilter === status
@@ -68,6 +89,8 @@ const AdminTickets = () => {
             <div className="space-y-4">
                 {filteredTickets.map(ticket => {
                     const client = clients.find(c => c.id === ticket.clientId);
+                    const isReplying = replyingTicketId === ticket.id;
+
                     return (
                         <div key={ticket.id} className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-4">
@@ -84,10 +107,78 @@ const AdminTickets = () => {
                                 </span>
                             </div>
                             
-                            <p className="text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm whitespace-pre-wrap leading-relaxed mb-4">
-                                {ticket.message}
-                            </p>
+                            {/* Client Message */}
+                            <div className="mb-4">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Client Message:</div>
+                                <p className="text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm whitespace-pre-wrap leading-relaxed">
+                                    {ticket.message || 'No description provided.'}
+                                </p>
+                            </div>
 
+                            {/* Existing Admin Reply */}
+                            {ticket.adminReply && !isReplying && (
+                                <div className="mb-4 bg-[#E1EFFE]/60 border border-[#1A4B9C]/20 rounded-lg p-4 text-xs text-slate-800">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="flex items-center gap-1.5 text-[#1A4B9C] font-bold">
+                                            <MessageSquare size={13} /> Official Admin Reply:
+                                        </span>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => handleOpenReply(ticket)}
+                                            className="text-[10px] text-[#1A4B9C] font-bold hover:underline cursor-pointer"
+                                        >
+                                            Edit Reply
+                                        </button>
+                                    </div>
+                                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm">{ticket.adminReply}</p>
+                                </div>
+                            )}
+
+                            {/* Inline Reply Form */}
+                            {isReplying && (
+                                <div className="mb-4 p-4 border border-[#1A4B9C]/30 bg-blue-50/50 rounded-xl space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs font-bold text-[#1A4B9C] uppercase tracking-wider flex items-center gap-1.5">
+                                            <CornerDownRight size={14} /> Reply to {client?.name || 'Client'}
+                                        </span>
+                                        <button type="button" onClick={() => setReplyingTicketId(null)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                    <textarea 
+                                        rows="3" 
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        placeholder={`Type your official response to ${client?.name || 'the client'}...`}
+                                        className="w-full border border-[#E2E8F0] rounded-lg p-3 text-sm text-slate-800 bg-white focus:outline-none focus:border-[#1A4B9C]"
+                                    />
+                                    <div className="flex justify-end gap-2">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setReplyingTicketId(null)}
+                                            className="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold cursor-pointer"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => handleSendReply(ticket.id, false)}
+                                            className="px-3 py-1.5 text-xs text-[#1A4B9C] bg-blue-100 hover:bg-blue-200 rounded-lg font-bold cursor-pointer"
+                                        >
+                                            Send Reply (In Review)
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => handleSendReply(ticket.id, true)}
+                                            className="px-4 py-1.5 text-xs text-white bg-[#1A4B9C] hover:bg-[#153B7C] rounded-lg font-bold cursor-pointer flex items-center gap-1.5 shadow-sm"
+                                        >
+                                            <Send size={12} /> Send Reply & Resolve
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Card Footer */}
                             <div className="flex justify-between items-center border-t border-[#E2E8F0] pt-4 mt-4">
                                 <div className="flex items-center gap-2 text-slate-600">
                                     <div className="w-8 h-8 rounded-full bg-[#E1EFFE] text-[#1A4B9C] flex items-center justify-center font-bold text-xs">
@@ -99,17 +190,30 @@ const AdminTickets = () => {
                                     </div>
                                 </div>
 
-                                {ticket.status !== 'Resolved' && (
-                                    <button 
-                                        onClick={async () => {
-                                            await resolveTicket(ticket.id);
-                                            alert(`Ticket ${ticket.id} marked as resolved!`);
-                                        }}
-                                        className="px-4 py-2 bg-[#006E1C] hover:bg-[#005215] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2 shadow-sm cursor-pointer"
-                                    >
-                                        <CheckCircle2 size={14} /> Mark as Resolved
-                                    </button>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {!isReplying && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => handleOpenReply(ticket)}
+                                            className="px-3.5 py-1.5 bg-[#1A4B9C] hover:bg-[#153B7C] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                        >
+                                            <CornerDownRight size={14} /> Reply Back
+                                        </button>
+                                    )}
+
+                                    {ticket.status !== 'Resolved' && (
+                                        <button 
+                                            type="button"
+                                            onClick={async () => {
+                                                await resolveTicket(ticket.id);
+                                                alert(`Ticket ${ticket.id} marked as resolved!`);
+                                            }}
+                                            className="px-3.5 py-1.5 bg-[#006E1C] hover:bg-[#005215] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                        >
+                                            <CheckCircle2 size={14} /> Mark as Resolved
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     );

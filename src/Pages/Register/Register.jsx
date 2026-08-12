@@ -48,7 +48,7 @@ const inputCls = `
 
 const Register = () => {
     const navigate = useNavigate();
-    const { addLead } = useDatabase();
+    const { addApplication } = useDatabase();
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -57,13 +57,13 @@ const Register = () => {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-
+ 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
         setLoading(true);
-
+ 
         try {
             // 1. Register user in Supabase Auth
             const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -76,20 +76,23 @@ const Register = () => {
                     }
                 }
             });
-
+ 
             if (authError) throw authError;
-
+ 
             // Immediately sign out to prevent automatic login / dashboard access
             await supabase.auth.signOut();
-
-            // 2. Push to DB as a Lead
-            await addLead({
+ 
+            // 2. Push to DB as a pending onboarding application
+            await addApplication({
                 name: fullName,
-                email: email,
-                phone: phoneNumber,
-                interest: 'Not specified',
-                source: 'Website Registration',
-                status: 'New'
+                unit: JSON.stringify({
+                    email: email,
+                    phone: phoneNumber,
+                    unit: 'Not specified'
+                }),
+                stage: 'Verify Client',
+                status: 'Pending',
+                date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
             });
 
             setSuccess('Registration successful! Redirecting to login page...');

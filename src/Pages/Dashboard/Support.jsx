@@ -35,15 +35,6 @@ const Support = () => {
         setSubject('');
     };
 
-    const handleMessageSubmit = (e) => {
-        e.preventDefault();
-        const form = e.target;
-        const msg = form.elements.msg.value;
-        if (!msg.trim()) return;
-        submitTicket('Message', 'Direct Message to ' + exec.name, msg);
-        form.reset();
-    };
-
     return (
         <div className="flex gap-6 max-w-6xl items-start">
             
@@ -62,7 +53,7 @@ const Support = () => {
                         </div>
                     </div>
                     
-                    <div className="flex flex-col gap-3 mb-6">
+                    <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3 text-[#A0B2C6] text-sm">
                             <Mail size={16} /> {exec.email}
                         </div>
@@ -70,18 +61,6 @@ const Support = () => {
                             <Phone size={16} /> {exec.phone}
                         </div>
                     </div>
-
-                    <form className="relative" onSubmit={handleMessageSubmit}>
-                        <textarea 
-                            name="msg"
-                            rows="3" 
-                            className="w-full bg-white rounded-lg p-3 pr-12 text-sm text-slate-800 placeholder-slate-400 focus:outline-none resize-none"
-                            placeholder={`Message ${exec.name.split(' ')[0]} regarding your account...`}
-                        />
-                        <button type="submit" className="absolute right-2 bottom-2 w-8 h-8 bg-[#003178] text-white rounded-md flex items-center justify-center hover:bg-[#0A2550] transition-colors shadow-sm">
-                            <Send size={14} />
-                        </button>
-                    </form>
                 </div>
 
                 {/* Submit Formal Inquiry Form */}
@@ -150,6 +129,14 @@ const Support = () => {
                                         <td className="py-4 px-6">
                                             <div className="text-sm font-bold text-slate-800">{t.subject}</div>
                                             <div className="text-xs text-slate-500 mt-1">{t.date}</div>
+                                            {(t.adminReply || t.admin_reply) && (
+                                                <div className="mt-2.5 bg-[#E1EFFE]/70 border border-[#003178]/20 rounded-lg p-3 text-xs text-[#003178]">
+                                                    <div className="font-bold text-[11px] flex items-center gap-1.5 mb-1 text-[#003178]">
+                                                        <MessageSquare size={13} /> Official Support Response:
+                                                    </div>
+                                                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">{t.adminReply || t.admin_reply}</p>
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="py-4 px-6 text-right">
                                             <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${

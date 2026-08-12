@@ -3,11 +3,21 @@ import { Search, Filter, Download, UserCheck, ChevronRight } from 'lucide-react'
 import { useAdminData } from '../../Context/AdminDataContext';
 
 const AdminOnboarding = () => {
-    const { applications, advanceApplicationStage, approveAllApplications, onboardClient } = useAdminData();
+    const { 
+        applications, 
+        projects, 
+        advanceApplicationStage, 
+        approveAllApplications, 
+        onboardClient, 
+        rejectApplication 
+    } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [showSchedulerModal, setShowSchedulerModal] = useState(false);
+    const [showVerifyModal, setShowVerifyModal] = useState(false);
     const [selectedAppId, setSelectedAppId] = useState(null);
+    const [selectedProjectId, setSelectedProjectId] = useState('p1');
+    const [selectedUnitName, setSelectedUnitName] = useState('Not specified');
     const [numInstallments, setNumInstallments] = useState(12);
     const [freq, setFreq] = useState('Monthly');
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -18,6 +28,8 @@ const AdminOnboarding = () => {
         const matchesStatus = statusFilter === 'All' || app.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
+
+    const selectedApp = applications.find(a => a.id === selectedAppId);
 
     const getStatusStyle = (status) => {
         switch(status) {
@@ -134,7 +146,19 @@ const AdminOnboarding = () => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-3">
-                                    {app.stage !== 'Completed' ? (
+                                    {app.stage === 'Verify Client' ? (
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedAppId(app.id);
+                                                setSelectedProjectId(projects[0]?.id || 'p1');
+                                                setSelectedUnitName('Not specified');
+                                                setShowVerifyModal(true);
+                                            }} 
+                                            className="flex items-center gap-1 text-[#1A4B9C] font-bold text-xs hover:underline bg-blue-50 border border-blue-200 px-2 py-1 rounded cursor-pointer"
+                                        >
+                                            Verify <ChevronRight size={12} />
+                                        </button>
+                                    ) : app.stage !== 'Completed' ? (
                                         <button onClick={() => advanceApplicationStage(app.id)} className="flex items-center gap-1 text-[#1A4B9C] font-bold text-xs hover:underline">
                                             Approve Stage <ChevronRight size={12} />
                                         </button>
@@ -233,6 +257,100 @@ const AdminOnboarding = () => {
                                          className="px-4 py-2 bg-[#1A4B9C] hover:bg-[#153B7C] text-white font-semibold rounded-md transition-colors cursor-pointer"
                                      >
                                          Confirm & Onboard
+                                     </button>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             )}
+
+             {/* Onboarding Verification Modal */}
+             {showVerifyModal && selectedApp && (
+                 <div className="fixed inset-0 bg-[#000f22]/50 flex items-center justify-center z-50 p-4">
+                     <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all text-slate-800">
+                         <div className="bg-[#1A4B9C] text-white p-6">
+                             <h3 className="text-xl font-bold">Verify Client Registration</h3>
+                             <p className="text-blue-100 text-sm mt-1 font-medium">
+                                 Review client details and assign a project to approve their registration.
+                             </p>
+                         </div>
+                         <div className="p-6 flex flex-col gap-4">
+                             {/* Client Info Card */}
+                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-2 text-xs">
+                                 <div>
+                                     <span className="font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Full Name</span>
+                                     <span className="text-sm font-semibold text-slate-800">{selectedApp.name}</span>
+                                 </div>
+                                 <div>
+                                     <span className="font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Email Address</span>
+                                     <span className="text-sm font-semibold text-slate-800">{selectedApp.email || 'N/A'}</span>
+                                 </div>
+                                 <div>
+                                     <span className="font-bold text-slate-500 uppercase tracking-wider block mb-0.5">Phone Number</span>
+                                     <span className="text-sm font-semibold text-slate-800">{selectedApp.phone || 'N/A'}</span>
+                                 </div>
+                             </div>
+
+                             {/* Project Selector */}
+                             <div>
+                                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Assign Project</label>
+                                 <select 
+                                     value={selectedProjectId} 
+                                     onChange={(e) => setSelectedProjectId(e.target.value)}
+                                     className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#1A4B9C] text-sm"
+                                 >
+                                     {projects.map(p => (
+                                         <option key={p.id} value={p.id}>{p.name}</option>
+                                     ))}
+                                 </select>
+                             </div>
+
+                             {/* Unit Name Input */}
+                             <div>
+                                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Unit Name / Number</label>
+                                 <input 
+                                     type="text"
+                                     value={selectedUnitName}
+                                     onChange={(e) => setSelectedUnitName(e.target.value)}
+                                     placeholder="e.g. 5A"
+                                     className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#1A4B9C] text-sm"
+                                 />
+                             </div>
+
+                             {/* Modal Actions */}
+                             <div className="flex gap-3 mt-4 justify-between">
+                                 <button 
+                                     type="button" 
+                                     onClick={async () => {
+                                         if (window.confirm(`Are you sure you want to REJECT and delete registration for ${selectedApp.name}?`)) {
+                                             await rejectApplication(selectedApp.id);
+                                             setShowVerifyModal(false);
+                                             alert('Registration rejected.');
+                                         }
+                                     }}
+                                     className="px-4 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-md font-semibold text-sm transition-colors cursor-pointer"
+                                 >
+                                     Reject Registration
+                                 </button>
+                                 <div className="flex gap-2">
+                                     <button 
+                                         type="button" 
+                                         onClick={() => setShowVerifyModal(false)}
+                                         className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 text-sm font-semibold cursor-pointer"
+                                     >
+                                         Cancel
+                                     </button>
+                                     <button 
+                                         type="button"
+                                         onClick={async () => {
+                                             await onboardClient(selectedApp.id, selectedProjectId, null, selectedUnitName);
+                                             setShowVerifyModal(false);
+                                             alert('Client verified and onboarded successfully! Set financial details in Client Management Hub.');
+                                         }}
+                                         className="px-4 py-2 bg-[#1A4B9C] hover:bg-[#153B7C] text-white font-semibold rounded-md transition-colors text-sm cursor-pointer"
+                                     >
+                                         Accept
                                      </button>
                                  </div>
                              </div>

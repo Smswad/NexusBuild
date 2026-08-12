@@ -204,61 +204,55 @@ const Overview = () => {
                     <div className="relative mt-8">
                         {/* Connecting Lines */}
                         <div className="absolute top-4 left-[12.5%] right-[12.5%] h-1 bg-[#E2E8F0] z-0 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#006E1C] w-[66.66%]" />
+                            <div className="h-full bg-[#006E1C] transition-all duration-500 ease-out" style={{ 
+                                width: `${(Math.max(0, ((activeProject?.progressPhase && activeProject.progressPhase <= 4 ? activeProject.progressPhase : 3) - 1)) / 3) * 100}%` 
+                            }} />
                         </div>
                         
                         <div className="flex justify-between items-start relative z-10">
-                            {/* Step 1 */}
-                            <div className="flex flex-col items-center flex-1">
-                                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#006E1C] flex items-center justify-center text-[#006E1C] z-10 relative">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                </div>
-                                <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider text-center mt-4">Piling &<br/>Foundation</div>
-                            </div>
-                            
-                            {/* Step 2 */}
-                            <div className="flex flex-col items-center flex-1">
-                                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#006E1C] flex items-center justify-center text-[#006E1C] z-10 relative">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                </div>
-                                <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider text-center mt-4">Structural<br/>Casting</div>
-                            </div>
-
-                            {/* Step 3 (Active) */}
-                            <div className="flex flex-col items-center flex-1">
-                                {activeProject.progressPhase >= 3 ? (
-                                    <div className="w-9 h-9 rounded-full bg-white border-2 border-[#006E1C] flex items-center justify-center text-[#006E1C] z-10 relative">
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                            {[
+                                { id: 1, name: 'Piling &\nFoundation' },
+                                { id: 2, name: 'Structural\nCasting' },
+                                { id: 3, name: 'Finishing' },
+                                { id: 4, name: 'Handover' },
+                            ].map(step => {
+                                const oPhases = activeProject?.phases || [];
+                                const oIncomplete = oPhases.find(p => p.progress < 100);
+                                const oRaw = activeProject?.progressPhase || activeProject?.progress_phase;
+                                const currentP = oRaw && oRaw <= 4 
+                                    ? oRaw 
+                                    : (oIncomplete ? oIncomplete.id : (oPhases.length || 3));
+                                const isCompleted = currentP > step.id;
+                                const isCurrent = currentP === step.id;
+                                return (
+                                    <div key={step.id} className="flex flex-col items-center flex-1">
+                                        {isCompleted ? (
+                                            <div className="w-9 h-9 rounded-full bg-[#006E1C] border-2 border-[#006E1C] flex items-center justify-center text-white z-10 relative shadow-sm">
+                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                        ) : isCurrent ? (
+                                            <div className="w-9 h-9 rounded-full bg-white border-4 border-[#003178] flex items-center justify-center z-10 relative shadow-md">
+                                                <div className="w-3.5 h-3.5 rounded-full bg-[#003178] animate-pulse" />
+                                            </div>
+                                        ) : (
+                                            <div className="w-9 h-9 rounded-full bg-white border-2 border-[#CBD5E1] flex items-center justify-center text-slate-400 font-bold text-xs z-10 relative">
+                                                {step.id}
+                                            </div>
+                                        )}
+                                        <div className={`text-[11px] uppercase tracking-wider text-center mt-4 whitespace-pre-line ${
+                                            isCurrent 
+                                                ? 'font-bold text-[#003178]' 
+                                                : isCompleted 
+                                                ? 'font-semibold text-[#006E1C]' 
+                                                : 'font-medium text-slate-400'
+                                        }`}>
+                                            {step.name}
+                                        </div>
                                     </div>
-                                ) : activeProject.progressPhase === 2 ? (
-                                    <div className="w-9 h-9 rounded-full bg-white border-4 border-[#E1EFFE] flex items-center justify-center z-10 relative">
-                                        <div className="w-3 h-3 rounded-full bg-[#003178]" />
-                                    </div>
-                                ) : (
-                                    <div className="w-9 h-9 rounded-full bg-white border-2 border-[#E5E7EB] flex items-center justify-center text-slate-400 z-10 relative">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                    </div>
-                                )}
-                                <div className={`text-[11px] uppercase tracking-wider text-center mt-4 ${activeProject.progressPhase === 3 ? 'font-bold text-[#003178]' : activeProject.progressPhase > 3 ? 'font-medium text-slate-500' : 'font-medium text-slate-400'}`}>Finishing</div>
-                            </div>
-
-                            {/* Step 4 (Locked) */}
-                            <div className="flex flex-col items-center flex-1">
-                                {activeProject.progressPhase >= 4 ? (
-                                    <div className="w-9 h-9 rounded-full bg-white border-2 border-[#006E1C] flex items-center justify-center text-[#006E1C] z-10 relative">
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                    </div>
-                                ) : activeProject.progressPhase === 3 ? (
-                                    <div className="w-9 h-9 rounded-full bg-white border-4 border-[#E1EFFE] flex items-center justify-center z-10 relative">
-                                        <div className="w-3 h-3 rounded-full bg-[#003178]" />
-                                    </div>
-                                ) : (
-                                    <div className="w-9 h-9 rounded-full bg-white border-2 border-[#E5E7EB] flex items-center justify-center text-slate-400 z-10 relative">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                    </div>
-                                )}
-                                <div className={`text-[11px] uppercase tracking-wider text-center mt-4 ${activeProject.progressPhase === 4 ? 'font-bold text-[#003178]' : 'font-medium text-slate-400'}`}>Handover</div>
-                            </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -363,26 +357,33 @@ const Overview = () => {
             <div className="w-[360px] flex-shrink-0 flex flex-col gap-6">
                 
                 {/* 1. Property Hero Card */}
-                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden flex flex-col">
+                <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden flex flex-col">
                     {/* Image Area with Gradient */}
-                    <div className="h-48 relative overflow-hidden flex items-end p-5">
-                        <img src={heroImg} alt="Sardar Tower" className="absolute inset-0 w-full h-full object-cover z-0" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#003178] to-transparent opacity-80 z-10" />
-                        <div className="relative z-20">
-                            <h3 className="text-white font-bold text-[18px]">{userProfile.propertyName}</h3>
-                            <p className="text-blue-100 text-sm mt-1">{userProfile.propertyLoc}</p>
+                    <div className="h-52 relative overflow-hidden flex items-end p-5">
+                        <img 
+                            src={userProfile.projectImage || heroImg} 
+                            alt={userProfile.propertyName} 
+                            className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-500 hover:scale-105" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#003178] via-[#003178]/60 to-transparent opacity-90 z-10" />
+                        <div className="relative z-20 space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-200 bg-blue-900/60 px-2 py-0.5 rounded">
+                                {userProfile.projectName}
+                            </span>
+                            <h3 className="text-white font-extrabold text-[18px] leading-snug">{userProfile.propertyName}</h3>
+                            <p className="text-blue-100 text-xs font-medium">{userProfile.propertyLoc}</p>
                         </div>
                     </div>
                     {/* Info Pills */}
                     <div className="p-5 flex gap-4 text-sm bg-white border-b border-[#E2E8F0]">
-                        <div className="flex flex-col gap-1">
-                            <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Area</span>
-                            <span className="text-slate-800 font-bold">{userProfile.area}</span>
+                        <div className="flex flex-col gap-1 flex-1">
+                            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Area</span>
+                            <span className="text-slate-800 font-extrabold text-sm">{userProfile.area}</span>
                         </div>
                         <div className="w-[1px] bg-[#E2E8F0]"></div>
-                        <div className="flex flex-col gap-1">
-                            <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Handover</span>
-                            <span className="text-slate-800 font-bold">{userProfile.handoverDate}</span>
+                        <div className="flex flex-col gap-1 flex-1">
+                            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Target Handover</span>
+                            <span className="text-slate-800 font-extrabold text-sm">{userProfile.handoverDate}</span>
                         </div>
                     </div>
                 </div>

@@ -139,11 +139,10 @@ CREATE TABLE public.public_projects (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- Insert public projects mock data
+-- Insert public projects data (matching Admin Panel valid projects)
 INSERT INTO public.public_projects (id, name, status, status_bg, location, type, image, description, price, area) VALUES
-    ('1', 'Reliance Zenith Towers', 'AVAILABLE', '#a14000', 'Narayanganj', 'Residential', '/Frontend/Projects/Reliance_Zenith_Towers.svg', 'A masterpiece of urban living featuring panoramic river views, sky lounges, and smart-home integration across 32 premium floors.', 'Starting from ৳1.25Cr', '1,200 - 2,500 sqft'),
-    ('2', 'Nexus Business Hub', 'SOLD OUT', '#000f22', 'BB Road', 'Commercial', '/Frontend/Projects/Nexus_Business_Hub.svg', 'Premium commercial units designed for headquarters, featuring column-free open floors, fibre-optic connectivity, and a rooftop conference suite.', 'Contact for Pricing', '3,000 - 10,000 sqft'),
-    ('3', 'The Heritage Plaza', 'READY TO MOVE', '#0a3d2e', 'Shamabay', 'Mixed Use', '/Frontend/Projects/The_Heritage_Plaza.svg', 'Exquisite residency located in the heart of Narayanganj''s commercial district, blending heritage-inspired facades with modern interiors.', 'Starting from ৳95Lac', '900 - 1,800 sqft')
+    ('p1', 'Sardar Tower – Block A', 'AVAILABLE', '#a14000', 'Narayanganj', 'Mixed Use', '/Frontend/Projects/Reliance_Zenith_Towers.svg', 'A flagship mixed-use high-rise featuring luxury apartments, modern commercial office suites, and state-of-the-art structural foundation.', 'Starting from ৳1.50Cr', '1,400 - 2,800 sqft'),
+    ('p2', 'Green Valley Residency', 'READY TO MOVE', '#0a3d2e', 'BB Road, Narayanganj', 'Residential', '/Frontend/Projects/The_Heritage_Plaza.svg', 'Eco-friendly luxury residential gated community featuring lush green balconies, solar power integration, and riverfront peaceful surroundings.', 'Starting from ৳1.10Cr', '1,200 - 2,200 sqft')
 ON CONFLICT (id) DO NOTHING;
 
 ALTER TABLE public.public_projects DISABLE ROW LEVEL SECURITY;

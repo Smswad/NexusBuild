@@ -40,7 +40,11 @@ export const AdminDataProvider = ({ children }) => {
             siteUpdates: filteredSiteUpdates,
             tickets: filteredTickets
         };
-    }, [db, activeProject]);
+    }, [
+        db.clients, db.leads, db.applications, db.projects, db.properties,
+        db.installments, db.transactions, db.siteUpdates, db.tickets,
+        db.projectPhotos, db.publicProjects, db.loading, activeProject
+    ]);
 
     return (
         <AdminDataContext.Provider value={value}>

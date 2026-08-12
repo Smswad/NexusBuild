@@ -189,6 +189,13 @@ const AdminLeads = () => {
                                 </td>
                             </tr>
                         ))}
+                        {filteredLeads.length === 0 && (
+                            <tr>
+                                <td colSpan="6" className="px-6 py-12 text-center text-slate-400 text-sm font-medium">
+                                    No active leads. Click "Add Lead" above to create new entries.
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

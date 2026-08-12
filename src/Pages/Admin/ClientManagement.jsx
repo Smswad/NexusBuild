@@ -6,7 +6,7 @@ const ClientManagement = () => {
     const { 
         clients, properties, installments, transactions, tickets, leads,
         addClient, updateClient, updateProperty, 
-        addInstallment, updateInstallment, addTransaction, resolveTicket,
+        addInstallment, updateInstallment, deleteInstallment, addTransaction, resolveTicket,
         deleteClient, activeProject
     } = useAdminData();
     
@@ -26,16 +26,33 @@ const ClientManagement = () => {
     const [editForm, setEditForm] = useState({
         name: '', email: '', phone: '', status: 'Active',
         propertyId: null,
-        unitName: '', area: '', handoverDate: '', totalValuation: '', totalPaid: '', dueBalance: '', location: ''
+        unitName: '', area: '', handoverDate: '', totalValuation: '', totalPaid: '', otherCharges: '', dueBalance: '', location: ''
     });
 
     // Sub-forms state
     const [newInstallment, setNewInstallment] = useState({ installment: '', dueDate: '', amount: '' });
     const [newTransaction, setNewTransaction] = useState({ type: '', date: '', amount: '' });
 
+    // Mode Selector & Auto Generator State for Installments
+    const [installmentMode, setInstallmentMode] = useState('auto'); // 'auto' | 'manual'
+    const [autoConfig, setAutoConfig] = useState({
+        totalAmount: '',
+        numInstallments: 12,
+        freq: 'Monthly',
+        startDate: new Date().toISOString().split('T')[0]
+    });
+
     const formatBDT = (amount) => {
         if (!amount) return '0';
         return new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(parseInt(amount.toString().replace(/,/g, '')));
+    };
+
+    const calculateNetDue = (val, paid, other) => {
+        const v = parseInt(String(val || 0).replace(/,/g, '')) || 0;
+        const p = parseInt(String(paid || 0).replace(/,/g, '')) || 0;
+        const o = parseInt(String(other || 0).replace(/,/g, '')) || 0;
+        const due = Math.max(0, v + o - p);
+        return due.toLocaleString('en-IN');
     };
 
     const handleAddClient = (e) => {
@@ -57,12 +74,63 @@ const ClientManagement = () => {
             unitName: prop ? prop.unitName : '',
             area: prop ? prop.area : '',
             handoverDate: prop ? prop.handoverDate : '',
-            totalValuation: prop ? prop.totalValuation : '',
-            totalPaid: prop ? prop.totalPaid : '',
-            dueBalance: prop ? prop.dueBalance : '',
+            totalValuation: prop ? prop.totalValuation || '0' : '0',
+            totalPaid: prop ? prop.totalPaid || '0' : '0',
+            otherCharges: prop ? prop.otherCharges || '0' : '0',
+            dueBalance: prop ? prop.dueBalance || '0' : '0',
             location: prop ? prop.location : ''
         });
+        setAutoConfig({
+            totalAmount: prop ? prop.totalValuation || '0' : '0',
+            numInstallments: 12,
+            freq: 'Monthly',
+            startDate: new Date().toISOString().split('T')[0]
+        });
         setIsEditModalOpen(true);
+    };
+
+    const handleAutoGenerateInstallments = async (e) => {
+        e.preventDefault();
+        if (!editForm.propertyId) return;
+
+        const amountToUse = autoConfig.totalAmount || editForm.totalValuation;
+        const valuationNum = parseFloat(String(amountToUse).replace(/,/g, '')) || 0;
+
+        if (valuationNum <= 0) {
+            alert("Please set a Total Valuation or enter an amount to generate the auto schedule.");
+            return;
+        }
+
+        const num = parseInt(autoConfig.numInstallments) || 12;
+        const perAmount = Math.round(valuationNum / num);
+        const formattedAmount = perAmount.toLocaleString('en-IN');
+
+        let currentD = new Date(autoConfig.startDate || new Date());
+
+        for (let i = 1; i <= num; i++) {
+            const installmentName = `${i}${i === 1 ? 'st' : i === 2 ? 'nd' : i === 3 ? 'rd' : 'th'} Installment`;
+            const dateStr = currentD.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            await addInstallment({
+                propertyId: editForm.propertyId,
+                installment: installmentName,
+                dueDate: dateStr,
+                amount: formattedAmount,
+                status: 'Pending',
+                statusPill: 'bg-amber-100 text-amber-700',
+                active: i === 1
+            });
+
+            if (autoConfig.freq === 'Monthly') {
+                currentD.setMonth(currentD.getMonth() + 1);
+            } else if (autoConfig.freq === 'Quarterly') {
+                currentD.setMonth(currentD.getMonth() + 3);
+            } else if (autoConfig.freq === 'Semi-Annually') {
+                currentD.setMonth(currentD.getMonth() + 6);
+            }
+        }
+
+        alert(`Successfully auto-generated ${num} installments! Total Scheduled: ৳ ${valuationNum.toLocaleString('en-IN')}`);
     };
 
     const handleSaveProfile = (e) => {
@@ -81,12 +149,12 @@ const ClientManagement = () => {
                 handoverDate: editForm.handoverDate,
                 totalValuation: editForm.totalValuation,
                 totalPaid: editForm.totalPaid,
+                otherCharges: editForm.otherCharges,
                 dueBalance: editForm.dueBalance,
                 location: editForm.location
             });
         }
-        // Don't close modal immediately, allow user to keep editing or switch tabs
-        alert("Profile & Property details saved successfully.");
+        alert("Profile & Property details saved successfully and synced with Client!");
     };
 
     const handleAddInstallment = (e) => {
@@ -179,55 +247,8 @@ const ClientManagement = () => {
                 </div>
             </div>
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-4 gap-4">
-                <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-[#E1EFFE] text-[#1A4B9C] flex items-center justify-center font-bold text-lg">M</div>
-                    <div>
-                        <div className="text-sm font-bold text-slate-800">M. Kabir</div>
-                        <div className="text-xs text-slate-500">Portfolio Collection</div>
-                        <div className="text-[10px] font-bold text-emerald-600 mt-1 uppercase">Achieved ৳ 1,20,00,000 | 75%</div>
-                    </div>
-                </div>
-                <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-[#DEF7EC] text-[#03543F] flex items-center justify-center font-bold text-lg">S</div>
-                    <div>
-                        <div className="text-sm font-bold text-slate-800">S. Rahman</div>
-                        <div className="text-xs text-slate-500">Portfolio Collection</div>
-                        <div className="text-[10px] font-bold text-emerald-600 mt-1 uppercase">Achieved ৳ 50,00,000 | 45%</div>
-                    </div>
-                </div>
-                <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
-                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Active Clients</div>
-                    <div className="text-2xl font-extrabold text-[#1A4B9C] mt-1">{clients.length} <span className="text-xs font-bold text-emerald-600 ml-1">↑ +{leads.length} LEADS</span></div>
-                </div>
-                <div className="bg-[#1A4B9C] p-4 rounded-xl border border-[#153B7C] shadow-sm text-white">
-                    <div className="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Total Outstanding Due</div>
-                    <div className="text-2xl font-extrabold mt-1">৳ {formatBDT(totalDue)}</div>
-                    <div className="text-[10px] text-blue-200 mt-1 uppercase">Across all active projects</div>
-                </div>
-            </div>
-
             {/* Directory Table */}
             <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm overflow-hidden mb-10">
-                <div className="px-6 py-4 border-b border-[#E2E8F0] flex justify-between items-center bg-slate-50">
-                    <h3 className="text-sm font-bold text-slate-800">Directory Entries</h3>
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input 
-                                type="text" 
-                                placeholder="Search by Client or Unit..."
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-1.5 border border-[#E2E8F0] rounded-lg text-xs w-64 outline-none focus:border-[#1A4B9C]"
-                            />
-                        </div>
-                        <button onClick={exportToCSV} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 font-bold shadow-sm transition-colors text-xs">
-                            <Download size={12} /> Export
-                        </button>
-                    </div>
-                </div>
 
                 <table className="w-full text-left border-collapse">
                     <thead>
@@ -348,26 +369,34 @@ const ClientManagement = () => {
                             {/* Sidebar Tabs */}
                             <div className="w-64 bg-slate-50 border-r border-[#E2E8F0] flex flex-col p-4 gap-2 flex-shrink-0">
                                 <button 
+                                    type="button"
+                                    onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => setActiveTab('profile')}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'profile' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'profile' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     <User size={18} /> Profile & Property
                                 </button>
                                 <button 
+                                    type="button"
+                                    onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => setActiveTab('installments')}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'installments' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'installments' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     <CreditCard size={18} /> Installment Schedule
                                 </button>
                                 <button 
+                                    type="button"
+                                    onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => setActiveTab('transactions')}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'transactions' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'transactions' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     <Wallet size={18} /> Transactions Log
                                 </button>
                                 <button 
+                                    type="button"
+                                    onMouseDown={(e) => e.preventDefault()}
                                     onClick={() => setActiveTab('tickets')}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors ${activeTab === 'tickets' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-colors cursor-pointer ${activeTab === 'tickets' ? 'bg-[#1A4B9C] text-white' : 'text-slate-600 hover:bg-slate-200'}`}
                                 >
                                     <MessageSquare size={18} /> Support Tickets
                                 </button>
@@ -427,15 +456,39 @@ const ClientManagement = () => {
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Valuation (৳)</label>
-                                                        <input type="text" value={editForm.totalValuation} onChange={e => setEditForm({...editForm, totalValuation: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                                        <input type="text" value={editForm.totalValuation} onChange={e => {
+                                                            const newVal = e.target.value;
+                                                            const calculatedDue = calculateNetDue(newVal, editForm.totalPaid, editForm.otherCharges);
+                                                            setEditForm({...editForm, totalValuation: newVal, dueBalance: calculatedDue});
+                                                        }} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
                                                     </div>
                                                     <div>
                                                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Paid (৳)</label>
-                                                        <input type="text" value={editForm.totalPaid} onChange={e => setEditForm({...editForm, totalPaid: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                                        <input type="text" value={editForm.totalPaid} onChange={e => {
+                                                            const newPaid = e.target.value;
+                                                            const calculatedDue = calculateNetDue(editForm.totalValuation, newPaid, editForm.otherCharges);
+                                                            setEditForm({...editForm, totalPaid: newPaid, dueBalance: calculatedDue});
+                                                        }} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Due Balance (৳)</label>
-                                                        <input type="text" value={editForm.dueBalance} onChange={e => setEditForm({...editForm, dueBalance: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Utility / Other Charges (৳)</label>
+                                                        <input type="text" value={editForm.otherCharges} onChange={e => {
+                                                            const newOther = e.target.value;
+                                                            const calculatedDue = calculateNetDue(editForm.totalValuation, editForm.totalPaid, newOther);
+                                                            setEditForm({...editForm, otherCharges: newOther, dueBalance: calculatedDue});
+                                                        }} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Due Balance (৳)</label>
+                                                            <button type="button" onClick={() => {
+                                                                const calculatedDue = calculateNetDue(editForm.totalValuation, editForm.totalPaid, editForm.otherCharges);
+                                                                setEditForm({...editForm, dueBalance: calculatedDue});
+                                                            }} className="text-[10px] font-bold text-[#1A4B9C] hover:underline cursor-pointer">
+                                                                Auto-Calculate
+                                                            </button>
+                                                        </div>
+                                                        <input type="text" value={editForm.dueBalance} onChange={e => setEditForm({...editForm, dueBalance: e.target.value})} className="w-full border border-red-200 bg-red-50/30 rounded-lg px-3 py-2 text-sm font-bold text-red-700 focus:outline-none focus:border-[#1A4B9C]" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -466,34 +519,155 @@ const ClientManagement = () => {
 
                                 {/* ── TAB 2: INSTALLMENTS ── */}
                                 {activeTab === 'installments' && (
-                                    <div className="space-y-8">
-                                        <h2 className="text-xl font-bold text-slate-800">Installment Schedule</h2>
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center border-b border-[#E2E8F0] pb-4">
+                                            <div>
+                                                <h2 className="text-xl font-bold text-slate-800">Installment Schedule & Tracking</h2>
+                                                <p className="text-xs text-slate-500 mt-0.5">Select Auto or Manual mode to configure installment plan for client.</p>
+                                            </div>
+                                                 {/* Mode Selector Toggle */}
+                                            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-[#E2E8F0]">
+                                                <button
+                                                    type="button"
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    onClick={() => setInstallmentMode('auto')}
+                                                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${installmentMode === 'auto' ? 'bg-[#1A4B9C] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                                                >
+                                                    Auto Mode
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    onClick={() => setInstallmentMode('manual')}
+                                                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${installmentMode === 'manual' ? 'bg-[#1A4B9C] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                                                >
+                                                    Manual Mode
+                                                </button>
+                                            </div>
+                                        </div>
                                         
                                         {!editForm.propertyId ? (
                                             <p className="text-slate-500">No property assigned to this client.</p>
                                         ) : (
                                             <>
-                                                <div className="bg-slate-50 p-4 rounded-xl border border-[#E2E8F0]">
-                                                    <h3 className="font-bold text-sm text-slate-800 mb-3">Add New Installment</h3>
-                                                    <form onSubmit={handleAddInstallment} className="flex gap-4 items-end">
-                                                        <div className="flex-1">
-                                                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Installment Name</label>
-                                                            <input type="text" placeholder="e.g. Installment 06" required value={newInstallment.installment} onChange={e => setNewInstallment({...newInstallment, installment: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm" />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
-                                                            <input type="text" placeholder="e.g. 10 May 2024" required value={newInstallment.dueDate} onChange={e => setNewInstallment({...newInstallment, dueDate: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm" />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Amount (৳)</label>
-                                                            <input type="text" placeholder="e.g. 25,00,000" required value={newInstallment.amount} onChange={e => setNewInstallment({...newInstallment, amount: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm" />
-                                                        </div>
-                                                        <button type="submit" className="px-4 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold flex-shrink-0">
-                                                            Add Installment
-                                                        </button>
-                                                    </form>
+                                                {/* Summary KPI Bar */}
+                                                <div className="grid grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-[#E2E8F0]">
+                                                    <div className="bg-white p-3 rounded-lg border border-[#E2E8F0] text-center">
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase block">Total Installments</span>
+                                                        <span className="text-lg font-extrabold text-slate-800 mt-1 block">{clientInstallments.length}</span>
+                                                    </div>
+                                                    <div className="bg-white p-3 rounded-lg border border-[#E2E8F0] text-center">
+                                                        <span className="text-[10px] font-bold text-emerald-600 uppercase block">Paid Installments</span>
+                                                        <span className="text-lg font-extrabold text-emerald-600 mt-1 block">{clientInstallments.filter(i => i.status === 'Paid').length}</span>
+                                                    </div>
+                                                    <div className="bg-white p-3 rounded-lg border border-[#E2E8F0] text-center">
+                                                        <span className="text-[10px] font-bold text-amber-600 uppercase block">Pending / Due</span>
+                                                        <span className="text-lg font-extrabold text-amber-600 mt-1 block">{clientInstallments.filter(i => i.status !== 'Paid').length}</span>
+                                                    </div>
+                                                    <div className="bg-white p-3 rounded-lg border border-[#E2E8F0] text-center">
+                                                        <span className="text-[10px] font-bold text-[#1A4B9C] uppercase block">Total Scheduled</span>
+                                                        <span className="text-lg font-extrabold text-[#1A4B9C] mt-1 block">
+                                                            ৳ {formatBDT(clientInstallments.reduce((sum, i) => sum + (parseInt(String(i.amount).replace(/,/g, '')) || 0), 0))}
+                                                        </span>
+                                                    </div>
                                                 </div>
 
+                                                {/* Mode 1: Auto Schedule Generator */}
+                                                {installmentMode === 'auto' && (
+                                                    <div className="bg-blue-50/60 p-5 rounded-xl border border-blue-200 space-y-4">
+                                                        <div className="flex justify-between items-center">
+                                                            <div>
+                                                                <h3 className="font-bold text-sm text-[#1A4B9C]">Auto Schedule Generator</h3>
+                                                                <p className="text-xs text-slate-500 mt-0.5">Automated per-installment calculation & date scheduling based on total valuation.</p>
+                                                            </div>
+                                                            <span className="text-[10px] font-bold text-[#1A4B9C] bg-blue-100 px-2 py-0.5 rounded uppercase">
+                                                                Auto Mode
+                                                            </span>
+                                                        </div>
+                                                        <form onSubmit={handleAutoGenerateInstallments} className="grid grid-cols-4 gap-4 items-end">
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Total Valuation to Split (৳)</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    placeholder="e.g. 50,00,000" 
+                                                                    value={autoConfig.totalAmount} 
+                                                                    onChange={e => setAutoConfig({...autoConfig, totalAmount: e.target.value})} 
+                                                                    className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#1A4B9C]" 
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Installments Count</label>
+                                                                <select 
+                                                                    value={autoConfig.numInstallments} 
+                                                                    onChange={e => setAutoConfig({...autoConfig, numInstallments: parseInt(e.target.value)})} 
+                                                                    className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#1A4B9C]"
+                                                                >
+                                                                    <option value={6}>6 Installments</option>
+                                                                    <option value={12}>12 Installments (1 Yr)</option>
+                                                                    <option value={18}>18 Installments</option>
+                                                                    <option value={24}>24 Installments (2 Yrs)</option>
+                                                                    <option value={36}>36 Installments (3 Yrs)</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Payment Frequency</label>
+                                                                <select 
+                                                                    value={autoConfig.freq} 
+                                                                    onChange={e => setAutoConfig({...autoConfig, freq: e.target.value})} 
+                                                                    className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#1A4B9C]"
+                                                                >
+                                                                    <option value="Monthly">Monthly</option>
+                                                                    <option value="Quarterly">Quarterly</option>
+                                                                    <option value="Semi-Annually">Semi-Annually</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">First Due Date</label>
+                                                                <input 
+                                                                    type="date" 
+                                                                    value={autoConfig.startDate} 
+                                                                    onChange={e => setAutoConfig({...autoConfig, startDate: e.target.value})} 
+                                                                    className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#1A4B9C]"
+                                                                    required 
+                                                                />
+                                                            </div>
+                                                            <div className="col-span-4 flex justify-end">
+                                                                <button 
+                                                                    type="submit" 
+                                                                    className="px-5 py-2.5 bg-[#1A4B9C] hover:bg-[#153B7C] text-white rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                                                                >
+                                                                    Generate Auto Schedule Now
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                )}
+
+                                                {/* Mode 2: Manual Installment Entry Form */}
+                                                {installmentMode === 'manual' && (
+                                                    <div className="bg-slate-50 p-4 rounded-xl border border-[#E2E8F0]">
+                                                        <h3 className="font-bold text-sm text-slate-800 mb-3">Add Manual Installment</h3>
+                                                        <form onSubmit={handleAddInstallment} className="flex gap-4 items-end">
+                                                            <div className="flex-1">
+                                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Installment Name</label>
+                                                                <input type="text" placeholder="e.g. 1st Installment" required value={newInstallment.installment} onChange={e => setNewInstallment({...newInstallment, installment: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white" />
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
+                                                                <input type="text" placeholder="e.g. 10 May 2026" required value={newInstallment.dueDate} onChange={e => setNewInstallment({...newInstallment, dueDate: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white" />
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Amount (৳)</label>
+                                                                <input type="text" placeholder="e.g. 2,50,000" required value={newInstallment.amount} onChange={e => setNewInstallment({...newInstallment, amount: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white" />
+                                                            </div>
+                                                            <button type="submit" className="px-4 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold flex-shrink-0 hover:bg-[#153B7C] cursor-pointer">
+                                                                Add Installment
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                )}
+
+                                                {/* Installments Table with Deletion & Status Toggle */}
                                                 <table className="w-full text-left border-collapse border border-[#E2E8F0] rounded-lg overflow-hidden">
                                                     <thead>
                                                         <tr className="bg-slate-100 border-b border-[#E2E8F0] text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -501,7 +675,7 @@ const ClientManagement = () => {
                                                             <th className="px-4 py-3">Due Date</th>
                                                             <th className="px-4 py-3 text-right">Amount (৳)</th>
                                                             <th className="px-4 py-3 text-center">Status</th>
-                                                            <th className="px-4 py-3 text-center">Action</th>
+                                                            <th className="px-4 py-3 text-center">Actions</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-[#E2E8F0]">
@@ -509,24 +683,35 @@ const ClientManagement = () => {
                                                             <tr key={inst.id} className="hover:bg-slate-50">
                                                                 <td className="px-4 py-3 text-sm font-bold text-slate-800">{inst.installment}</td>
                                                                 <td className="px-4 py-3 text-sm text-slate-600">{inst.dueDate}</td>
-                                                                <td className="px-4 py-3 text-sm font-bold text-right text-slate-800">{inst.amount}</td>
+                                                                <td className="px-4 py-3 text-sm font-bold text-right text-slate-800">৳ {inst.amount}</td>
                                                                 <td className="px-4 py-3 text-center">
-                                                                    <span className={`inline-block text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${inst.statusPill}`}>
+                                                                    <span className={`inline-block text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${inst.statusPill}`}>
                                                                         {inst.status}
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-center">
-                                                                    {inst.status !== 'Paid' && (
-                                                                        <button onClick={() => handleMarkInstallmentPaid(inst.id)} className="text-[#006E1C] font-bold text-[10px] uppercase hover:underline flex items-center justify-center gap-1 mx-auto">
-                                                                            <CheckCircle size={12} /> Mark Paid
+                                                                    <div className="flex items-center justify-center gap-3">
+                                                                        {inst.status !== 'Paid' ? (
+                                                                            <button onClick={() => handleMarkInstallmentPaid(inst.id)} className="text-[#006E1C] font-bold text-[10px] uppercase hover:underline flex items-center gap-1 cursor-pointer">
+                                                                                <CheckCircle size={12} /> Mark Paid
+                                                                            </button>
+                                                                        ) : (
+                                                                            <button onClick={() => updateInstallment(inst.id, { status: 'Pending', statusPill: 'bg-amber-100 text-amber-700' })} className="text-amber-700 font-bold text-[10px] uppercase hover:underline cursor-pointer">
+                                                                                Set Pending
+                                                                            </button>
+                                                                        )}
+                                                                        <button onClick={() => deleteInstallment(inst.id)} className="text-red-600 font-bold text-[10px] uppercase hover:underline cursor-pointer">
+                                                                            Delete
                                                                         </button>
-                                                                    )}
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         ))}
                                                         {clientInstallments.length === 0 && (
                                                             <tr>
-                                                                <td colSpan="5" className="p-4 text-center text-sm text-slate-500">No installments recorded.</td>
+                                                                <td colSpan="5" className="p-6 text-center text-sm text-slate-500">
+                                                                    No installments recorded for this client. Enter installment details above.
+                                                                </td>
                                                             </tr>
                                                         )}
                                                     </tbody>

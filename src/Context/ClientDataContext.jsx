@@ -16,15 +16,23 @@ export const ClientDataProvider = ({ children }) => {
     
     // Derived state from global database
     const activeProperty = db.properties.find(p => p.clientId === activeClientId);
-    const activeProject = db.projects.find(p => p.id === activeProperty?.projectId);
+    const activeProject = db.projects.find(p => p.id === activeProperty?.projectId) || db.projects[0];
 
     const userProfile = {
         name: activeClient?.name || user?.email?.split('@')[0] || 'Client',
-        propertyDesc: activeProperty ? (activeProperty.unitName + ' - ' + activeProject?.name) : 'No property assigned',
-        propertyName: activeProperty?.unitName || '-',
-        propertyLoc: activeProperty?.location || '-',
-        area: activeProperty?.area || '-',
-        handoverDate: activeProperty?.handoverDate
+        email: activeClient?.email || user?.email || '',
+        phone: activeClient?.phone || '',
+        propertyDesc: (activeProperty?.unitName && activeProperty.unitName !== 'Not specified')
+            ? `${activeProperty.unitName} - ${activeProject?.name || 'Sardar Tower – Block A'}`
+            : (activeProject?.name || 'Sardar Tower – Block A'),
+        propertyName: (activeProperty?.unitName && activeProperty.unitName !== 'Not specified')
+            ? activeProperty.unitName
+            : (activeProject?.name || 'Sardar Tower – Block A'),
+        propertyLoc: activeProperty?.location || activeProject?.location || 'Plot 12-15, Sardar Tower Corridor, Narayanganj',
+        area: activeProperty?.area || activeProject?.area || '1,850 sq. ft',
+        handoverDate: activeProperty?.handoverDate || activeProperty?.handover_date || activeProject?.handoverDate || 'Dec 2026',
+        projectImage: activeProject?.image || activeProperty?.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg',
+        projectName: activeProject?.name || 'Sardar Tower – Block A'
     };
 
     const financials = {
@@ -37,12 +45,15 @@ export const ClientDataProvider = ({ children }) => {
         transactions: db.transactions.filter(t => t.propertyId === activeProperty?.id)
     };
 
-    // Client sees only projects they have properties in
+    // Client sees only projects they have properties in (or all projects as fallback)
     const clientProjectIds = [...new Set(db.properties.filter(p => p.clientId === activeClientId).map(p => p.projectId))];
-    const projects = db.projects.filter(p => clientProjectIds.includes(p.id));
+    const projects = db.projects.length > 0 ? (clientProjectIds.length > 0 ? db.projects.filter(p => clientProjectIds.includes(p.id)) : db.projects) : [];
 
-    // Client sees updates only for their projects
-    const siteUpdates = db.siteUpdates.filter(u => clientProjectIds.includes(u.projectId));
+    // Client sees updates for their assigned projects (or all updates if fallback)
+    const siteUpdates = db.siteUpdates ? db.siteUpdates.filter(u => {
+        const pId = u.projectId || u.project_id;
+        return clientProjectIds.length === 0 || clientProjectIds.includes(pId);
+    }) : [];
 
     const support = {
         exec: {

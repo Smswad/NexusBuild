@@ -3,10 +3,55 @@ import { useAdminData } from '../../Context/AdminDataContext';
 import { Camera, Image as ImageIcon, Send, Clock, CheckCircle, Circle, Edit3, Plus, X, Save } from 'lucide-react';
 
 const AdminSiteProgress = () => {
-    const { projects, activeProject, updateProjectPhase, updateProjectMilestones, addSiteUpdate } = useAdminData();
+    const { 
+        projects, activeProject, updateProjectPhase, updateProjectMilestones, addSiteUpdate,
+        projectPhotos = [], addProjectPhoto, deleteProjectPhoto 
+    } = useAdminData();
 
     // Find matching project. If activeProject is 'all', default to the first project in the list.
     const selectedProject = projects.find(p => p.id === activeProject) || projects[0];
+
+    const fileInputRef = React.useRef(null);
+    const [isDragging, setIsDragging] = useState(false);
+
+    const currentPhotos = projectPhotos.filter(p => p.projectId === (selectedProject?.id || 'p1'));
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFilesUpload(e.dataTransfer.files);
+        }
+    };
+
+    const handleFilesUpload = (files) => {
+        if (!files || files.length === 0 || !selectedProject) return;
+        Array.from(files).forEach(file => {
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                addProjectPhoto(selectedProject.id, dataUrl, file.name);
+            };
+            reader.readAsDataURL(file);
+        });
+    };
 
     const [broadcastSubject, setBroadcastSubject] = useState('');
     const [broadcastMsg, setBroadcastMsg] = useState('');
@@ -32,8 +77,11 @@ const AdminSiteProgress = () => {
         { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 10 },
     ];
 
-    const phases = selectedProject.phases || defaultPhases;
-    const currentPhase = selectedProject ? selectedProject.progressPhase : 1;
+    const phases = selectedProject?.phases || defaultPhases;
+    const incompletePhase = phases.find(p => p.progress < 100);
+    const currentPhase = selectedProject?.progressPhase && selectedProject.progressPhase <= phases.length 
+        ? selectedProject.progressPhase 
+        : (incompletePhase ? incompletePhase.id : phases.length);
 
     const handlePhaseChange = async (phaseId) => {
         updateProjectPhase(selectedProject.id, phaseId);
@@ -96,19 +144,37 @@ const AdminSiteProgress = () => {
             <div className="flex gap-6">
                 {/* Timeline Column */}
                 <div className="flex-1 bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6">
-                    <div className="flex justify-between items-center mb-8">
+                    <div className="flex justify-between items-center mb-4">
                         <div>
                             <h3 className="text-sm font-bold text-slate-800">Milestone Tracker</h3>
                             <p className="text-xs text-slate-500">Edit milestones, progress percentages, and target completion dates</p>
                         </div>
                         <div className="px-3 py-1 bg-[#E1EFFE] text-[#1A4B9C] rounded-full text-[10px] font-bold uppercase tracking-wider">
-                            Phase {currentPhase} Active
+                            {currentPhase > phases.length ? 'All Phases Complete' : `Phase ${currentPhase} Active`}
                         </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 mb-8 p-3 bg-slate-50 border border-[#E2E8F0] rounded-xl">
+                        <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mr-1">Set Active Site Phase:</span>
+                        {phases.map(p => (
+                            <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => handlePhaseChange(p.id)}
+                                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    currentPhase === p.id 
+                                        ? 'bg-[#1A4B9C] text-white shadow-sm' 
+                                        : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
+                                }`}
+                            >
+                                Phase {p.id}: {p.name.split('\n')[0]}
+                            </button>
+                        ))}
                     </div>
 
                     <div className="relative pl-8 space-y-10 before:content-[''] before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E2E8F0]">
                         {phases.map((phase) => {
-                            const isCompleted = phase.progress >= 100 || phase.id < currentPhase;
+                            const isCompleted = phase.progress >= 100;
                             const isActive = phase.id === currentPhase;
                             return (
                                 <div key={phase.id} className="relative group">
@@ -322,26 +388,70 @@ const AdminSiteProgress = () => {
                                     required
                                 ></textarea>
                             </div>
-                            <div className="border-2 border-dashed border-[#E2E8F0] rounded-lg p-4 text-center cursor-pointer hover:bg-slate-50 transition-colors">
-                                <ImageIcon size={20} className="mx-auto text-slate-400 mb-2" />
-                                <div className="text-xs font-bold text-slate-700">Click to upload images</div>
-                                <div className="text-[10px] text-slate-500 mt-1">PNG, JPG up to 5MB</div>
+                            <div 
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                onClick={() => fileInputRef.current?.click()}
+                                className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all ${
+                                    isDragging ? 'border-[#1A4B9C] bg-blue-50/80 scale-[1.01]' : 'border-[#E2E8F0] hover:bg-slate-50'
+                                }`}
+                            >
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    onChange={(e) => handleFilesUpload(e.target.files)} 
+                                    accept="image/*" 
+                                    multiple 
+                                    className="hidden" 
+                                />
+                                <ImageIcon size={22} className={`mx-auto mb-1 ${isDragging ? 'text-[#1A4B9C]' : 'text-slate-400'}`} />
+                                <div className="text-xs font-bold text-slate-700">
+                                    {isDragging ? 'Drop project photos here...' : `Drag & drop photos for ${selectedProject.name}`}
+                                </div>
+                                <div className="text-[10px] text-slate-500 mt-0.5">Click to select files or drop here (Saved in Database)</div>
                             </div>
-                            <button type="submit" className="w-full flex items-center justify-center gap-2 bg-[#1A4B9C] text-white py-2 rounded-lg text-sm font-bold hover:bg-[#153B7C] transition-colors shadow-sm">
+                            <button type="submit" className="w-full flex items-center justify-center gap-2 bg-[#1A4B9C] text-white py-2 rounded-lg text-sm font-bold hover:bg-[#153B7C] transition-colors shadow-sm cursor-pointer">
                                 <Send size={14} /> Send Broadcast
                             </button>
                         </form>
                     </div>
 
-                    {/* Recent Photos */}
+                    {/* Recent Site Photos */}
                     <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6">
-                        <h3 className="text-sm font-bold text-slate-800 mb-4">Recent Site Photos</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="h-24 bg-slate-200 rounded border border-slate-300 flex items-center justify-center"><Camera className="text-slate-400" /></div>
-                            <div className="h-24 bg-slate-200 rounded border border-slate-300 flex items-center justify-center"><Camera className="text-slate-400" /></div>
-                            <div className="h-24 bg-slate-200 rounded border border-slate-300 flex items-center justify-center"><Camera className="text-slate-400" /></div>
-                            <div className="h-24 bg-slate-200 rounded border border-slate-300 flex items-center justify-center"><Camera className="text-slate-400" /></div>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm font-bold text-slate-800">Saved Site Photos ({currentPhotos.length})</h3>
+                            <span className="text-[9px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                Database Persisted
+                            </span>
                         </div>
+                        {currentPhotos.length > 0 ? (
+                            <div className="grid grid-cols-2 gap-2">
+                                {currentPhotos.map(photo => (
+                                    <div key={photo.id} className="h-24 rounded border border-slate-200 overflow-hidden relative group bg-slate-100">
+                                        <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-between text-white">
+                                            <div className="text-[9px] font-bold truncate">{photo.caption}</div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (window.confirm("Remove this site photo permanently from database?")) {
+                                                        deleteProjectPhoto(photo.id);
+                                                    }
+                                                }}
+                                                className="self-end px-2 py-0.5 bg-red-600 hover:bg-red-700 text-[9px] font-bold rounded cursor-pointer"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-4 text-center text-xs text-slate-400 border border-slate-200 rounded-lg italic">
+                                No site photos uploaded for {selectedProject.name} yet. Drag & drop photos above to save them.
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

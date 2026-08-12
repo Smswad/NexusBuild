@@ -40,9 +40,9 @@ const PrintView = ({ financials, userProfile }) => (
             <div className="space-y-2 text-right">
                 <h3 className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">Allocation Reference</h3>
                 <div className="bg-slate-50 rounded-lg p-4 border border-slate-200/60 text-right">
-                    <p className="text-sm font-bold text-slate-800">{financials.unitName || 'Pending Unit Assignment'}</p>
-                    <p className="text-xs text-slate-500 mt-1">Project Name: Sardar Tower Block-A</p>
-                    <p className="text-xs text-slate-500">Scheduled Handover: Jan 2027</p>
+                    <p className="text-sm font-bold text-slate-800">{userProfile.propertyName}</p>
+                    <p className="text-xs text-slate-500 mt-1">Project Name: {userProfile.projectName}</p>
+                    <p className="text-xs text-slate-500">Scheduled Handover: {userProfile.handoverDate}</p>
                 </div>
             </div>
         </div>

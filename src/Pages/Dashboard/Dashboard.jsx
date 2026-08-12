@@ -16,10 +16,17 @@ const NAV_LINKS = [
 
 const DashboardContent = () => {
     const { signOut } = useAuth();
-    const { userProfile, activeClient, updateProfile, financials } = useClientData(); // Fetch dynamic user info
+    const { userProfile, activeClient, updateProfile, financials, siteUpdates, support } = useClientData(); // Fetch dynamic user info
     const navigate = useNavigate();
 
     const [showNotif, setShowNotif] = useState(false);
+    const [readNotifIds, setReadNotifIds] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('client_read_notifs') || '[]');
+        } catch(e) {
+            return [];
+        }
+    });
     const notifRef = useRef(null);
 
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -61,26 +68,41 @@ const DashboardContent = () => {
     const handleLogout = async () => { await signOut(); navigate('/'); };
 
     const clientNotifications = [
-        {
-            id: 'sys-1',
-            title: 'Welcome to Client Portal',
-            desc: `Unit ${financials.unitName || 'Allocation'} account overview is active.`,
-            date: 'System',
-            badge: 'bg-blue-100 text-[#003178]'
-        },
-        ...financials.transactions.slice(0, 3).map(t => ({
+        // 1. Admin replies to support tickets -> /dashboard/support
+        ...(support?.tickets || []).filter(t => t.adminReply || t.admin_reply).map(t => ({
+            id: `tkt-reply-${t.id}`,
+            title: 'Admin Replied to Support Ticket',
+            desc: `#${t.id}: ${t.adminReply || t.admin_reply}`,
+            date: t.date || 'Today',
+            badge: 'bg-blue-100 text-[#003178]',
+            url: '/dashboard/support'
+        })),
+        // 2. Site broadcasts sent by admin -> /dashboard/progress
+        ...(siteUpdates || []).map(u => ({
+            id: `broadcast-${u.id}`,
+            title: `Site Broadcast: ${u.title || 'Update'}`,
+            desc: u.desc || 'New construction update posted by admin.',
+            date: u.date || 'Recent',
+            badge: 'bg-purple-100 text-purple-700',
+            url: '/dashboard/progress'
+        })),
+        // 3. Payment confirmations -> /dashboard/financials
+        ...(financials?.transactions || []).slice(0, 5).map(t => ({
             id: `tx-${t.id}`,
             title: 'Payment Confirmation',
             desc: `৳${t.amount} confirmed for ${t.type}`,
             date: t.date,
-            badge: 'bg-emerald-100 text-emerald-700'
+            badge: 'bg-emerald-100 text-emerald-700',
+            url: '/dashboard/financials'
         })),
-        ...financials.installments.filter(i => i.status === 'Pending' || i.status === 'Overdue').slice(0, 2).map(i => ({
+        // 4. Pending/Overdue installments -> /dashboard/financials
+        ...(financials?.installments || []).filter(i => i.status === 'Pending' || i.status === 'Overdue').slice(0, 3).map(i => ({
             id: `inst-${i.id}`,
             title: i.status === 'Overdue' ? 'Installment Overdue' : 'Upcoming Installment Due',
             desc: `${i.installment} of ৳${i.amount} due on ${i.dueDate}`,
             date: i.dueDate,
-            badge: i.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+            badge: i.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700',
+            url: '/dashboard/financials'
         }))
     ];
 
@@ -154,43 +176,82 @@ const DashboardContent = () => {
             <div className="flex-1 flex flex-col overflow-hidden print:block print:h-auto print:overflow-visible">
                 
                 {/* Top Header (70px) */}
-                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-6 flex items-center justify-between z-10 print:hidden">
+                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-6 flex items-center justify-between z-50 relative print:hidden">
                     <div className="text-slate-800 font-bold text-xl">
                         Welcome Back, {userProfile.name}
                     </div>
 
                     <div className="flex items-center gap-6">
                         {/* Notification Bell */}
-                        <div ref={notifRef} className="relative">
-                            <button
-                                onClick={() => setShowNotif(p => !p)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full border border-[#003178] text-[#003178] hover:bg-blue-50 transition-colors cursor-pointer relative"
-                            >
-                                <Bell size={18} />
-                                {clientNotifications.length > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white font-bold text-[9px] flex items-center justify-center rounded-full border-2 border-white">
-                                        {clientNotifications.length}
-                                    </span>
-                                )}
-                            </button>
+                        <div ref={notifRef} className="relative z-50">
+                            {(() => {
+                                const unreadCount = clientNotifications.filter(n => !readNotifIds.includes(n.id)).length;
+                                return (
+                                    <button
+                                        onClick={() => {
+                                            setShowNotif(p => !p);
+                                            const allIds = clientNotifications.map(n => n.id);
+                                            setReadNotifIds(allIds);
+                                            try { localStorage.setItem('client_read_notifs', JSON.stringify(allIds)); } catch(e) {}
+                                        }}
+                                        className="w-10 h-10 flex items-center justify-center rounded-full border border-[#003178] text-[#003178] hover:bg-blue-50 transition-colors cursor-pointer relative"
+                                    >
+                                        <Bell size={18} />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white font-bold text-[9px] flex items-center justify-center rounded-full border-2 border-white">
+                                                {unreadCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })()}
                             
                             {/* Live Notification Dropdown */}
                             {showNotif && (
-                                <div className="absolute right-0 top-12 w-80 bg-white border border-[#E2E8F0] shadow-xl rounded-xl p-4 text-xs text-slate-700 z-50 divide-y divide-slate-100">
+                                <div className="absolute right-0 top-12 w-80 sm:w-96 bg-white border border-[#E2E8F0] shadow-2xl rounded-2xl p-4 text-xs text-slate-700 z-50 divide-y divide-slate-100">
                                     <div className="font-bold text-sm text-[#003178] pb-2 flex justify-between items-center">
                                         <span>Notifications</span>
-                                        <span className="text-[10px] bg-blue-100 text-[#003178] px-2 py-0.5 rounded-full font-bold">{clientNotifications.length} New</span>
+                                        <button 
+                                            onClick={() => {
+                                                const allIds = clientNotifications.map(n => n.id);
+                                                setReadNotifIds(allIds);
+                                                try { localStorage.setItem('client_read_notifs', JSON.stringify(allIds)); } catch(e) {}
+                                            }}
+                                            className="text-[10px] bg-blue-100 text-[#003178] px-2 py-0.5 rounded-full font-bold hover:bg-blue-200 cursor-pointer"
+                                        >
+                                            Mark all as read
+                                        </button>
                                     </div>
                                     <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 py-1">
-                                        {clientNotifications.map(n => (
-                                            <div key={n.id} className="py-2.5 hover:bg-slate-50 px-1 rounded transition-colors space-y-1">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="font-bold text-slate-800">{n.title}</span>
-                                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${n.badge}`}>{n.date}</span>
+                                        {clientNotifications.map(n => {
+                                            const isUnread = !readNotifIds.includes(n.id);
+                                            return (
+                                                <div 
+                                                    key={n.id} 
+                                                    onClick={() => {
+                                                        if (!readNotifIds.includes(n.id)) {
+                                                            const updated = [...readNotifIds, n.id];
+                                                            setReadNotifIds(updated);
+                                                            try { localStorage.setItem('client_read_notifs', JSON.stringify(updated)); } catch(e) {}
+                                                        }
+                                                        if (n.url) navigate(n.url);
+                                                        setShowNotif(false);
+                                                    }}
+                                                    className={`py-2.5 px-2 rounded-lg cursor-pointer transition-colors space-y-1 group ${
+                                                        isUnread ? 'bg-blue-50/70 hover:bg-blue-100/70 font-semibold' : 'hover:bg-slate-50'
+                                                    }`}
+                                                >
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold text-slate-800 text-xs group-hover:text-[#003178] transition-colors flex items-center gap-1.5">
+                                                            {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block" />}
+                                                            {n.title}
+                                                        </span>
+                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${n.badge}`}>{n.date}</span>
+                                                    </div>
+                                                    <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">{n.desc}</p>
                                                 </div>
-                                                <p className="text-slate-500">{n.desc}</p>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                         {clientNotifications.length === 0 && (
                                             <div className="py-6 text-center text-slate-400">No new notifications.</div>
                                         )}

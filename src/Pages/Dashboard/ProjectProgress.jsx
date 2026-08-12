@@ -16,7 +16,12 @@ const ProjectProgress = () => {
     const [activeProjectId, setActiveProjectId] = useState(projects[0]?.id);
 
     const activeProject = projects.find(p => p.id === activeProjectId) || projects[0];
-    const phase = activeProject?.progressPhase || 1;
+    const clientPhases = activeProject?.phases || [];
+    const incompleteClientPhase = clientPhases.find(p => p.progress < 100);
+    const rawPhase = activeProject?.progressPhase || activeProject?.progress_phase;
+    const phase = rawPhase && rawPhase <= 4 
+        ? rawPhase 
+        : (incompleteClientPhase ? incompleteClientPhase.id : (clientPhases.length || 3));
 
     if (loading) {
         return (
@@ -71,73 +76,43 @@ const ProjectProgress = () => {
                     </div>
                     
                     <div className="flex justify-between items-start relative z-10">
-                        {/* Step 1 */}
-                        <div className="flex flex-col items-center flex-1">
-                            {phase >= 1 ? (
-                                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#006E1C] flex items-center justify-center text-[#006E1C] z-10 relative">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                        {[
+                            { id: 1, name: 'Piling &\nFoundation' },
+                            { id: 2, name: 'Structural\nCasting' },
+                            { id: 3, name: 'Finishing' },
+                            { id: 4, name: 'Handover' },
+                        ].map(step => {
+                            const isCompleted = phase > step.id;
+                            const isCurrent = phase === step.id;
+                            return (
+                                <div key={step.id} className="flex flex-col items-center flex-1">
+                                    {isCompleted ? (
+                                        <div className="w-9 h-9 rounded-full bg-[#006E1C] border-2 border-[#006E1C] flex items-center justify-center text-white z-10 relative shadow-sm">
+                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                    ) : isCurrent ? (
+                                        <div className="w-9 h-9 rounded-full bg-white border-4 border-[#003178] flex items-center justify-center z-10 relative shadow-md">
+                                            <div className="w-3.5 h-3.5 rounded-full bg-[#003178] animate-pulse" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-9 h-9 rounded-full bg-white border-2 border-[#CBD5E1] flex items-center justify-center text-slate-400 font-bold text-xs z-10 relative">
+                                            {step.id}
+                                        </div>
+                                    )}
+                                    <div className={`text-[11px] uppercase tracking-wider text-center mt-4 whitespace-pre-line ${
+                                        isCurrent 
+                                            ? 'font-bold text-[#003178]' 
+                                            : isCompleted 
+                                            ? 'font-semibold text-[#006E1C]' 
+                                            : 'font-medium text-slate-400'
+                                    }`}>
+                                        {step.name}
+                                    </div>
                                 </div>
-                            ) : (
-                                <div className="w-9 h-9 rounded-full bg-white border-4 border-[#E1EFFE] flex items-center justify-center z-10 relative">
-                                    <div className="w-3 h-3 rounded-full bg-[#003178]" />
-                                </div>
-                            )}
-                            <div className={`text-[11px] uppercase tracking-wider text-center mt-4 ${phase === 1 ? 'font-bold text-[#003178]' : phase > 1 ? 'font-medium text-slate-500' : 'font-medium text-slate-400'}`}>Piling &<br/>Foundation</div>
-                        </div>
-                        
-                        {/* Step 2 */}
-                        <div className="flex flex-col items-center flex-1">
-                            {phase >= 2 ? (
-                                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#006E1C] flex items-center justify-center text-[#006E1C] z-10 relative">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                </div>
-                            ) : phase === 1 ? (
-                                <div className="w-9 h-9 rounded-full bg-white border-4 border-[#E1EFFE] flex items-center justify-center z-10 relative">
-                                    <div className="w-3 h-3 rounded-full bg-[#003178]" />
-                                </div>
-                            ) : (
-                                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#E5E7EB] flex items-center justify-center text-slate-400 z-10 relative">
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                </div>
-                            )}
-                            <div className={`text-[11px] uppercase tracking-wider text-center mt-4 ${phase === 2 ? 'font-bold text-[#003178]' : phase > 2 ? 'font-medium text-slate-500' : 'font-medium text-slate-400'}`}>Structural<br/>Casting</div>
-                        </div>
-
-                        {/* Step 3 (Active) */}
-                        <div className="flex flex-col items-center flex-1">
-                            {phase >= 3 ? (
-                                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#006E1C] flex items-center justify-center text-[#006E1C] z-10 relative">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                </div>
-                            ) : phase === 2 ? (
-                                <div className="w-9 h-9 rounded-full bg-white border-4 border-[#E1EFFE] flex items-center justify-center z-10 relative">
-                                    <div className="w-3 h-3 rounded-full bg-[#003178]" />
-                                </div>
-                            ) : (
-                                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#E5E7EB] flex items-center justify-center text-slate-400 z-10 relative">
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                </div>
-                            )}
-                            <div className={`text-[11px] uppercase tracking-wider text-center mt-4 ${phase === 3 ? 'font-bold text-[#003178]' : phase > 3 ? 'font-medium text-slate-500' : 'font-medium text-slate-400'}`}>Finishing</div>
-                        </div>
-
-                        {/* Step 4 (Locked) */}
-                        <div className="flex flex-col items-center flex-1">
-                            {phase >= 4 ? (
-                                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#006E1C] flex items-center justify-center text-[#006E1C] z-10 relative">
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                </div>
-                            ) : phase === 3 ? (
-                                <div className="w-9 h-9 rounded-full bg-white border-4 border-[#E1EFFE] flex items-center justify-center z-10 relative">
-                                    <div className="w-3 h-3 rounded-full bg-[#003178]" />
-                                </div>
-                            ) : (
-                                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#E5E7EB] flex items-center justify-center text-slate-400 z-10 relative">
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                </div>
-                            )}
-                            <div className={`text-[11px] uppercase tracking-wider text-center mt-4 ${phase === 4 ? 'font-bold text-[#003178]' : 'font-medium text-slate-400'}`}>Handover</div>
-                        </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -149,7 +124,10 @@ const ProjectProgress = () => {
                 </div>
                 
                 <div className="divide-y divide-[#E2E8F0]">
-                    {siteUpdates.map((u) => {
+                    {siteUpdates.filter(u => {
+                        const pId = u.projectId || u.project_id;
+                        return !activeProjectId || !pId || pId === activeProjectId;
+                    }).map((u) => {
                         const IconComponent = ICONS[u.type] || Clock;
                         return (
                             <div key={u.id} className="p-6 hover:bg-slate-50 transition-colors flex gap-5">
@@ -163,8 +141,8 @@ const ProjectProgress = () => {
                                             <Clock size={12} /> {u.date}
                                         </div>
                                     </div>
-                                    <div className="inline-block px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-full mb-3">
-                                        {u.type}
+                                    <div className="inline-block px-2.5 py-1 bg-blue-100 text-[#003178] text-[10px] font-bold uppercase tracking-wider rounded-full mb-3">
+                                        {u.type || 'Announcement'}
                                     </div>
                                     <p className="text-sm text-slate-600 leading-relaxed max-w-3xl">
                                         {u.desc}
@@ -179,6 +157,14 @@ const ProjectProgress = () => {
                             </div>
                         )
                     })}
+                    {siteUpdates.filter(u => {
+                        const pId = u.projectId || u.project_id;
+                        return !activeProjectId || !pId || pId === activeProjectId;
+                    }).length === 0 && (
+                        <div className="p-8 text-center text-slate-400 text-sm italic">
+                            No broadcast site updates recorded for {activeProject?.name || 'this project'} yet.
+                        </div>
+                    )}
                 </div>
             </div>
 

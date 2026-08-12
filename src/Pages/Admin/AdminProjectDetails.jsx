@@ -9,13 +9,56 @@ import { useNavigate } from 'react-router';
 const AdminProjectDetails = () => {
     const { 
         projects, activeProject, setActiveProject, 
-        updatePublicProject, deletePublicProject, publicProjects 
+        updatePublicProject, deletePublicProject, publicProjects,
+        projectPhotos = [], addProjectPhoto, deleteProjectPhoto
     } = useAdminData();
     const navigate = useNavigate();
+
+    const fileInputRef = React.useRef(null);
+    const [isDragging, setIsDragging] = useState(false);
 
     // Determine current project to edit
     const currentProject = projects.find(p => p.id === activeProject);
     const matchingPublicProj = publicProjects.find(p => p.id === currentProject?.id) || {};
+
+    const currentPhotos = projectPhotos.filter(p => p.projectId === (currentProject?.id || 'p1'));
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFilesUpload(e.dataTransfer.files);
+        }
+    };
+
+    const handleFilesUpload = (files) => {
+        if (!files || files.length === 0 || !currentProject) return;
+        Array.from(files).forEach(file => {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file (PNG, JPG, SVG, WebP).');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                addProjectPhoto(currentProject.id, dataUrl, file.name);
+            };
+            reader.readAsDataURL(file);
+        });
+    };
 
     const [formData, setFormData] = useState({
         name: '',
@@ -38,15 +81,15 @@ const AdminProjectDetails = () => {
                 name: currentProject.name || matchingPublicProj.name || '',
                 status: matchingPublicProj.status || 'AVAILABLE',
                 statusBg: matchingPublicProj.statusBg || '#a14000',
-                location: matchingPublicProj.location || 'Narayanganj, Dhaka',
-                type: matchingPublicProj.type || 'Residential',
-                image: matchingPublicProj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg',
-                description: matchingPublicProj.description || 'Luxury residential development equipped with modern amenities.',
+                location: matchingPublicProj.location || 'Narayanganj',
+                type: matchingPublicProj.type || 'Mixed Use',
+                image: matchingPublicProj.image || '/Frontend/Projects/Hero_Section.svg',
+                description: matchingPublicProj.description || 'Flagship real estate project equipped with modern infrastructure amenities.',
                 detailsLink: matchingPublicProj.detailsLink || '#',
                 mapLink: matchingPublicProj.mapLink || '#',
-                price: matchingPublicProj.price || '৳ 1.25 Crore - ৳ 2.50 Crore',
-                area: matchingPublicProj.area || '1,200 - 2,200 sqft',
-                totalUnits: currentProject.totalUnits || matchingPublicProj.totalUnits || 25
+                price: matchingPublicProj.price || '৳ 1.50 Crore - ৳ 3.50 Crore',
+                area: matchingPublicProj.area || '1,400 - 2,800 sqft',
+                totalUnits: currentProject.totalUnits || matchingPublicProj.totalUnits || 32
             });
         }
     }, [currentProject?.id]);
@@ -236,12 +279,86 @@ const AdminProjectDetails = () => {
                                 </div>
                             </div>
 
-                            <div className="border-2 border-dashed border-[#E2E8F0] rounded-lg p-5 text-center cursor-pointer hover:bg-slate-50 transition-colors">
-                                <UploadCloud size={24} className="mx-auto text-slate-400 mb-1" />
-                                <div className="text-xs font-bold text-slate-700">Drag & drop project photos for {formData.name}</div>
-                                <div className="text-[10px] text-slate-500 mt-0.5">PNG, JPG, SVG up to 10MB</div>
+                            <div 
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                onClick={() => fileInputRef.current?.click()}
+                                className={`border-2 border-dashed rounded-lg p-5 text-center cursor-pointer transition-all ${
+                                    isDragging ? 'border-[#1A4B9C] bg-blue-50/80 scale-[1.01]' : 'border-[#E2E8F0] hover:bg-slate-50'
+                                }`}
+                            >
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    onChange={(e) => handleFilesUpload(e.target.files)} 
+                                    accept="image/*" 
+                                    multiple 
+                                    className="hidden" 
+                                />
+                                <UploadCloud size={28} className={`mx-auto mb-1 ${isDragging ? 'text-[#1A4B9C]' : 'text-slate-400'}`} />
+                                <div className="text-xs font-bold text-slate-700">
+                                    {isDragging ? 'Drop images here to save to database...' : `Drag & drop project photos for ${formData.name}`}
+                                </div>
+                                <div className="text-[10px] text-slate-500 mt-1">
+                                    Click to select from your device or drag & drop (Saved in Database until deleted)
+                                </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Saved Project Photos Gallery */}
+                    <div className="mt-6 pt-4 border-t border-slate-100">
+                        <div className="flex justify-between items-center mb-3">
+                            <div className="text-xs font-bold text-slate-800">
+                                Saved Gallery Photos for {formData.name} ({currentPhotos.length})
+                            </div>
+                            <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                Database Persisted
+                            </span>
+                        </div>
+
+                        {currentPhotos.length > 0 ? (
+                            <div className="grid grid-cols-4 gap-3">
+                                {currentPhotos.map(photo => (
+                                    <div key={photo.id} className="relative group rounded-lg border border-slate-200 overflow-hidden bg-slate-100 h-32">
+                                        <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-slate-900/70 opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-between text-white">
+                                            <div className="text-[10px] font-bold truncate">{photo.caption}</div>
+                                            <div className="flex gap-1 justify-end">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFormData({ ...formData, image: photo.url });
+                                                        alert(`Set photo as main hero image for ${formData.name}!`);
+                                                    }}
+                                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-[9px] font-bold rounded cursor-pointer"
+                                                >
+                                                    Set Hero
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (window.confirm("Delete this photo permanently from the database?")) {
+                                                            deleteProjectPhoto(photo.id);
+                                                        }
+                                                    }}
+                                                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-[9px] font-bold rounded cursor-pointer"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-4 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-400 italic">
+                                No uploaded photos saved for {formData.name} yet. Drag & drop or select images above from your device.
+                            </div>
+                        )}
                     </div>
                 </div>
 

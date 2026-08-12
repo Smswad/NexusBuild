@@ -16,7 +16,7 @@ const AdminWebsiteProjects = () => {
         statusBg: '#a14000',
         location: '',
         type: 'Residential',
-        image: '/Frontend/Projects/Reliance_Zenith_Towers.svg',
+        image: '/Frontend/Projects/Hero_Section.svg',
         description: '',
         detailsLink: '#',
         mapLink: '#',
@@ -84,7 +84,7 @@ const AdminWebsiteProjects = () => {
         setFormData({
             name: '', status: 'AVAILABLE', statusBg: '#a14000',
             location: '', type: 'Residential',
-            image: '/Frontend/Projects/Reliance_Zenith_Towers.svg', 
+            image: '/Frontend/Projects/Hero_Section.svg', 
             description: '', detailsLink: '#', mapLink: '#',
             price: '', area: ''
         });

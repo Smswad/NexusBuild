@@ -22,42 +22,25 @@ const NAV_LINKS = [
 
 const AdminLayoutContent = () => {
     const { signOut } = useAuth();
-    const { projects, activeProject, setActiveProject, addProject, leads, applications, transactions, clients, properties } = useAdminData();
+    const { projects, activeProject, setActiveProject, addProject, leads, applications, transactions, clients, properties, tickets } = useAdminData();
     const navigate = useNavigate();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [showSearchDropdown, setShowSearchDropdown] = useState(false);
     const [showNotif, setShowNotif] = useState(false);
+    const [readAdminNotifIds, setReadAdminNotifIds] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('admin_read_notifs') || '[]');
+        } catch(e) {
+            return [];
+        }
+    });
     const [isProjectSwitcherOpen, setIsProjectSwitcherOpen] = useState(false);
     const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
     const [newProjectForm, setNewProjectForm] = useState({ id: '', name: '', totalUnits: '' });
     
     const notifRef = useRef(null);
     const searchRef = useRef(null);
-
-    const adminNotifications = [
-        ...leads.filter(l => l.status === 'New').map(l => ({
-            id: `lead-${l.id}`,
-            title: 'New Lead Submission',
-            desc: `${l.name} (${l.phone || 'N/A'}) - ${l.interest || 'Inquiry'}`,
-            date: l.date || 'Recent',
-            badge: 'bg-blue-100 text-blue-700'
-        })),
-        ...applications.filter(a => a.status === 'Pending').map(a => ({
-            id: `app-${a.id}`,
-            title: 'Application Pending Onboarding',
-            desc: `${a.name} awaiting admin approval`,
-            date: 'Action Required',
-            badge: 'bg-amber-100 text-amber-700'
-        })),
-        ...transactions.slice(0, 3).map(t => ({
-            id: `tx-${t.id}`,
-            title: 'Payment Logged',
-            desc: `৳${t.amount} settled via ${t.type}`,
-            date: t.date,
-            badge: 'bg-emerald-100 text-emerald-700'
-        }))
-    ];
 
     useEffect(() => {
         const handler = (e) => {
@@ -103,6 +86,48 @@ const AdminLayoutContent = () => {
             url: '/admin/leads'
         }))
     ] : [];
+
+    const adminNotifications = [
+        // 1. Pending Support Tickets from Clients -> /admin/tickets
+        ...(tickets || []).filter(t => t.status !== 'Resolved').map(t => {
+            const client = clients.find(c => c.id === t.clientId);
+            return {
+                id: `admin-tkt-${t.id}`,
+                title: `Client Ticket: ${t.subject || 'Inquiry'}`,
+                desc: `From ${client?.name || 'Client'}: ${t.message || 'Support request submitted.'}`,
+                date: t.date || 'Today',
+                badge: 'bg-blue-100 text-blue-700',
+                url: '/admin/tickets'
+            };
+        }),
+        // 2. Pending Applications / Onboarding -> /admin/onboarding
+        ...(applications || []).filter(a => a.status === 'Pending').map(a => ({
+            id: `admin-app-${a.id}`,
+            title: 'New Client Application',
+            desc: `Application for ${a.unit || 'Unit'} - Status: ${a.stage || 'Pending'}`,
+            date: a.date || 'Recent',
+            badge: 'bg-purple-100 text-purple-700',
+            url: '/admin/onboarding'
+        })),
+        // 3. New Public Leads -> /admin/leads
+        ...(leads || []).filter(l => l.status === 'New').map(l => ({
+            id: `admin-lead-${l.id}`,
+            title: `New Lead: ${l.name || 'Inquiry'}`,
+            desc: `Phone: ${l.phone || 'N/A'} - Interest: ${l.interest || 'Property'}`,
+            date: l.date || 'Recent',
+            badge: 'bg-emerald-100 text-emerald-700',
+            url: '/admin/leads'
+        })),
+        // 4. Property Due Balances -> /admin/financials
+        ...(properties || []).filter(p => p.dueBalance && p.dueBalance !== '0').slice(0, 4).map(p => ({
+            id: `admin-due-${p.id}`,
+            title: `Due Balance Alert: ${p.unitName}`,
+            desc: `Outstanding Net Due: ৳${p.dueBalance}`,
+            date: 'Financials',
+            badge: 'bg-amber-100 text-amber-700',
+            url: '/admin/financials'
+        }))
+    ];
 
     const handleLogout = async () => { await signOut(); navigate('/admin/login'); };
 
@@ -198,7 +223,7 @@ const AdminLayoutContent = () => {
             <div className="flex-1 flex flex-col overflow-hidden print:block print:h-auto print:overflow-visible">
                 
                 {/* Top Header (70px) */}
-                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-8 flex items-center justify-between z-10 print:hidden">
+                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-8 flex items-center justify-between z-50 relative print:hidden">
                     <div ref={searchRef} className="relative w-[450px]">
                         <div className="flex items-center gap-3 bg-[#F3F4F6] rounded-lg px-4 py-2 w-full">
                             <Search size={18} className="text-slate-400" />
@@ -259,35 +284,74 @@ const AdminLayoutContent = () => {
                     <div className="flex items-center gap-6">
                         {/* Notification Bell */}
                         <div ref={notifRef} className="relative">
-                            <button
-                                onClick={() => setShowNotif(p => !p)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full border border-[#1A4B9C] text-[#1A4B9C] hover:bg-blue-50 transition-colors cursor-pointer relative"
-                            >
-                                <Bell size={18} />
-                                {adminNotifications.length > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white font-bold text-[9px] flex items-center justify-center rounded-full border-2 border-white">
-                                        {adminNotifications.length}
-                                    </span>
-                                )}
-                            </button>
+                            {(() => {
+                                const unreadAdminCount = adminNotifications.filter(n => !readAdminNotifIds.includes(n.id)).length;
+                                return (
+                                    <button
+                                        onClick={() => {
+                                            setShowNotif(p => !p);
+                                            const allIds = adminNotifications.map(n => n.id);
+                                            setReadAdminNotifIds(allIds);
+                                            try { localStorage.setItem('admin_read_notifs', JSON.stringify(allIds)); } catch(e) {}
+                                        }}
+                                        className="w-10 h-10 flex items-center justify-center rounded-full border border-[#1A4B9C] text-[#1A4B9C] hover:bg-blue-50 transition-colors cursor-pointer relative"
+                                    >
+                                        <Bell size={18} />
+                                        {unreadAdminCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white font-bold text-[9px] flex items-center justify-center rounded-full border-2 border-white">
+                                                {unreadAdminCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })()}
                             
                             {/* Live Notification Dropdown */}
                             {showNotif && (
-                                <div className="absolute right-0 top-12 w-80 bg-white border border-[#E2E8F0] shadow-xl rounded-xl p-4 text-xs text-slate-700 z-50 divide-y divide-slate-100">
+                                <div className="absolute right-0 top-12 w-80 sm:w-96 bg-white border border-[#E2E8F0] shadow-2xl rounded-2xl p-4 text-xs text-slate-700 z-50 divide-y divide-slate-100">
                                     <div className="font-bold text-sm text-[#1A4B9C] pb-2 flex justify-between items-center">
                                         <span>Notifications</span>
-                                        <span className="text-[10px] bg-blue-100 text-[#1A4B9C] px-2 py-0.5 rounded-full font-bold">{adminNotifications.length} New</span>
+                                        <button 
+                                            onClick={() => {
+                                                const allIds = adminNotifications.map(n => n.id);
+                                                setReadAdminNotifIds(allIds);
+                                                try { localStorage.setItem('admin_read_notifs', JSON.stringify(allIds)); } catch(e) {}
+                                            }}
+                                            className="text-[10px] bg-blue-100 text-[#1A4B9C] px-2 py-0.5 rounded-full font-bold hover:bg-blue-200 cursor-pointer"
+                                        >
+                                            Mark all as read
+                                        </button>
                                     </div>
                                     <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 py-1">
-                                        {adminNotifications.map(n => (
-                                            <div key={n.id} className="py-2.5 hover:bg-slate-50 px-1 rounded transition-colors space-y-1">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="font-bold text-slate-800">{n.title}</span>
-                                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${n.badge}`}>{n.date}</span>
+                                        {adminNotifications.map(n => {
+                                            const isUnread = !readAdminNotifIds.includes(n.id);
+                                            return (
+                                                <div 
+                                                    key={n.id} 
+                                                    onClick={() => {
+                                                        if (!readAdminNotifIds.includes(n.id)) {
+                                                            const updated = [...readAdminNotifIds, n.id];
+                                                            setReadAdminNotifIds(updated);
+                                                            try { localStorage.setItem('admin_read_notifs', JSON.stringify(updated)); } catch(e) {}
+                                                        }
+                                                        if (n.url) navigate(n.url);
+                                                        setShowNotif(false);
+                                                    }}
+                                                    className={`py-2.5 px-2 rounded-lg cursor-pointer transition-colors space-y-1 group ${
+                                                        isUnread ? 'bg-blue-50/70 hover:bg-blue-100/70 font-semibold' : 'hover:bg-slate-50'
+                                                    }`}
+                                                >
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold text-slate-800 text-xs group-hover:text-[#1A4B9C] transition-colors flex items-center gap-1.5">
+                                                            {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block" />}
+                                                            {n.title}
+                                                        </span>
+                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${n.badge}`}>{n.date}</span>
+                                                    </div>
+                                                    <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">{n.desc}</p>
                                                 </div>
-                                                <p className="text-slate-500">{n.desc}</p>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                         {adminNotifications.length === 0 && (
                                             <div className="py-6 text-center text-slate-400">No new notifications.</div>
                                         )}
