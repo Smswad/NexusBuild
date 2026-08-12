@@ -38,47 +38,49 @@ const Support = () => {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row gap-6 w-full max-w-6xl items-start">
+        <div className="w-full flex flex-col lg:flex-row gap-6 items-start">
             
             {/* ══ LEFT COLUMN: Contact & Form ════════════════════════════════ */}
-            <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-6">
+            <div className="w-full lg:w-[340px] lg:flex-shrink-0 flex flex-col gap-4">
                 
-                {/* Account Exec Contact Card (Matches Overview style) */}
-                <div className="bg-[#0F3A70] rounded-lg shadow-sm p-6 text-white">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-14 h-14 rounded-full bg-white border-2 border-[#A0B2C6] overflow-hidden flex-shrink-0 flex items-center justify-center font-bold text-[#0F3A70] text-xl">
+                {/* Account Exec Contact Card */}
+                <div className="bg-[#0F3A70] rounded-lg shadow-sm p-4 sm:p-6 text-white">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-full bg-white border-2 border-[#A0B2C6] overflow-hidden flex-shrink-0 flex items-center justify-center font-bold text-[#0F3A70] text-lg">
                             {exec.name.charAt(0)}
                         </div>
-                        <div>
-                            <div className="font-bold text-[16px]">{exec.name}</div>
-                            <div className="text-[#A0B2C6] text-xs mt-1">{exec.role}</div>
+                        <div className="min-w-0">
+                            <div className="font-bold text-sm sm:text-[16px] truncate">{exec.name}</div>
+                            <div className="text-[#A0B2C6] text-xs mt-0.5">{exec.role}</div>
                         </div>
                     </div>
                     
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-3 text-[#A0B2C6] text-sm">
-                            <Mail size={16} /> {exec.email}
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-[#A0B2C6] text-xs sm:text-sm min-w-0">
+                            <Mail size={14} className="flex-shrink-0" />
+                            <span className="truncate">{exec.email}</span>
                         </div>
-                        <div className="flex items-center gap-3 text-[#A0B2C6] text-sm">
-                            <Phone size={16} /> {exec.phone}
+                        <div className="flex items-center gap-2 text-[#A0B2C6] text-xs sm:text-sm">
+                            <Phone size={14} className="flex-shrink-0" />
+                            <span>{exec.phone}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Submit Formal Inquiry Form */}
                 <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm">
-                    <div className="p-5 border-b border-[#E2E8F0] flex items-center gap-3">
-                        <MessageSquare size={18} className="text-[#003178]" />
-                        <h3 className="font-bold text-[16px] text-[#003178]">Submit Support Ticket</h3>
+                    <div className="p-4 border-b border-[#E2E8F0] flex items-center gap-3">
+                        <MessageSquare size={18} className="text-[#003178] flex-shrink-0" />
+                        <h3 className="font-bold text-sm sm:text-[16px] text-[#003178]">Submit Support Ticket</h3>
                     </div>
-                    <form className="p-5 flex flex-col gap-4" onSubmit={handleTicketSubmit}>
+                    <form className="p-4 flex flex-col gap-3" onSubmit={handleTicketSubmit}>
                         
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Inquiry Type</label>
                             <select 
                                 value={inquiryType}
                                 onChange={(e) => setInquiryType(e.target.value)}
-                                className="w-full bg-[#F0F4F8] border border-transparent rounded-lg p-3 text-sm text-slate-800 focus:outline-none focus:border-[#003178] focus:bg-white transition-colors"
+                                className="w-full bg-[#F0F4F8] border border-transparent rounded-lg p-2.5 text-sm text-slate-800 focus:outline-none focus:border-[#003178] focus:bg-white transition-colors"
                             >
                                 <option>General Question</option>
                                 <option>Change Order Request</option>
@@ -87,19 +89,19 @@ const Support = () => {
                             </select>
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Subject</label>
                             <input 
                                 type="text" 
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
                                 placeholder="Brief summary of your request"
-                                className="w-full bg-[#F0F4F8] border border-transparent rounded-lg p-3 text-sm text-slate-800 focus:outline-none focus:border-[#003178] focus:bg-white transition-colors"
+                                className="w-full bg-[#F0F4F8] border border-transparent rounded-lg p-2.5 text-sm text-slate-800 focus:outline-none focus:border-[#003178] focus:bg-white transition-colors"
                             />
                         </div>
 
-                        <button type="submit" className="mt-2 w-full flex items-center justify-center gap-2 bg-[#003178] text-white px-5 py-3.5 rounded-lg hover:bg-[#0A2550] transition-colors text-[13px] font-bold uppercase tracking-wider shadow-sm">
-                            <Send size={16} /> Open Ticket
+                        <button type="submit" className="mt-1 w-full flex items-center justify-center gap-2 bg-[#003178] text-white px-4 py-3 rounded-lg hover:bg-[#0A2550] transition-colors text-xs sm:text-[13px] font-bold uppercase tracking-wider shadow-sm">
+                            <Send size={14} /> Open Ticket
                         </button>
                     </form>
                 </div>
@@ -107,7 +109,7 @@ const Support = () => {
             </div>
 
             {/* ══ RIGHT COLUMN: Tickets & FAQs ═══════════════════════════════ */}
-            <div className="flex-1 flex flex-col gap-6 min-w-0">
+            <div className="w-full lg:flex-1 flex flex-col gap-4 min-w-0">
                 
                 {/* Active Tickets Table */}
                 <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm">
