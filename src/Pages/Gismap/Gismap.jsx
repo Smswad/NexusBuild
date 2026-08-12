@@ -105,9 +105,6 @@ const Gismap = () => {
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight">Project Location & Nearby Amenities</h1>
-                        <p className="text-slate-300 text-xs mt-1 max-w-2xl">
-                            Explore property developments by area (Dhanmondi, Narayanganj) with real-time GIS mapping and nearby public amenities.
-                        </p>
                     </div>
                 </div>
             </div>
