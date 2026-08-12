@@ -1,8 +1,61 @@
 import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { PROJECTS } from '../data/projectsData';
+import { showToast } from '../Components/Toast/globalToast';
 
 const DatabaseContext = createContext(null);
+
+const DEFAULT_PHASES = [
+    { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
+    { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 0 },
+    { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
+    { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 },
+];
+
+// Map a raw project row from the DB into the shape used across the app.
+const mapRawProject = (p) => {
+    const catalogMatch = PROJECTS.find(c => c.id === p.id || c.slug === p.slug) || {};
+    const localMilestones = (() => {
+        try {
+            const stored = localStorage.getItem(`project_milestones_${p.id}`);
+            return stored ? JSON.parse(stored) : null;
+        } catch(e) { return null; }
+    })();
+    const savedPhase = (() => {
+        try {
+            const phaseStored = localStorage.getItem(`project_phase_${p.id}`);
+            return phaseStored ? parseInt(phaseStored) : null;
+        } catch(e) { return null; }
+    })();
+
+    const defaultPhases = DEFAULT_PHASES;
+
+    // DB is the source of truth; localStorage is only a fallback when the DB has no phases
+    const dbPhases = (typeof p.phases === 'string' ? JSON.parse(p.phases || 'null') : p.phases) || localMilestones || defaultPhases;
+    const dbPhase = p.progress_phase || p.progressPhase;
+
+    const firstIncomplete = dbPhases.find(ph => ph.progress < 100);
+    const derivedPhase = firstIncomplete ? firstIncomplete.id : (dbPhases.length || 1);
+    const finalPhase = (dbPhase && !isNaN(parseInt(dbPhase)) && parseInt(dbPhase) > 0)
+        ? parseInt(dbPhase)
+        : (savedPhase !== null && !isNaN(savedPhase) && savedPhase > 0)
+            ? savedPhase
+            : derivedPhase;
+
+    return { 
+        ...catalogMatch,
+        ...p, 
+        name: p.name || catalogMatch.name || 'Sardar Tower – Block A',
+        location: p.location || catalogMatch.location || 'Narayanganj',
+        image: p.image || catalogMatch.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg',
+        area: p.area || catalogMatch.area || '1,850 sq. ft',
+        handoverDate: p.handoverDate || p.handover_date || catalogMatch.handoverDate || 'Dec 2026',
+        progressPhase: finalPhase, 
+        progress_phase: finalPhase, 
+        totalUnits: p.total_units || p.totalUnits || catalogMatch.totalUnits || 32,
+        phases: dbPhases
+    };
+};
 
 export const DatabaseProvider = ({ children }) => {
     const [clients, setClients] = useState([]);
@@ -142,50 +195,7 @@ export const DatabaseProvider = ({ children }) => {
 
                 const rawProjects = (resProjects.data && resProjects.data.length > 0) ? resProjects.data : defaultProjectsList;
 
-                setProjects(rawProjects.map(p => {
-                    const catalogMatch = PROJECTS.find(c => c.id === p.id || c.slug === p.slug) || {};
-                    let localMilestones = null;
-                    let savedPhase = null;
-                    try {
-                        const stored = localStorage.getItem(`project_milestones_${p.id}`);
-                        if (stored) localMilestones = JSON.parse(stored);
-                        const phaseStored = localStorage.getItem(`project_phase_${p.id}`);
-                        if (phaseStored) savedPhase = parseInt(phaseStored);
-                    } catch(e) {}
-
-                    const defaultPhases = [
-                        { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
-                        { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 0 },
-                        { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
-                        { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 },
-                    ];
-
-                    const dbPhases = (typeof p.phases === 'string' ? JSON.parse(p.phases) : p.phases) || localMilestones || defaultPhases;
-                    const dbPhase = p.progress_phase || p.progressPhase;
-                    const finalPhase = (savedPhase !== null && !isNaN(savedPhase) && savedPhase > 0)
-                        ? savedPhase
-                        : (dbPhase ? parseInt(dbPhase) : 1);
-
-                    const activePhases = dbPhases.map(ph => {
-                        if (ph.id < finalPhase && ph.progress < 100) return { ...ph, progress: 100 };
-                        if (ph.id > finalPhase) return { ...ph, progress: 0 };
-                        return ph;
-                    });
-
-                    return { 
-                        ...catalogMatch,
-                        ...p, 
-                        name: p.name || catalogMatch.name || 'Sardar Tower – Block A',
-                        location: p.location || catalogMatch.location || 'Narayanganj',
-                        image: p.image || catalogMatch.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg',
-                        area: p.area || catalogMatch.area || '1,850 sq. ft',
-                        handoverDate: p.handoverDate || p.handover_date || catalogMatch.handoverDate || 'Dec 2026',
-                        progressPhase: finalPhase, 
-                        progress_phase: finalPhase, 
-                        totalUnits: p.total_units || p.totalUnits || catalogMatch.totalUnits || 32,
-                        phases: activePhases
-                    };
-                }));
+                setProjects(rawProjects.map(mapRawProject));
                 if (resProps.data) setProperties(resProps.data.map(p => ({ ...p, clientId: p.client_id, projectId: p.project_id, unitName: p.unit_name, handoverDate: p.handover_date, totalValuation: p.total_valuation, totalPaid: p.total_paid, otherCharges: p.other_charges, dueBalance: p.due_balance })));
                 if (resInsts.data) setInstallments(resInsts.data.map(i => ({ ...i, propertyId: i.property_id, dueDate: i.due_date, statusPill: i.status_pill })));
                 if (resTrans.data) setTransactions(resTrans.data.map(t => ({ ...t, propertyId: t.property_id })));
@@ -360,9 +370,38 @@ export const DatabaseProvider = ({ children }) => {
         window.addEventListener('storage', handleStorageChange);
         window.addEventListener('focus', fetchAllData);
 
+        // ── Live sync: refetch when the projects table changes (Supabase Realtime) ──
+        const refreshProjectsOnly = async () => {
+            const { data } = await supabase.from('projects').select('*');
+            if (data && data.length > 0) {
+                setProjects(data.map(mapRawProject));
+            }
+        };
+        const refreshSiteUpdatesOnly = async () => {
+            const { data } = await supabase.from('site_updates').select('*');
+            if (data && data.length > 0) setSiteUpdates(data);
+        };
+        const channel = supabase
+            .channel('db_projects_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, (payload) => {
+                refreshProjectsOnly();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'site_updates' }, (payload) => {
+                refreshSiteUpdatesOnly();
+            })
+            .subscribe();
+
+        // Fallback: silent poll every 15s so changes appear without a manual refresh
+        const pollInterval = setInterval(() => {
+            refreshProjectsOnly();
+            refreshSiteUpdatesOnly();
+        }, 15000);
+
         return () => {
             window.removeEventListener('storage', handleStorageChange);
             window.removeEventListener('focus', fetchAllData);
+            supabase.removeChannel(channel);
+            clearInterval(pollInterval);
         };
     }, []);
 
@@ -1055,7 +1094,7 @@ export const DatabaseProvider = ({ children }) => {
             setApplications(prev => prev.filter(a => a.id !== applicationId));
         } else {
             console.error("Error rejecting application:", error.message);
-            alert("Error rejecting client request: " + error.message);
+            showToast("Error rejecting client request: " + error.message, "error");
         }
     };
 
@@ -1067,7 +1106,7 @@ export const DatabaseProvider = ({ children }) => {
             setTickets(prev => prev.filter(t => t.clientId !== id));
         } else {
             console.error("Error deleting client:", error.message);
-            alert("Error deleting client: " + error.message);
+            showToast("Error deleting client: " + error.message, "error");
         }
     };
 
@@ -1077,7 +1116,7 @@ export const DatabaseProvider = ({ children }) => {
             setLeads(prev => prev.filter(l => l.id !== id));
         } else {
             console.error("Error deleting lead:", error.message);
-            alert("Error deleting lead: " + error.message);
+            showToast("Error deleting lead: " + error.message, "error");
         }
     };
 

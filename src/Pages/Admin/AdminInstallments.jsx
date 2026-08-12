@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Filter, Download, BellRing, ChevronRight, X } from 'lucide-react';
 import { useAdminData } from '../../Context/AdminDataContext';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminInstallments = () => {
     const { installments, properties, clients, updateInstallment } = useAdminData();
@@ -60,7 +61,7 @@ const AdminInstallments = () => {
     };
 
     const handleReminders = () => {
-        alert("Automated reminders have been dispatched to all clients with upcoming or overdue installments.");
+        showToast("Automated reminders have been dispatched to all clients with upcoming or overdue installments.", "success", "Reminders Sent");
     };
 
     const exportToCSV = () => {
@@ -257,7 +258,7 @@ const AdminInstallments = () => {
                                                     active: false
                                                 });
                                                 setSelectedInstallment(null);
-                                                alert('Installment marked as Paid and ledger updated successfully!');
+                                                showToast('Installment marked as Paid and ledger updated successfully!', 'success', 'Payment Recorded');
                                             }
                                         }}
                                         className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors cursor-pointer"

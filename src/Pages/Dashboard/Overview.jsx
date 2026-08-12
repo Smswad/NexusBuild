@@ -6,6 +6,7 @@ import {
 import { useNavigate } from 'react-router';
 import heroImg from '../../assets/pics/hero_pic.png';
 import { useClientData } from '../../Context/ClientDataContext';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const PrintView = ({ financials, userProfile }) => (
     <div id="print-area" className="hidden print:block bg-white text-slate-800 p-12 font-sans max-w-4xl mx-auto border border-slate-300 rounded shadow-sm">
@@ -164,7 +165,7 @@ const Overview = () => {
             }
         }
         setShowScheduleModal(false);
-        alert('Installment schedule generated successfully!');
+        showToast('Installment schedule generated successfully!', 'success', 'Installment Schedule');
     };
 
     const handleDownloadReceipt = (tx) => {
@@ -380,7 +381,7 @@ const Overview = () => {
                 doc.save(`Receipt_${tx.id || 'txn'}.pdf`);
             } catch (err) {
                 console.error("PDF generation failed:", err);
-                alert("Receipt download failed. Please try again.");
+                showToast("Receipt download failed. Please try again.", 'error', 'Download Failed');
             }
         };
 

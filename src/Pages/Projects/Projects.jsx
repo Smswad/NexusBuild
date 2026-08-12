@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { Search, MapPin, ArrowRight, Wrench, CalendarCheck, RotateCcw, CheckCircle2 } from "lucide-react";
 import { useDatabase } from "../../Context/DatabaseContext";
 import { supabase } from "../../lib/supabaseClient";
+import { showToast } from '../../Components/Toast/globalToast';
 
 // ── Public image paths (files in /public/frontend/projects/) ──────────────────
 const IMG_HERO = "/Frontend/Projects/Hero_Section.svg";
@@ -73,9 +74,9 @@ const Projects = () => {
 
             const { error } = await supabase.from('leads').insert([payload]);
             if (error) {
-                alert('Submission failed: ' + error.message);
+                showToast('Submission failed: ' + error.message, 'error', 'Submission Failed');
             } else {
-                alert('Thank you! Your inquiry has been submitted. Our team will get back to you soon.');
+                showToast('Thank you! Your inquiry has been submitted. Our team will get back to you soon.', 'success', 'Inquiry Submitted');
                 setShowRemodeling(false);
                 setShowSiteVisit(false);
                 setShowGeneralInquiry(false);
@@ -89,7 +90,7 @@ const Projects = () => {
                 setFormProject('Sardar Tower – Block A');
             }
         } catch(err) {
-            alert('Error submitting inquiry: ' + err.message);
+            showToast('Error submitting inquiry: ' + err.message, 'error', 'Submission Failed');
         }
     };
 

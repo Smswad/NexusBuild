@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Mail, Phone, Clock, MapPin, Globe, Compass, MessageSquare } from 'lucide-react';
 import { useDatabase } from '../../Context/DatabaseContext';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminContact = () => {
     const { systemSettings, updateSystemSettings } = useDatabase();
@@ -39,10 +40,10 @@ const AdminContact = () => {
         e.preventDefault();
         try {
             await updateSystemSettings(settings);
-            alert('Contact Settings saved successfully! The changes are now live on the public contact page.');
+            showToast('Contact Settings saved successfully! The changes are now live on the public contact page.', 'success', 'Settings Saved');
         } catch (err) {
             console.error(err);
-            alert('Failed to save settings: ' + err.message);
+            showToast('Failed to save settings: ' + err.message, 'error', 'Save Failed');
         }
     };
 

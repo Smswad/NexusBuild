@@ -1,13 +1,14 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext } from 'react';
 import { useDatabase } from './DatabaseContext';
 import { useAuth } from './AuthContext';
+import { showToast } from '../Components/Toast/globalToast';
 
 const ClientDataContext = createContext(null);
 
 export const ClientDataProvider = ({ children }) => {
     const db = useDatabase();
     const { user } = useAuth();
-    const [loading, setLoading] = useState(true);
+    const loading = db.loading;
 
     // Find the client record using the authenticated user's email.
     // This connects their Supabase Auth account to their NexusBuild Client record.
@@ -69,13 +70,9 @@ export const ClientDataProvider = ({ children }) => {
         tickets: db.tickets.filter(t => t.clientId === activeClientId)
     };
 
-    useEffect(() => {
-        setTimeout(() => setLoading(false), 300);
-    }, []);
-
     const submitTicket = async (type, subject, message) => {
         await db.addClientTicket(activeClientId, type, subject, message);
-        alert('Ticket submitted successfully! We will get back to you shortly.');
+        showToast('Ticket submitted successfully! We will get back to you shortly.');
     };
 
     const downloadStatement = () => {

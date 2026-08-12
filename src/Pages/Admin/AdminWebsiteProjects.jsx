@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
 import { Plus, Edit2, MapPin, Search, UploadCloud, Link as LinkIcon, Home, Trash2, CheckCircle2 } from 'lucide-react';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminWebsiteProjects = () => {
     const { publicProjects, addPublicProject, updatePublicProject, deletePublicProject } = useAdminData();
@@ -129,11 +130,11 @@ const AdminWebsiteProjects = () => {
 
     const processFile = (file) => {
         if (!file.type.startsWith('image/')) {
-            alert('Please select an image file (PNG, JPG, SVG, WebP).');
+            showToast('Please select an image file (PNG, JPG, SVG, WebP).', 'warning', 'Invalid File');
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            alert('File size exceeds 5MB limit.');
+            showToast('File size exceeds 5MB limit.', 'warning', 'File Too Large');
             return;
         }
         
@@ -229,7 +230,7 @@ const AdminWebsiteProjects = () => {
                                     onClick={() => {
                                         if (window.confirm(`Are you sure you want to permanently delete "${project.name}"? This will remove all unit listings and records.`)) {
                                             deletePublicProject(project.id);
-                                            alert(`Project "${project.name}" has been deleted.`);
+                                            showToast(`Project "${project.name}" has been deleted.`, 'success', 'Project Deleted');
                                         }
                                     }}
                                     className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors cursor-pointer"

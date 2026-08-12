@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Building2, Bell, Shield, Palette, Settings, CheckCircle } from 'lucide-react';
 import { useDatabase } from '../../Context/DatabaseContext';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminSettings = () => {
     const { systemSettings, updateSystemSettings } = useDatabase();
@@ -14,7 +15,7 @@ const AdminSettings = () => {
     const handleSave = (e) => {
         e.preventDefault();
         updateSystemSettings(settings);
-        alert('Settings saved successfully! System configurations have been updated globally across all pages.');
+        showToast('Settings saved successfully! System configurations have been updated globally across all pages.', 'success', 'Settings Saved');
     };
 
     return (

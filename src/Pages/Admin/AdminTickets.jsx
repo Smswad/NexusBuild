@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
 import { Search, Filter, CheckCircle2, MessageSquare, Clock, CornerDownRight, Send, X } from 'lucide-react';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminTickets = () => {
     const { tickets, clients, resolveTicket, replyToTicket } = useAdminData();
@@ -18,13 +19,13 @@ const AdminTickets = () => {
 
     const handleSendReply = async (ticketId, resolve = true) => {
         if (!replyText.trim()) {
-            alert('Please enter a reply message before sending.');
+            showToast('Please enter a reply message before sending.', 'warning', 'Missing Reply');
             return;
         }
         await replyToTicket(ticketId, replyText.trim(), resolve);
         setReplyingTicketId(null);
         setReplyText('');
-        alert(`Reply sent to client successfully! ${resolve ? 'Ticket marked as Resolved.' : ''}`);
+        showToast(`Reply sent to client successfully! ${resolve ? 'Ticket marked as Resolved.' : ''}`, 'success', 'Reply Sent');
     };
 
     const filteredTickets = tickets.filter(ticket => {
@@ -218,7 +219,7 @@ const AdminTickets = () => {
                                             type="button"
                                             onClick={async () => {
                                                 await resolveTicket(ticket.id);
-                                                alert(`Ticket ${ticket.id} marked as resolved!`);
+                                                showToast(`Ticket ${ticket.id} marked as resolved!`, 'success', 'Ticket Resolved');
                                             }}
                                             className="flex-1 sm:flex-none justify-center px-3.5 py-1.5 bg-[#006E1C] hover:bg-[#005215] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                                         >

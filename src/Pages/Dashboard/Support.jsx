@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Send, MessageSquare, ChevronDown, ChevronUp, Clock, HelpCircle, Phone, Mail } from 'lucide-react';
 import { useClientData } from '../../Context/ClientDataContext';
 import { useDatabase } from '../../Context/DatabaseContext';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const Support = () => {
     const { loading, support, submitTicket } = useClientData();
@@ -18,7 +19,7 @@ const Support = () => {
     const handleTicketSubmit = async (e) => {
         e.preventDefault();
         if (!subject.trim()) {
-            alert('Please enter a subject for your ticket.');
+            showToast('Please enter a subject for your ticket.', 'warning', 'Missing Subject');
             return;
         }
         await submitTicket(inquiryType, subject, '');
@@ -189,7 +190,7 @@ const Support = () => {
                                                                 if (!replyText.trim()) return;
                                                                 await db.replyToTicket(t.id, replyText.trim(), false, 'client');
                                                                 setReplyText('');
-                                                                alert('Reply sent successfully!');
+                                                                showToast('Reply sent successfully!', 'success', 'Reply Sent');
                                                             }} className="flex gap-2 mt-2">
                                                                 <input 
                                                                     type="text" 

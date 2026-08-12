@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
+import { showToast } from '../../Components/Toast/globalToast';
 import { Camera, Image as ImageIcon, Send, Clock, CheckCircle, Circle, Edit3, Plus, X, Save, Activity } from 'lucide-react';
 
 const AdminSiteProgress = () => {
@@ -41,7 +42,7 @@ const AdminSiteProgress = () => {
         if (!files || files.length === 0 || !selectedProject) return;
         Array.from(files).forEach(file => {
             if (!file.type.startsWith('image/')) {
-                alert('Please upload an image file.');
+                showToast('Please upload an image file.', 'error', 'Invalid file');
                 return;
             }
             const reader = new FileReader();
@@ -92,7 +93,7 @@ const AdminSiteProgress = () => {
             await updateProjectMilestones(selectedProject.id, updatedPhases);
         }
         setEditingPhase(null);
-        alert(`Milestone "${editingPhase.name}" saved to database successfully!`);
+        showToast(`"${editingPhase.name}" saved to the database successfully.`, 'success', 'Milestone Updated');
     };
 
     const handleAddPhaseSubmit = async (e) => {
@@ -105,13 +106,13 @@ const AdminSiteProgress = () => {
         }
         setIsAddPhaseOpen(false);
         setNewPhaseForm({ name: '', date: 'Target: Q4 2026', progress: 0 });
-        alert(`New milestone "${newPhaseForm.name}" saved to database!`);
+        showToast(`"${newPhaseForm.name}" added as a new milestone.`, 'success', 'Milestone Added');
     };
 
     const handleBroadcast = (e) => {
         e.preventDefault();
         addSiteUpdate(selectedProject.id, broadcastSubject, broadcastMsg);
-        alert(`Broadcast sent to all clients in ${selectedProject.name}!`);
+        showToast(`Broadcast sent to all clients in ${selectedProject.name}.`, 'success', 'Broadcast Sent');
         setBroadcastSubject('');
         setBroadcastMsg('');
     };

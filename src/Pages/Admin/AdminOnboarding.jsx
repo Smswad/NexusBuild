@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Filter, Download, UserCheck, ChevronRight } from 'lucide-react';
 import { useAdminData } from '../../Context/AdminDataContext';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminOnboarding = () => {
     const { 
@@ -241,7 +242,7 @@ const AdminOnboarding = () => {
                                      onClick={async () => {
                                          await onboardClient(selectedAppId);
                                          setShowSchedulerModal(false);
-                                         alert('Client onboarded successfully. Installment plan skipped.');
+                                         showToast('Client onboarded successfully. Installment plan skipped.', 'success', 'Client Onboarded');
                                      }}
                                      className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 cursor-pointer"
                                  >
@@ -260,7 +261,7 @@ const AdminOnboarding = () => {
                                          onClick={async () => {
                                              await onboardClient(selectedAppId, { numInstallments, freq, startDate });
                                              setShowSchedulerModal(false);
-                                             alert('Client onboarded successfully with installment plan!');
+                                             showToast('Client onboarded successfully with installment plan!', 'success', 'Client Onboarded');
                                          }}
                                          className="px-4 py-2 bg-[#1A4B9C] hover:bg-[#153B7C] text-white font-semibold rounded-md transition-colors cursor-pointer"
                                      >
@@ -364,7 +365,7 @@ const AdminOnboarding = () => {
                                          if (window.confirm(`Are you sure you want to REJECT and delete registration for ${selectedApp.name}?`)) {
                                              await rejectApplication(selectedApp.id);
                                              setShowVerifyModal(false);
-                                             alert('Registration rejected.');
+                                             showToast('Registration rejected.', 'error', 'Application Rejected');
                                          }
                                      }}
                                      className="px-4 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-md font-semibold text-sm transition-colors cursor-pointer"
@@ -384,7 +385,7 @@ const AdminOnboarding = () => {
                                          onClick={async () => {
                                              await onboardClient(selectedApp.id, selectedProjectId, null, selectedUnitName);
                                              setShowVerifyModal(false);
-                                             alert('Client verified and onboarded successfully! Set financial details in Client Management Hub.');
+                                             showToast('Client verified and onboarded successfully! Set financial details in Client Management Hub.', 'success', 'Client Verified');
                                          }}
                                          className="px-4 py-2 bg-[#1A4B9C] hover:bg-[#153B7C] text-white font-semibold rounded-md transition-colors text-sm cursor-pointer"
                                      >

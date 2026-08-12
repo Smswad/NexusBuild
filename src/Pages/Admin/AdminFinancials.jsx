@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
 import { Search, Download, Filter, Eye, Plus, X, Building2, CreditCard, CheckCircle } from 'lucide-react';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminFinancials = () => {
     const { 
@@ -82,11 +83,11 @@ const AdminFinancials = () => {
     const handleRecordPaymentSubmit = async (e) => {
         e.preventDefault();
         if (!selectedClientId || !selectedProperty) {
-            alert('Please select a client from the dropdown.');
+            showToast('Please select a client from the dropdown.', 'warning', 'Missing Selection');
             return;
         }
         if (!paymentAmount || parseFloat(paymentAmount.replace(/,/g, '')) <= 0) {
-            alert('Please enter a valid payment amount.');
+            showToast('Please enter a valid payment amount.', 'warning', 'Invalid Amount');
             return;
         }
 
@@ -121,7 +122,7 @@ const AdminFinancials = () => {
             dueBalance: newDue
         });
 
-        alert('Bank Payment recorded and client ledger updated successfully!');
+        showToast('Bank Payment recorded and client ledger updated successfully!', 'success', 'Payment Recorded');
         setIsRecordPaymentOpen(false);
         setSelectedClientId('');
         setSelectedInstallmentId('');

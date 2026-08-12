@@ -7,6 +7,7 @@ import {
 import Navbar from '../../Components/Header/Navbar';
 import Footer from '../../Components/Footer/Footer';
 import { useDatabase } from '../../Context/DatabaseContext';
+import { showToast } from '../../Components/Toast/globalToast';
 
 // ─── Contact ──────────────────────────────────────────────────────────────────
 // Figma frame: node-id=1:1038
@@ -94,7 +95,7 @@ const Contact = () => {
             setForm({ fullName: '', email: '', subject: '', message: '' });
         } catch (err) {
             console.error("Error submitting lead:", err);
-            alert("Failed to submit inquiry. Please try again.");
+            showToast("Failed to submit inquiry. Please try again.", 'error', 'Submission Failed');
         } finally {
             setLoading(false);
         }

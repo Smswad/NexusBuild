@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
-import { Search, Filter, Download, Plus, ChevronRight, X, User, CreditCard, Wallet, MessageSquare, CheckCircle } from 'lucide-react';
+import { Search, Filter, Download, Plus, ChevronRight, X, User, CreditCard, Wallet, MessageSquare, CheckCircle, Send, CornerDownRight } from 'lucide-react';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const ClientManagement = () => {
     const { 
         clients, properties, installments, transactions, tickets, leads,
         addClient, updateClient, updateProperty, 
-        addInstallment, updateInstallment, deleteInstallment, addTransaction, resolveTicket,
+        addInstallment, updateInstallment, deleteInstallment, addTransaction, resolveTicket, replyToTicket,
         deleteClient, activeProject
     } = useAdminData();
     
@@ -32,6 +33,10 @@ const ClientManagement = () => {
     // Sub-forms state
     const [newInstallment, setNewInstallment] = useState({ installment: '', dueDate: '', amount: '' });
     const [newTransaction, setNewTransaction] = useState({ type: '', date: '', amount: '' });
+
+    // Support Ticket Reply State
+    const [replyingTicketId, setReplyingTicketId] = useState(null);
+    const [replyText, setReplyText] = useState('');
 
     // Mode Selector & Auto Generator State for Installments
     const [installmentMode, setInstallmentMode] = useState('auto'); // 'auto' | 'manual'
@@ -65,6 +70,8 @@ const ClientManagement = () => {
     const openEditModal = (client, prop) => {
         setSelectedClient(client);
         setActiveTab('profile');
+        setReplyingTicketId(null);
+        setReplyText('');
         setEditForm({
             name: client.name,
             email: client.email,
@@ -97,7 +104,7 @@ const ClientManagement = () => {
         const valuationNum = parseFloat(String(amountToUse).replace(/,/g, '')) || 0;
 
         if (valuationNum <= 0) {
-            alert("Please set a Total Valuation or enter an amount to generate the auto schedule.");
+            showToast("Please set a Total Valuation or enter an amount to generate the auto schedule.", 'warning', 'Missing Valuation');
             return;
         }
 
@@ -130,7 +137,7 @@ const ClientManagement = () => {
             }
         }
 
-        alert(`Successfully auto-generated ${num} installments! Total Scheduled: ৳ ${valuationNum.toLocaleString('en-IN')}`);
+        showToast(`Successfully auto-generated ${num} installments! Total Scheduled: ৳ ${valuationNum.toLocaleString('en-IN')}`, 'success', 'Installments Generated');
     };
 
     const handleSaveProfile = (e) => {
@@ -154,7 +161,7 @@ const ClientManagement = () => {
                 location: editForm.location
             });
         }
-        alert("Profile & Property details saved successfully and synced with Client!");
+        showToast("Profile & Property details saved successfully and synced with Client!", 'success', 'Client Updated');
     };
 
     const handleAddInstallment = (e) => {
@@ -237,6 +244,34 @@ const ClientManagement = () => {
         : [];
     const clientTransactions = editForm.propertyId ? transactions.filter(t => t.propertyId === editForm.propertyId) : [];
     const clientTickets = selectedClient ? tickets.filter(t => t.clientId === selectedClient.id) : [];
+
+    // Parse a ticket's message field into a conversation thread
+    const parseTicketMessages = (t) => {
+        let msgs = [];
+        try {
+            if (t.message && t.message.trim().startsWith('[')) {
+                msgs = JSON.parse(t.message);
+            } else {
+                if (t.message) msgs.push({ sender: 'client', text: t.message, date: t.date || 'Original Date' });
+                if (t.adminReply || t.admin_reply) msgs.push({ sender: 'admin', text: t.adminReply || t.admin_reply, date: t.date || 'Original Date' });
+            }
+        } catch (e) {
+            msgs = [{ sender: 'client', text: t.message, date: t.date }];
+        }
+        return msgs;
+    };
+
+    const handleSendTicketReply = async (ticket, resolve = false) => {
+        if (!replyText.trim()) {
+            showToast('Please type a reply before sending.', 'warning', 'Missing Reply');
+            return;
+        }
+        if (replyingTicketId !== ticket.id) return;
+        await replyToTicket(ticket.id, replyText.trim(), resolve);
+        setReplyText('');
+        setReplyingTicketId(null);
+        showToast(`Reply sent to ${selectedClient?.name || 'client'}.${resolve ? ' Ticket resolved.' : ''}`, 'success', 'Reply Sent');
+    };
 
     const totalDue = properties.reduce((sum, p) => sum + (parseInt(String(p.dueBalance).replace(/,/g, '')) || 0), 0);
 
@@ -824,12 +859,18 @@ const ClientManagement = () => {
                                 {/* ── TAB 4: TICKETS ── */}
                                 {activeTab === 'tickets' && (
                                     <div className="space-y-8">
-                                        <h2 className="text-xl font-bold text-slate-800">Support Tickets</h2>
+                                        <div className="flex items-center justify-between">
+                                            <h2 className="text-xl font-bold text-slate-800">Support Tickets</h2>
+                                            <span className="text-xs font-bold text-slate-500">{clientTickets.length} ticket{clientTickets.length === 1 ? '' : 's'}</span>
+                                        </div>
                                         
                                         <div className="space-y-4">
-                                            {clientTickets.map(ticket => (
+                                            {clientTickets.map(ticket => {
+                                                const msgs = parseTicketMessages(ticket);
+                                                const isReplying = replyingTicketId === ticket.id;
+                                                return (
                                                 <div key={ticket.id} className="border border-[#E2E8F0] rounded-lg p-5 hover:shadow-md transition-shadow">
-                                                    <div className="flex justify-between items-start mb-3">
+                                                    <div className="flex justify-between items-start mb-4">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 <span className="text-xs font-bold text-slate-500">{ticket.id}</span>
@@ -842,17 +883,78 @@ const ClientManagement = () => {
                                                             {ticket.status}
                                                         </span>
                                                     </div>
-                                                    <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded border border-slate-100">{ticket.message}</p>
-                                                    
+
+                                                    {/* Conversation Thread */}
+                                                    <div className="space-y-3 max-h-72 overflow-y-auto p-3 bg-slate-50 rounded-lg border border-slate-100 flex flex-col">
+                                                        {msgs.map((m, idx) => {
+                                                            const isClient = m.sender === 'client';
+                                                            return (
+                                                                <div key={idx} className={`flex flex-col ${isClient ? 'items-start' : 'items-end'}`}>
+                                                                    <div className={`p-3 rounded-lg text-xs max-w-[85%] ${
+                                                                        isClient 
+                                                                            ? 'bg-slate-100 text-slate-800 rounded-bl-none border border-slate-200' 
+                                                                            : 'bg-[#1A4B9C] text-white rounded-br-none'
+                                                                    }`}>
+                                                                        <p className="whitespace-pre-wrap leading-relaxed">{m.text}</p>
+                                                                    </div>
+                                                                    <span className="text-[9px] text-slate-400 mt-1 font-mono">{isClient ? selectedClient?.name || 'Client' : 'Official Support'} • {m.date}</span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        {msgs.length === 0 && (
+                                                            <div className="text-center text-xs text-slate-400 italic p-2">No messages in this thread yet.</div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Reply Box */}
                                                     {ticket.status !== 'Resolved' && (
-                                                        <div className="mt-4 pt-4 border-t border-[#E2E8F0] flex justify-end">
-                                                            <button onClick={() => resolveTicket(ticket.id)} className="px-4 py-1.5 bg-[#006E1C] text-white rounded text-sm font-bold hover:bg-[#005215] transition-colors flex items-center gap-2">
-                                                                <CheckCircle size={14} /> Mark as Resolved
-                                                            </button>
-                                                        </div>
+                                                        isReplying ? (
+                                                            <div className="mt-4 pt-4 border-t border-[#E2E8F0] space-y-2">
+                                                                <textarea
+                                                                    rows="3"
+                                                                    value={replyText}
+                                                                    onChange={(e) => setReplyText(e.target.value)}
+                                                                    placeholder={`Type your official response to ${selectedClient?.name || 'the client'}...`}
+                                                                    className="w-full border border-[#E2E8F0] rounded-lg p-3 text-sm text-slate-800 bg-white focus:outline-none focus:border-[#1A4B9C]"
+                                                                />
+                                                                <div className="flex flex-wrap justify-end gap-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => { setReplyingTicketId(null); setReplyText(''); }}
+                                                                        className="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold cursor-pointer"
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleSendTicketReply(ticket, false)}
+                                                                        className="px-3 py-1.5 text-xs text-[#1A4B9C] bg-blue-100 hover:bg-blue-200 rounded-lg font-bold cursor-pointer"
+                                                                    >
+                                                                        Send Reply (In Review)
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleSendTicketReply(ticket, true)}
+                                                                        className="px-4 py-1.5 text-xs text-white bg-[#1A4B9C] hover:bg-[#153B7C] rounded-lg font-bold cursor-pointer flex items-center gap-1.5 shadow-sm"
+                                                                    >
+                                                                        <Send size={12} /> Send Reply & Resolve
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="mt-4 pt-4 border-t border-[#E2E8F0] flex flex-wrap justify-end gap-2">
+                                                                <button onClick={() => { setReplyingTicketId(ticket.id); setReplyText(''); }} className="px-4 py-1.5 bg-[#1A4B9C] hover:bg-[#153B7C] text-white rounded text-sm font-bold transition-colors flex items-center gap-2">
+                                                                    <CornerDownRight size={14} /> Reply Back
+                                                                </button>
+                                                                <button onClick={() => resolveTicket(ticket.id)} className="px-4 py-1.5 bg-[#006E1C] text-white rounded text-sm font-bold hover:bg-[#005215] transition-colors flex items-center gap-2">
+                                                                    <CheckCircle size={14} /> Mark as Resolved
+                                                                </button>
+                                                            </div>
+                                                        )
                                                     )}
                                                 </div>
-                                            ))}
+                                                );
+                                            })}
                                             {clientTickets.length === 0 && (
                                                 <div className="p-4 text-center text-sm text-slate-500 border border-[#E2E8F0] rounded-lg">No active tickets for this client.</div>
                                             )}

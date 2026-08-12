@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { ClientDataProvider, useClientData } from '../../Context/ClientDataContext';
+import { showToast } from '../../Components/Toast/globalToast';
 
 const NAV_LINKS = [
     { to: '/dashboard',            label: 'Dashboard',        icon: LayoutDashboard, end: true },
@@ -52,9 +53,9 @@ const DashboardContent = () => {
                 email: editEmail
             });
             setShowProfileModal(false);
-            alert('Profile updated successfully!');
+            showToast('Profile updated successfully!', 'success', 'Profile Updated');
         } catch (err) {
-            alert('Error updating profile: ' + err.message);
+            showToast('Error updating profile: ' + err.message, 'error', 'Update Failed');
         }
     };
 

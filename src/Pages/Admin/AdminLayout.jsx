@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import {
     LayoutDashboard, Users, BookOpen, HardHat,
-    Bell, LogOut, Building2, Search, UserPlus, FileText, Calendar, Settings, Grid, X, Check, Globe, MessageSquare
+    Bell, LogOut, Building2, Search, UserPlus, FileText, Calendar, Settings, Grid, X, Check, Globe, MessageSquare, Menu
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { AdminDataProvider, useAdminData } from '../../Context/AdminDataContext';
@@ -273,7 +273,7 @@ const AdminLayoutContent = () => {
                             onClick={() => setIsSidebarOpen(true)} 
                             className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer flex-shrink-0"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+                            <Menu size={20} />
                         </button>
                         <div ref={searchRef} className="relative w-[150px] sm:w-[280px] md:w-[350px] lg:w-[450px]">
                             <div className="flex items-center gap-2 sm:gap-3 bg-[#F3F4F6] rounded-lg px-3 sm:px-4 py-2 w-full">

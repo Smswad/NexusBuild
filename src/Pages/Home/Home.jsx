@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { supabase } from "../../lib/supabaseClient";
+import { showToast } from '../../Components/Toast/globalToast';
 import {
     MapPin,
     Wrench,
@@ -99,9 +100,9 @@ const Home = () => {
 
             const { error } = await supabase.from('leads').insert([payload]);
             if (error) {
-                alert('Submission failed: ' + error.message);
+                showToast('Submission failed: ' + error.message, 'error', 'Submission Failed');
             } else {
-                alert('Thank you! Your inquiry has been submitted. Our team will get back to you soon.');
+                showToast('Thank you! Your inquiry has been submitted. Our team will get back to you soon.', 'success', 'Inquiry Submitted');
                 setShowRemodeling(false);
                 setShowSiteVisit(false);
                 setShowGeneralInquiry(false);
@@ -114,7 +115,7 @@ const Home = () => {
                 setFormAddress('');
             }
         } catch(err) {
-            alert('Error submitting inquiry: ' + err.message);
+            showToast('Error submitting inquiry: ' + err.message, 'error', 'Submission Failed');
         }
     };
 

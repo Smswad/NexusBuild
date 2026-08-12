@@ -4,6 +4,7 @@ import {
     Building2, MapPin, Save, Trash2, Plus, UploadCloud, 
     Link as LinkIcon, AlertTriangle, Layers, Home, Check, ArrowLeft
 } from 'lucide-react';
+import { showToast } from '../../Components/Toast/globalToast';
 import { useNavigate } from 'react-router';
 import { PROJECTS } from '../../data/projectsData';
 
@@ -49,7 +50,7 @@ const AdminProjectDetails = () => {
         if (!files || files.length === 0 || !currentProject) return;
         Array.from(files).forEach(file => {
             if (!file.type.startsWith('image/')) {
-                alert('Please select an image file (PNG, JPG, SVG, WebP).');
+                showToast('Please select an image file (PNG, JPG, SVG, WebP).', 'warning', 'Invalid File');
                 return;
             }
             const reader = new FileReader();
@@ -191,9 +192,9 @@ const AdminProjectDetails = () => {
             const updatedForm = { ...formData, mapLink: finalMapLink };
             await updatePublicProject(currentProject.id, updatedForm);
             setFormData(updatedForm);
-            alert(`Project Details for "${formData.name}" saved successfully!`);
+            showToast(`Project Details for "${formData.name}" saved successfully!`, 'success', 'Project Updated');
         } catch (err) {
-            alert('Error updating project details: ' + err.message);
+            showToast('Error updating project details: ' + err.message, 'error', 'Update Failed');
         } finally {
             setIsSaving(false);
         }
@@ -203,7 +204,7 @@ const AdminProjectDetails = () => {
         const confirmName = prompt(`CAUTION: Deleting "${formData.name}" will permanently wipe all unit ledgers and site records.\n\nType DELETE to confirm:`);
         if (confirmName === 'DELETE') {
             await deletePublicProject(currentProject.id);
-            alert(`Project "${formData.name}" deleted successfully.`);
+            showToast(`Project "${formData.name}" deleted successfully.`, 'success', 'Project Deleted');
             setActiveProject('all');
             navigate('/admin');
         }
@@ -356,7 +357,7 @@ const AdminProjectDetails = () => {
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setFormData({ ...formData, image: photo.url });
-                                                        alert(`Set photo as main hero image for ${formData.name}!`);
+                                                        showToast(`Set photo as main hero image for ${formData.name}!`, 'success', 'Hero Image Updated');
                                                     }}
                                                     className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-[9px] font-bold rounded cursor-pointer"
                                                 >
