@@ -412,7 +412,7 @@ const Home = () => {
                                 <MapFrameWithSkeleton
                                     key={selectedNbData.name}
                                     title={`NexusBuild GIS Map Preview — ${selectedNbData.name}`}
-                                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedNbData.bbox}&layer=mapnik&marker=${selectedNbData.lat}%2C${selectedNbData.lng}`}
+                                    src={`https://maps.google.com/maps?q=${selectedNbData.lat},${selectedNbData.lng}&z=15&output=embed`}
                                 />
                                 {/* Fallback image background in case iframe loads slowly */}
                                 <img
