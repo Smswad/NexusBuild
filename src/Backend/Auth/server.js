@@ -32,6 +32,23 @@ app.use(express.json());
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/chat', chatRouter);
 
+app.get('/api/resolve-map', async (req, res) => {
+    const { url } = req.query;
+    if (!url) {
+        return res.status(400).json({ error: 'url parameter is required' });
+    }
+    try {
+        const response = await fetch(url, {
+            method: 'HEAD',
+            redirect: 'manual'
+        });
+        const resolvedUrl = response.headers.get('location') || url;
+        return res.status(200).json({ resolvedUrl });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+});
+
 app.post('/api/auth/register', async (req, res) => {
     const { fullName, email, phoneNumber, password } = req.body;
 
