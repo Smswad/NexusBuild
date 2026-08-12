@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
 import { Plus, Edit2, MapPin, Search, UploadCloud, Link as LinkIcon, Home, Trash2, CheckCircle2 } from 'lucide-react';
 
@@ -125,11 +125,38 @@ const AdminWebsiteProjects = () => {
         setIsModalOpen(false);
     };
 
+    const fileInputRef = useRef(null);
+
+    const processFile = (file) => {
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file (PNG, JPG, SVG, WebP).');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size exceeds 5MB limit.');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (uploadEvent) => {
+            setFormData(prev => ({ ...prev, image: uploadEvent.target.result }));
+        };
+        reader.readAsDataURL(file);
+    };
+
     const handleImageDrop = (e) => {
         e.preventDefault();
-        // In a real app, you would upload the file here and get a URL.
-        // For demonstration, we simulate success with a placeholder local URL or user's typed input.
-        alert("Image file detected! (Mock Upload)");
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            processFile(file);
+        }
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            processFile(file);
+        }
     };
 
     return (
@@ -276,11 +303,19 @@ const AdminWebsiteProjects = () => {
                                         <div 
                                             onDragOver={(e) => e.preventDefault()}
                                             onDrop={handleImageDrop}
+                                            onClick={() => fileInputRef.current?.click()}
                                             className="border-2 border-dashed border-[#c4c6ce] rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors"
                                         >
+                                            <input 
+                                                type="file" 
+                                                ref={fileInputRef} 
+                                                onChange={handleFileChange} 
+                                                accept="image/*" 
+                                                className="hidden" 
+                                            />
                                             <UploadCloud size={24} className="text-slate-400 mb-2" />
-                                            <span className="text-xs font-bold text-slate-700">Drag & Drop Image</span>
-                                            <span className="text-[10px] text-slate-500 mt-1">PNG, JPG, SVG up to 5MB</span>
+                                            <span className="text-xs font-bold text-slate-700">Click or Drag Image</span>
+                                            <span className="text-[10px] text-slate-500 mt-1">PNG, JPG, SVG, WebP up to 5MB</span>
                                         </div>
                                         {/* Direct Link Input */}
                                         <div className="flex flex-col justify-center gap-2">
