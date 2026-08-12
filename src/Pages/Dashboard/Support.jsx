@@ -116,7 +116,7 @@ const Support = () => {
                     </div>
                     
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                        <table className="w-full text-left border-collapse min-w-[600px]">
                             <thead>
                                 <tr className="bg-[#F7F9FB] border-b border-[#E2E8F0]">
                                     <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ticket ID</th>

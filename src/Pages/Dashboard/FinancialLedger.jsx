@@ -82,8 +82,8 @@ const PrintView = ({ financials, userProfile }) => (
         {/* Installment Breakdown Ledger */}
         <div className="space-y-3">
             <h3 className="font-bold text-[10px] text-slate-400 uppercase tracking-widest">Installment Breakdown</h3>
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full text-left border-collapse text-xs">
+            <div className="border border-slate-200 rounded-lg overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs min-w-[500px]">
                     <thead>
                         <tr className="border-b border-gray-300 bg-slate-100">
                             <th className="py-2.5 px-4 font-bold text-gray-600">Installment No.</th>
@@ -444,7 +444,7 @@ const FinancialLedger = () => {
                     </div>
                     
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                        <table className="w-full text-left border-collapse min-w-[600px]">
                             <thead>
                                 <tr className="bg-[#F7F9FB] border-b border-[#E2E8F0]">
                                     <th className="py-3 px-6 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Installment No.</th>

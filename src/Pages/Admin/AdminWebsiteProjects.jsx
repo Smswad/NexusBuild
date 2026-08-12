@@ -437,8 +437,8 @@ const AdminWebsiteProjects = () => {
                             <div className="flex-grow space-y-4">
                                 <h4 className="font-bold text-sm text-slate-800">Existing Units & Distinguished Flat Data</h4>
                                 
-                                <div className="border border-[#E2E8F0] rounded-xl overflow-hidden shadow-sm">
-                                    <table className="w-full text-left border-collapse">
+                                <div className="border border-[#E2E8F0] rounded-xl overflow-x-auto shadow-sm">
+                                    <table className="w-full text-left border-collapse min-w-[600px]">
                                         <thead>
                                             <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                                                 <th className="px-6 py-3">Unit</th>
