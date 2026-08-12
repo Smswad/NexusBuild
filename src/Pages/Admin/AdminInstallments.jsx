@@ -83,17 +83,17 @@ const AdminInstallments = () => {
     });
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-6 px-4 lg:px-0 text-slate-800">
             
             {/* Header */}
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end">
                 <div>
                     <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">Receivables</div>
                     <h1 className="text-2xl font-bold text-slate-800">Installment Schedules</h1>
                     <p className="text-slate-500 text-sm mt-1">Monitor upcoming dues, collected amounts, and overdue payments.</p>
                 </div>
-                <div className="flex gap-3">
-                    <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
+                <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+                    <div className="flex-1 sm:flex-none flex items-center justify-between gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
                         <Filter size={14} className="text-slate-400" />
                         <select 
                             value={statusFilter}
@@ -107,14 +107,14 @@ const AdminInstallments = () => {
                             <option value="Overdue">Overdue</option>
                         </select>
                     </div>
-                    <button onClick={handleReminders} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors cursor-pointer">
+                    <button onClick={handleReminders} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors cursor-pointer flex-shrink-0">
                         <BellRing size={14} /> Send Reminders
                     </button>
                 </div>
             </div>
 
             {/* Stats Row */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
                     <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Expected</div>
                     <div className="text-2xl font-extrabold text-slate-800 mt-1">৳ {formatBDT(totalExpected)}</div>
@@ -139,26 +139,27 @@ const AdminInstallments = () => {
 
             {/* Installments Table */}
             <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm overflow-hidden mb-10">
-                <div className="px-6 py-4 border-b border-[#E2E8F0] flex justify-between items-center bg-slate-50">
+                <div className="px-6 py-4 border-b border-[#E2E8F0] flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center bg-slate-50">
                     <h3 className="text-sm font-bold text-slate-800">Payment Master List</h3>
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-auto">
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                             <input 
                                 type="text" 
                                 placeholder="Search client, unit..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-1.5 border border-[#E2E8F0] rounded-lg text-xs w-64 outline-none focus:border-[#1A4B9C]"
+                                className="pl-9 pr-4 py-1.5 border border-[#E2E8F0] rounded-lg text-xs w-full sm:w-64 outline-none focus:border-[#1A4B9C] bg-white text-slate-800"
                             />
                         </div>
-                        <button onClick={exportToCSV} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 font-bold shadow-sm transition-colors text-xs">
+                        <button onClick={exportToCSV} className="flex items-center justify-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 font-bold shadow-sm transition-colors text-xs cursor-pointer w-full sm:w-auto flex-shrink-0">
                             <Download size={12} /> Export CSV
                         </button>
                     </div>
                 </div>
 
-                <table className="w-full text-left border-collapse">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[750px]">
                     <thead>
                         <tr className="bg-white border-b border-[#E2E8F0] text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             <th className="px-6 py-3">Client & Unit</th>
@@ -182,9 +183,9 @@ const AdminInstallments = () => {
                                     <div className="font-bold text-slate-800 text-xs">{inst.client}</div>
                                     <div className="text-[10px] text-slate-500">{inst.unit}</div>
                                 </td>
-                                <td className="px-6 py-3 text-xs font-bold text-slate-800">
-                                    {inst.id}
-                                </td>
+                                 <td className="px-6 py-3 text-xs font-mono text-slate-500 max-w-[120px] truncate" title={inst.id}>
+                                     {inst.id.slice(0, 8)}...
+                                 </td>
                                 <td className="px-6 py-3 text-xs text-slate-600">
                                     {inst.dueDate}
                                 </td>
@@ -204,7 +205,8 @@ const AdminInstallments = () => {
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
 
             {/* View Details Modal */}
