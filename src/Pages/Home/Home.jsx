@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { supabase } from "../../lib/supabaseClient";
 import {
     MapPin,
     Wrench,
@@ -62,6 +63,60 @@ const MapFrameWithSkeleton = ({ src, title }) => {
 
 const Home = () => {
     const [selectedNeighborhood, setSelectedNeighborhood] = useState("Chashiara");
+    const [showRemodeling, setShowRemodeling] = useState(false);
+    const [showSiteVisit, setShowSiteVisit] = useState(false);
+    const [showGeneralInquiry, setShowGeneralInquiry] = useState(false);
+
+    // Form inputs state
+    const [formName, setFormName] = useState('');
+    const [formEmail, setFormEmail] = useState('');
+    const [formPhone, setFormPhone] = useState('');
+    const [formDescription, setFormDescription] = useState('');
+    const [formPlotSize, setFormPlotSize] = useState('');
+    const [formAddress, setFormAddress] = useState('');
+    const [formProject, setFormProject] = useState('Sardar Tower – Block A');
+
+    const handleInquirySubmit = async (type, details) => {
+        try {
+            const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            let interestText = details.description;
+            if (type === 'Remodeling') {
+                interestText = `Remodeling Inquiry: Plot Size - ${details.plotSize}, Address - ${details.address}. Requirements: ${details.description}`;
+            } else if (type === 'Site Visit') {
+                interestText = `Site Visit Schedule: Project - ${details.project}. Comments: ${details.description}`;
+            } else {
+                interestText = `General Inquiry: ${details.description}`;
+            }
+
+            const payload = {
+                name: details.name,
+                phone: details.phone || 'N/A',
+                interest: `${interestText} (Email: ${details.email || 'N/A'})`,
+                source: `${type} Inquiry`,
+                status: 'New',
+                date: dateStr
+            };
+
+            const { error } = await supabase.from('leads').insert([payload]);
+            if (error) {
+                alert('Submission failed: ' + error.message);
+            } else {
+                alert('Thank you! Your inquiry has been submitted. Our team will get back to you soon.');
+                setShowRemodeling(false);
+                setShowSiteVisit(false);
+                setShowGeneralInquiry(false);
+                // Reset fields
+                setFormName('');
+                setFormEmail('');
+                setFormPhone('');
+                setFormDescription('');
+                setFormPlotSize('');
+                setFormAddress('');
+            }
+        } catch(err) {
+            alert('Error submitting inquiry: ' + err.message);
+        }
+    };
 
     const neighborhoods = [
         {
@@ -425,14 +480,25 @@ const Home = () => {
                             </div>
                         </div>
 
-                        <div>
-                            <Link
-                                to="/contact"
-                                className="inline-flex items-center gap-3 px-8 py-4 bg-[#fe762a] hover:bg-[#a14000] text-[#5e2200] hover:text-white text-[14px] font-bold transition-colors duration-200 min-h-[50px] rounded-[4px]"
+                        <div className="flex flex-wrap gap-4 pt-4">
+                            <button
+                                onClick={() => setShowRemodeling(true)}
+                                className="px-6 py-3.5 bg-[#fe762a] hover:bg-[#a14000] text-[#5e2200] hover:text-white text-[13px] font-extrabold transition-colors duration-200 rounded-[4px] shadow-md cursor-pointer flex items-center gap-1.5"
                             >
-                                Inquire for Service
-                                <ArrowRight size={16} />
-                            </Link>
+                                Request Remodeling <ArrowRight size={14} />
+                            </button>
+                            <button
+                                onClick={() => setShowSiteVisit(true)}
+                                className="px-6 py-3.5 bg-white border-2 border-[#fe762a] text-[#fe762a] hover:bg-[#fe762a] hover:text-white text-[13px] font-extrabold transition-colors duration-200 rounded-[4px] cursor-pointer flex items-center gap-1.5"
+                            >
+                                Schedule Site Visit <ArrowRight size={14} />
+                            </button>
+                            <button
+                                onClick={() => setShowGeneralInquiry(true)}
+                                className="px-6 py-3.5 bg-[#001E3D] text-white hover:bg-slate-800 text-[13px] font-extrabold transition-colors duration-200 rounded-[4px] cursor-pointer flex items-center gap-1.5"
+                            >
+                                General Inquiry <ArrowRight size={14} />
+                            </button>
                         </div>
                     </div>
 
@@ -574,6 +640,159 @@ const Home = () => {
                         </div>
                     </div>
             </section> */}
+            {/* Remodeling Request Modal */}
+            {showRemodeling && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+                        <div className="bg-[#001E3D] px-6 py-4 text-white flex justify-between items-center">
+                            <h3 className="font-bold text-base">Request Professional Remodeling</h3>
+                            <button onClick={() => setShowRemodeling(false)} className="text-slate-400 hover:text-white font-bold text-lg cursor-pointer">×</button>
+                        </div>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleInquirySubmit('Remodeling', {
+                                name: formName,
+                                email: formEmail,
+                                phone: formPhone,
+                                description: formDescription,
+                                plotSize: formPlotSize,
+                                address: formAddress
+                            });
+                        }} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name *</label>
+                                <input required type="text" value={formName} onChange={e => setFormName(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Phone Number *</label>
+                                    <input required type="text" value={formPhone} onChange={e => setFormPhone(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address</label>
+                                    <input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Plot Size (e.g. 3 Katha)</label>
+                                    <input type="text" value={formPlotSize} onChange={e => setFormPlotSize(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Site Location Address</label>
+                                    <input type="text" value={formAddress} onChange={e => setFormAddress(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Remodeling Scope Details *</label>
+                                <textarea required value={formDescription} onChange={e => setFormDescription(e.target.value)} rows={3} placeholder="Please detail the modifications or redesign you need..." className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]"></textarea>
+                            </div>
+                            <div className="pt-2 flex justify-end gap-3">
+                                <button type="button" onClick={() => setShowRemodeling(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-[#fe762a] hover:bg-[#a14000] text-white rounded text-xs font-bold cursor-pointer">Submit Request</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Site Visit Schedule Modal */}
+            {showSiteVisit && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+                        <div className="bg-[#001E3D] px-6 py-4 text-white flex justify-between items-center">
+                            <h3 className="font-bold text-base">Schedule Site Visit</h3>
+                            <button onClick={() => setShowSiteVisit(false)} className="text-slate-400 hover:text-white font-bold text-lg cursor-pointer">×</button>
+                        </div>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleInquirySubmit('Site Visit', {
+                                name: formName,
+                                email: formEmail,
+                                phone: formPhone,
+                                description: formDescription,
+                                project: formProject
+                            });
+                        }} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name *</label>
+                                <input required type="text" value={formName} onChange={e => setFormName(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Phone Number *</label>
+                                    <input required type="text" value={formPhone} onChange={e => setFormPhone(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address</label>
+                                    <input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Select Project to Visit *</label>
+                                <select value={formProject} onChange={e => setFormProject(e.target.value)} className="w-full px-3 py-2 border border-[#E2E8F0] rounded text-sm text-slate-800 focus:outline-none bg-white">
+                                    <option value="Sardar Tower – Block A">Sardar Tower (Chashiara)</option>
+                                    <option value="Shapla Green Fields">Shapla Green Fields (Chashiara)</option>
+                                    <option value="Shamabai Biponi Bitan">Shamabai Biponi Bitan (Narayanganj Sadar)</option>
+                                    <option value="Bhuiyan Heights">Bhuiyan Heights (Narayanganj Sadar)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Preferred Date &amp; Notes *</label>
+                                <textarea required value={formDescription} onChange={e => setFormDescription(e.target.value)} rows={3} placeholder="Please mention preferred date/time and any specific instructions..." className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]"></textarea>
+                            </div>
+                            <div className="pt-2 flex justify-end gap-3">
+                                <button type="button" onClick={() => setShowSiteVisit(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-[#fe762a] hover:bg-[#a14000] text-white rounded text-xs font-bold cursor-pointer">Schedule Visit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* General Inquiry Modal */}
+            {showGeneralInquiry && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+                        <div className="bg-[#001E3D] px-6 py-4 text-white flex justify-between items-center">
+                            <h3 className="font-bold text-base">Submit General Inquiry</h3>
+                            <button onClick={() => setShowGeneralInquiry(false)} className="text-slate-400 hover:text-white font-bold text-lg cursor-pointer">×</button>
+                        </div>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleInquirySubmit('General', {
+                                name: formName,
+                                email: formEmail,
+                                phone: formPhone,
+                                description: formDescription
+                            });
+                        }} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name *</label>
+                                <input required type="text" value={formName} onChange={e => setFormName(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Phone Number *</label>
+                                    <input required type="text" value={formPhone} onChange={e => setFormPhone(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address</label>
+                                    <input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Inquiry / Message *</label>
+                                <textarea required value={formDescription} onChange={e => setFormDescription(e.target.value)} rows={4} placeholder="Please type your message or question here..." className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]"></textarea>
+                            </div>
+                            <div className="pt-2 flex justify-end gap-3">
+                                <button type="button" onClick={() => setShowGeneralInquiry(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-[#fe762a] hover:bg-[#a14000] text-white rounded text-xs font-bold cursor-pointer">Submit Inquiry</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

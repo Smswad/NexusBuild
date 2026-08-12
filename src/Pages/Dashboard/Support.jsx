@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Send, MessageSquare, ChevronDown, ChevronUp, Clock, HelpCircle, Phone, Mail } from 'lucide-react';
 import { useClientData } from '../../Context/ClientDataContext';
+import { useDatabase } from '../../Context/DatabaseContext';
 
 const Support = () => {
     const { loading, support, submitTicket } = useClientData();
@@ -20,18 +21,19 @@ const Support = () => {
             </div>
         );
     }
-
+    const db = useDatabase();
     const [openFaq, setOpenFaq] = useState(0);
     const [inquiryType, setInquiryType] = useState('General Question');
     const [subject, setSubject] = useState('');
-
-    const handleTicketSubmit = (e) => {
+    const [expandedTicketId, setExpandedTicketId] = useState(null);
+    const [replyText, setReplyText] = useState('');
+    const handleTicketSubmit = async (e) => {
         e.preventDefault();
         if (!subject.trim()) {
             alert('Please enter a subject for your ticket.');
             return;
         }
-        submitTicket(inquiryType, subject, '');
+        await submitTicket(inquiryType, subject, '');
         setSubject('');
     };
 
@@ -123,32 +125,94 @@ const Support = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#E2E8F0]">
-                                {tickets.map((t) => (
-                                    <tr key={t.id} className="hover:bg-slate-50">
-                                        <td className="py-4 px-6 font-mono text-sm font-bold text-[#003178]">{t.id}</td>
-                                        <td className="py-4 px-6">
-                                            <div className="text-sm font-bold text-slate-800">{t.subject}</div>
-                                            <div className="text-xs text-slate-500 mt-1">{t.date}</div>
-                                            {(t.adminReply || t.admin_reply) && (
-                                                <div className="mt-2.5 bg-[#E1EFFE]/70 border border-[#003178]/20 rounded-lg p-3 text-xs text-[#003178]">
-                                                    <div className="font-bold text-[11px] flex items-center gap-1.5 mb-1 text-[#003178]">
-                                                        <MessageSquare size={13} /> Official Support Response:
+                                {tickets.map((t) => {
+                                    const isExpanded = expandedTicketId === t.id;
+                                    
+                                    // Parse thread messages
+                                    let msgs = [];
+                                    try {
+                                        if (t.message && t.message.trim().startsWith('[')) {
+                                            msgs = JSON.parse(t.message);
+                                        } else {
+                                            msgs = [];
+                                            if (t.message) {
+                                                msgs.push({ sender: 'client', text: t.message, date: t.date || 'Original Date' });
+                                            }
+                                            if (t.adminReply || t.admin_reply) {
+                                                msgs.push({ sender: 'admin', text: t.adminReply || t.admin_reply, date: t.date || 'Original Date' });
+                                            }
+                                        }
+                                    } catch(e) {
+                                        msgs = [{ sender: 'client', text: t.message, date: t.date }];
+                                    }
+
+                                    return (
+                                        <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
+                                            <td className="py-4 px-6 font-mono text-sm font-bold text-[#003178] align-top">{t.id}</td>
+                                            <td className="py-4 px-6">
+                                                <div className="flex justify-between items-start gap-4 cursor-pointer" onClick={() => setExpandedTicketId(isExpanded ? null : t.id)}>
+                                                    <div>
+                                                        <div className="text-sm font-bold text-slate-800">{t.subject}</div>
+                                                        <div className="text-xs text-slate-500 mt-1">{t.date}</div>
                                                     </div>
-                                                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">{t.adminReply || t.admin_reply}</p>
+                                                    <span className="text-[11px] font-bold text-[#003178] hover:underline flex items-center gap-0.5">
+                                                        {isExpanded ? 'Hide Thread' : 'View Thread'} ({msgs.length})
+                                                    </span>
                                                 </div>
-                                            )}
-                                        </td>
-                                        <td className="py-4 px-6 text-right">
-                                            <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${
-                                                t.status === 'Resolved' 
-                                                    ? 'bg-slate-100 text-slate-600' 
-                                                    : 'bg-[#E1EFFE] text-[#1E429F]'
-                                            }`}>
-                                                {t.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
+
+                                                {/* Expanded Thread Conversation */}
+                                                {isExpanded && (
+                                                    <div className="mt-4 border-t border-slate-100 pt-4 space-y-4">
+                                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Message Conversation:</div>
+                                                        <div className="space-y-3 max-h-60 overflow-y-auto p-3 bg-slate-50 rounded-lg border border-slate-100 flex flex-col">
+                                                            {msgs.map((m, idx) => {
+                                                                const isClient = m.sender === 'client';
+                                                                return (
+                                                                    <div key={idx} className={`flex flex-col mb-2 ${isClient ? 'items-end' : 'items-start'}`}>
+                                                                        <div className={`p-3 rounded-lg text-xs max-w-md ${isClient ? 'bg-[#003178] text-white rounded-br-none' : 'bg-slate-100 text-slate-800 rounded-bl-none border border-slate-200'}`}>
+                                                                            <p className="whitespace-pre-wrap leading-relaxed">{m.text}</p>
+                                                                        </div>
+                                                                        <span className="text-[9px] text-slate-400 mt-1 font-mono">{isClient ? 'You' : 'Official Support'} • {m.date}</span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                        
+                                                        {t.status !== 'Resolved' && (
+                                                            <form onSubmit={async (e) => {
+                                                                e.preventDefault();
+                                                                if (!replyText.trim()) return;
+                                                                await db.replyToTicket(t.id, replyText.trim(), false, 'client');
+                                                                setReplyText('');
+                                                                alert('Reply sent successfully!');
+                                                            }} className="flex gap-2 mt-2">
+                                                                <input 
+                                                                    type="text" 
+                                                                    value={replyText}
+                                                                    onChange={(e) => setReplyText(e.target.value)}
+                                                                    placeholder="Type your response to support..."
+                                                                    className="flex-1 bg-white border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#003178] focus:ring-1 focus:ring-[#003178]"
+                                                                />
+                                                                <button type="submit" className="bg-[#003178] hover:bg-[#0A2550] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 cursor-pointer">
+                                                                    <Send size={12} /> Send
+                                                                </button>
+                                                            </form>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="py-4 px-6 text-right align-top">
+                                                <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${
+                                                    t.status === 'Resolved' 
+                                                        ? 'bg-slate-100 text-slate-600 border border-slate-200' 
+                                                        : 'bg-[#E1EFFE] text-[#1E429F] border border-blue-200'
+                                                }`}>
+                                                    {t.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

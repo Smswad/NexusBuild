@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { Mail, Phone, MapPin } from "lucide-react";
 
@@ -15,8 +15,18 @@ import { Mail, Phone, MapPin } from "lucide-react";
 //     Right: Security | Sitemap | Cookie Policy
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { useDatabase } from "../../Context/DatabaseContext";
+
 const Footer = () => {
     const [email, setEmail] = useState("");
+    const { systemSettings } = useDatabase();
+
+    const currentSettings = systemSettings || {
+        companyName: 'Reliance Housing Ltd.',
+        headOfficeAddress: 'Shamabay New Market, 259 B B Road, Narayanganj',
+        supportEmail: 'info@reliancehousing.com',
+        supportPhone: '+880 1234 567890'
+    };
 
     return (
         <footer className="bg-[#000f22] text-white border-t border-[#0a2540]">
@@ -78,16 +88,16 @@ const Footer = () => {
                         <li className="flex items-start gap-2">
                             <MapPin size={12} className="text-white mt-0.5 flex-shrink-0" />
                             <span className="text-[12px] font-medium text-white leading-snug">
-                                Office: Shamabay New Market, 259 B B Road, Narayanganj
+                                Office: {currentSettings.headOfficeAddress}
                             </span>
                         </li>
                         <li className="flex items-center gap-2">
                             <Phone size={12} className="text-white flex-shrink-0" />
-                            <span className="text-[12px] font-medium text-white">Contact: +880 1234 567890</span>
+                            <span className="text-[12px] font-medium text-white">Contact: {currentSettings.supportPhone}</span>
                         </li>
                         <li className="flex items-center gap-2">
                             <Mail size={12} className="text-white flex-shrink-0" />
-                            <span className="text-[12px] font-medium text-white">info@reliancehousing.com</span>
+                            <span className="text-[12px] font-medium text-white">{currentSettings.supportEmail}</span>
                         </li>
                     </ul>
                 </div>
@@ -132,7 +142,7 @@ const Footer = () => {
             <div className="border-t border-white max-w-[1280px] mx-auto px-6 lg:px-12 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* Figma: "© 2026 Reliance Housing Ltd. All rights reserved." */}
                 <span className="text-[12px] font-medium text-white">
-                    © 2026 Reliance Housing Ltd. All rights reserved.
+                    © 2026 {currentSettings.companyName}. All rights reserved.
                 </span>
                 {/* Figma: right links — Security | Sitemap | Cookie Policy */}
                 <div className="flex items-center gap-6">

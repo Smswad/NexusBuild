@@ -3,7 +3,7 @@ import { Search, Filter, Download, BellRing, ChevronRight, X } from 'lucide-reac
 import { useAdminData } from '../../Context/AdminDataContext';
 
 const AdminInstallments = () => {
-    const { installments, properties, clients } = useAdminData();
+    const { installments, properties, clients, updateInstallment } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [selectedInstallment, setSelectedInstallment] = useState(null);
@@ -170,7 +170,13 @@ const AdminInstallments = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E2E8F0]">
-                        {filteredInstallments.map(inst => (
+                        {[...filteredInstallments].sort((a, b) => {
+                            const aPaid = (a.status || '').toLowerCase() === 'paid';
+                            const bPaid = (b.status || '').toLowerCase() === 'paid';
+                            if (aPaid && !bPaid) return 1;
+                            if (!aPaid && bPaid) return -1;
+                            return new Date(a.dueDate || a.due_date) - new Date(b.dueDate || b.due_date);
+                        }).map(inst => (
                             <tr key={inst.id} className="hover:bg-slate-50 transition-colors">
                                 <td className="px-6 py-3">
                                     <div className="font-bold text-slate-800 text-xs">{inst.client}</div>
@@ -239,7 +245,25 @@ const AdminInstallments = () => {
                                 </div>
                             </div>
                             <div className="pt-4 flex justify-end gap-3">
-                                <button onClick={() => setSelectedInstallment(null)} className="px-4 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold hover:bg-[#153B7C]">Close</button>
+                                {selectedInstallment.status !== 'Paid' && (
+                                    <button 
+                                        onClick={async () => {
+                                            if (window.confirm("Mark this installment as PAID? This will automatically update client balances and record a bank payment transaction.")) {
+                                                await updateInstallment(selectedInstallment.id, {
+                                                    status: 'Paid',
+                                                    statusPill: 'bg-[#DEF7EC] text-[#03543F]',
+                                                    active: false
+                                                });
+                                                setSelectedInstallment(null);
+                                                alert('Installment marked as Paid and ledger updated successfully!');
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors cursor-pointer"
+                                    >
+                                        Mark as Paid
+                                    </button>
+                                )}
+                                <button onClick={() => setSelectedInstallment(null)} className="px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors cursor-pointer">Close</button>
                             </div>
                         </div>
                     </div>

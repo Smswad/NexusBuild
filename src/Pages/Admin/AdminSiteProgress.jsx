@@ -72,23 +72,16 @@ const AdminSiteProgress = () => {
 
     const defaultPhases = [
         { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
-        { id: 2, name: 'Structural Basement & Columns', date: 'Completed Feb 24', progress: 100 },
-        { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 85 },
-        { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 10 },
+        { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 0 },
+        { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
+        { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 },
     ];
 
     const phases = selectedProject?.phases || defaultPhases;
-    const incompletePhase = phases.find(p => p.progress < 100);
-    const currentPhase = selectedProject?.progressPhase && selectedProject.progressPhase <= phases.length 
-        ? selectedProject.progressPhase 
-        : (incompletePhase ? incompletePhase.id : phases.length);
+    const currentPhase = selectedProject?.progressPhase || selectedProject?.progress_phase || 1;
 
     const handlePhaseChange = async (phaseId) => {
-        updateProjectPhase(selectedProject.id, phaseId);
-        const updatedPhases = phases.map(p => p.id === phaseId - 1 ? { ...p, progress: 100 } : p);
-        if (updateProjectMilestones) {
-            await updateProjectMilestones(selectedProject.id, updatedPhases);
-        }
+        await updateProjectPhase(selectedProject.id, phaseId);
     };
 
     const handleSavePhaseEdit = async (e) => {
@@ -174,8 +167,8 @@ const AdminSiteProgress = () => {
 
                     <div className="relative pl-8 space-y-10 before:content-[''] before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E2E8F0]">
                         {phases.map((phase) => {
-                            const isCompleted = phase.progress >= 100;
-                            const isActive = phase.id === currentPhase;
+                            const isCompleted = phase.id < currentPhase || phase.progress >= 100;
+                            const isActive = phase.id === currentPhase && phase.progress < 100;
                             return (
                                 <div key={phase.id} className="relative group">
                                     <div className={`absolute -left-[37px] top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center bg-white ${isCompleted ? 'border-emerald-500 text-emerald-500' : isActive ? 'border-[#1A4B9C] text-[#1A4B9C]' : 'border-slate-300 text-slate-300'}`}>
@@ -421,9 +414,6 @@ const AdminSiteProgress = () => {
                     <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-sm font-bold text-slate-800">Saved Site Photos ({currentPhotos.length})</h3>
-                            <span className="text-[9px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                Database Persisted
-                            </span>
                         </div>
                         {currentPhotos.length > 0 ? (
                             <div className="grid grid-cols-2 gap-2">

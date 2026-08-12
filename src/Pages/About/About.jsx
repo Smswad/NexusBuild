@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../Components/Header/Navbar';
 import Footer from '../../Components/Footer/Footer';
+import { useDatabase } from '../../Context/DatabaseContext';
 
 // ─── About ────────────────────────────────────────────────────────────────────
 // Figma frame: 1280 × 2598, node-id=1:197
@@ -86,6 +87,8 @@ const TEAM = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 const About = () => {
+    const { systemSettings } = useDatabase();
+    const headAddress = systemSettings?.headOfficeAddress || 'Shamabay New Market, 259 B B Road, Narayanganj';
     return (
         <div className="flex flex-col min-h-screen font-[Inter,sans-serif] bg-[#f3f4f5]">
             <Navbar />
@@ -427,8 +430,7 @@ const About = () => {
                                     </span>
                                 </div>
                                 <p className="text-[14px] font-normal text-white leading-[22px]">
-                                    Shamabay New Market<br />
-                                    259 B B Road, Narayanganj
+                                    {headAddress}
                                 </p>
                             </div>
                             <div className="border border-white/10 p-6">

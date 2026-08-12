@@ -20,6 +20,53 @@ export const DatabaseProvider = ({ children }) => {
     // Mock public projects (use static PROJECTS list as default fallback)
     const [publicProjects, setPublicProjects] = useState(PROJECTS);
 
+    // Global System Settings State
+    const [systemSettings, setSystemSettings] = useState(() => {
+        try {
+            const saved = localStorage.getItem('system_settings');
+            if (saved) return JSON.parse(saved);
+        } catch(e) {}
+        return {
+            companyName: 'Reliance Housing Ltd.',
+            regNumber: 'REG-2023-998811',
+            headOfficeAddress: 'Shamabay New Market, 259 B B Road, Narayanganj',
+            supportEmail: 'info@reliancehousing.com',
+            supportPhone: '+880 1234 567890'
+        };
+    });
+
+    const updateSystemSettings = async (newSettings) => {
+        setSystemSettings(newSettings);
+        localStorage.setItem('system_settings', JSON.stringify(newSettings));
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('settings_updated', { detail: newSettings }));
+
+        try {
+            await supabase.from('system_settings').upsert({ 
+                id: 'global', 
+                settings: newSettings, 
+                updated_at: new Date().toISOString() 
+            });
+        } catch(e) {
+            console.error("Failed to sync settings to Supabase:", e);
+        }
+    };
+
+    useEffect(() => {
+        const handleSync = () => {
+            try {
+                const saved = localStorage.getItem('system_settings');
+                if (saved) setSystemSettings(JSON.parse(saved));
+            } catch(e) {}
+        };
+        window.addEventListener('storage', handleSync);
+        window.addEventListener('settings_updated', handleSync);
+        return () => {
+            window.removeEventListener('storage', handleSync);
+            window.removeEventListener('settings_updated', handleSync);
+        };
+    }, []);
+
     // Fetch everything on mount
     useEffect(() => {
         const fetchAllData = async () => {
@@ -27,7 +74,7 @@ export const DatabaseProvider = ({ children }) => {
             try {
                 const [
                     resClients, resLeads, resApps, resProjects,
-                    resProps, resInsts, resTrans, resUpdates, resTickets, resPublicProjects, resPhotos
+                    resProps, resInsts, resTrans, resUpdates, resTickets, resPublicProjects, resPhotos, resSettings
                 ] = await Promise.all([
                     supabase.from('clients').select('*'),
                     supabase.from('leads').select('*'),
@@ -39,8 +86,14 @@ export const DatabaseProvider = ({ children }) => {
                     supabase.from('site_updates').select('*'),
                     supabase.from('tickets').select('*'),
                     supabase.from('public_projects').select('*'),
-                    supabase.from('project_photos').select('*')
+                    supabase.from('project_photos').select('*'),
+                    supabase.from('system_settings').select('*').eq('id', 'global').maybeSingle()
                 ]);
+
+                if (resSettings?.data?.settings) {
+                    setSystemSettings(resSettings.data.settings);
+                    localStorage.setItem('system_settings', JSON.stringify(resSettings.data.settings));
+                }
 
                 if (resPhotos.data && resPhotos.data.length > 0) {
                     setProjectPhotos(resPhotos.data.map(p => ({
@@ -58,7 +111,7 @@ export const DatabaseProvider = ({ children }) => {
                 }
 
                 if (resClients.data) setClients(resClients.data);
-                setLeads([]);
+                if (resLeads.data) setLeads(resLeads.data);
                 if (resApps.data) {
                     setApplications(resApps.data.map(app => {
                         try {
@@ -84,7 +137,7 @@ export const DatabaseProvider = ({ children }) => {
                     area: '1,850 sq. ft',
                     handoverDate: 'Dec 2026',
                     totalUnits: p.totalUnits || 32,
-                    progressPhase: 3
+                    progressPhase: 2
                 }));
 
                 const rawProjects = (resProjects.data && resProjects.data.length > 0) ? resProjects.data : defaultProjectsList;
@@ -102,15 +155,22 @@ export const DatabaseProvider = ({ children }) => {
 
                     const defaultPhases = [
                         { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
-                        { id: 2, name: 'Structural Basement & Columns', date: 'Completed Feb 24', progress: 100 },
-                        { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 85 },
+                        { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 0 },
+                        { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
                         { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 },
                     ];
 
-                    const activePhases = localMilestones || p.phases || defaultPhases;
-                    const incomplete = activePhases.find(ph => ph.progress < 100);
-                    const derivedPhase = incomplete ? incomplete.id : activePhases.length;
-                    const finalPhase = (savedPhase !== null && savedPhase <= activePhases.length) ? savedPhase : derivedPhase;
+                    const dbPhases = (typeof p.phases === 'string' ? JSON.parse(p.phases) : p.phases) || localMilestones || defaultPhases;
+                    const dbPhase = p.progress_phase || p.progressPhase;
+                    const finalPhase = (savedPhase !== null && !isNaN(savedPhase) && savedPhase > 0)
+                        ? savedPhase
+                        : (dbPhase ? parseInt(dbPhase) : 1);
+
+                    const activePhases = dbPhases.map(ph => {
+                        if (ph.id < finalPhase && ph.progress < 100) return { ...ph, progress: 100 };
+                        if (ph.id > finalPhase) return { ...ph, progress: 0 };
+                        return ph;
+                    });
 
                     return { 
                         ...catalogMatch,
@@ -169,11 +229,25 @@ export const DatabaseProvider = ({ children }) => {
                     }
                 }
                 if (resTickets.data && resTickets.data.length > 0) {
-                    setTickets(resTickets.data.map(t => ({
-                        ...t,
-                        clientId: t.client_id || t.clientId,
-                        adminReply: t.admin_reply || t.adminReply
-                    })));
+                    setTickets(resTickets.data.map(t => {
+                        let parsedReply = null;
+                        try {
+                            if (t.message && t.message.trim().startsWith('[')) {
+                                const msgs = JSON.parse(t.message);
+                                const adminMsgs = msgs.filter(m => m.sender === 'admin');
+                                if (adminMsgs.length > 0) {
+                                    parsedReply = adminMsgs[adminMsgs.length - 1].text;
+                                }
+                            }
+                        } catch(e) {}
+
+                        return {
+                            ...t,
+                            clientId: t.client_id || t.clientId,
+                            adminReply: parsedReply || t.admin_reply || t.adminReply,
+                            admin_reply: parsedReply || t.admin_reply || t.adminReply
+                        };
+                    }));
                 } else {
                     try {
                         const local = JSON.parse(localStorage.getItem('all_tickets') || '[]');
@@ -230,58 +304,75 @@ export const DatabaseProvider = ({ children }) => {
         };
 
         fetchAllData();
+
+        const handleStorageChange = (e) => {
+            if (e.key && (e.key.startsWith('project_') || e.key.startsWith('all_'))) {
+                fetchAllData();
+            }
+        };
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('focus', fetchAllData);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('focus', fetchAllData);
+        };
     }, []);
 
     // ─── Global Action Methods (Writes to Supabase) ─────────
 
     const updateProjectPhase = async (projectId, newPhase) => {
         const numericPhase = parseInt(newPhase) || 1;
+        let calculatedPhases = null;
 
         setProjects(prev => prev.map(p => {
             if (p.id !== projectId) return p;
             const currentPhases = p.phases || [
                 { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
-                { id: 2, name: 'Structural Basement & Columns', date: 'Completed Feb 24', progress: 100 },
-                { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 85 },
+                { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 0 },
+                { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
                 { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 },
             ];
 
-            const updatedPhases = currentPhases.map(ph => {
+            calculatedPhases = currentPhases.map(ph => {
                 if (ph.id < numericPhase) return { ...ph, progress: 100 };
-                if (ph.id === numericPhase) return { ...ph, progress: ph.progress === 100 ? 85 : (ph.progress || 85) };
+                if (ph.id === numericPhase) return { ...ph, progress: ph.progress >= 100 ? 0 : ph.progress };
                 return { ...ph, progress: 0 };
             });
 
             try {
                 localStorage.setItem(`project_phase_${projectId}`, String(numericPhase));
-                localStorage.setItem(`project_milestones_${projectId}`, JSON.stringify(updatedPhases));
+                localStorage.setItem(`project_milestones_${projectId}`, JSON.stringify(calculatedPhases));
             } catch (e) {}
 
             return {
                 ...p,
                 progressPhase: numericPhase,
                 progress_phase: numericPhase,
-                phases: updatedPhases
+                phases: calculatedPhases
             };
         }));
 
         try {
-            await supabase.from('projects').update({ progress_phase: numericPhase }).eq('id', projectId);
+            await supabase.from('projects').update({ progress_phase: numericPhase, phases: calculatedPhases }).eq('id', projectId);
         } catch (err) {
             console.warn("Supabase progress_phase update note:", err);
         }
     };
 
     const updateProjectMilestones = async (projectId, updatedPhases) => {
-        const incomplete = updatedPhases.find(ph => ph.progress < 100);
-        const derivedPhase = incomplete ? incomplete.id : updatedPhases.length;
+        const firstIncomplete = (updatedPhases || []).find(ph => ph.progress < 100);
+        const derivedPhase = firstIncomplete ? firstIncomplete.id : ((updatedPhases && updatedPhases.length) ? updatedPhases.length + 1 : 1);
 
-        setProjects(prev => prev.map(p => p.id === projectId ? { 
-            ...p, 
-            phases: updatedPhases,
-            progressPhase: derivedPhase,
-            progress_phase: derivedPhase
-        } : p));
+        setProjects(prev => prev.map(p => {
+            if (p.id !== projectId) return p;
+            return {
+                ...p,
+                phases: updatedPhases,
+                progressPhase: derivedPhase,
+                progress_phase: derivedPhase
+            };
+        }));
         
         try {
             localStorage.setItem(`project_milestones_${projectId}`, JSON.stringify(updatedPhases));
@@ -308,20 +399,50 @@ export const DatabaseProvider = ({ children }) => {
         } catch(err) {}
     };
 
-    const replyToTicket = async (ticketId, replyMsg, resolve = true) => {
+    const replyToTicket = async (ticketId, replyMsg, resolve = true, sender = 'admin') => {
+        const ticket = tickets.find(t => t.id === ticketId);
+        if (!ticket) return;
+
+        let msgs = [];
+        try {
+            if (ticket.message && ticket.message.trim().startsWith('[')) {
+                msgs = JSON.parse(ticket.message);
+            } else {
+                msgs = [
+                    { sender: 'client', text: ticket.message || 'Support inquiry', date: ticket.date }
+                ];
+                if (ticket.adminReply || ticket.admin_reply) {
+                    msgs.push({ sender: 'admin', text: ticket.adminReply || ticket.admin_reply, date: ticket.date });
+                }
+            }
+        } catch (e) {
+            msgs = [{ sender: 'client', text: ticket.message || '', date: ticket.date }];
+        }
+
+        const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        msgs.push({ sender, text: replyMsg, date: dateStr });
+
         const updatedStatus = resolve ? 'Resolved' : 'In Review';
+        const serialized = JSON.stringify(msgs);
 
         setTickets(prev => {
-            const updated = prev.map(t => t.id === ticketId ? { ...t, adminReply: replyMsg, status: updatedStatus } : t);
+            const updated = prev.map(t => t.id === ticketId ? { 
+                ...t, 
+                message: serialized, 
+                adminReply: sender === 'admin' ? replyMsg : t.adminReply,
+                admin_reply: sender === 'admin' ? replyMsg : t.admin_reply,
+                status: updatedStatus 
+            } : t);
             try { localStorage.setItem('all_tickets', JSON.stringify(updated)); } catch(e) {}
             return updated;
         });
 
         try {
             const dbPayload = {
-                admin_reply: replyMsg,
+                message: serialized,
                 status: updatedStatus
             };
+            
             const { error } = await supabase.from('tickets').update(dbPayload).eq('id', ticketId);
             if (error) console.warn("[DatabaseContext] Supabase ticket reply note:", error.message);
         } catch(err) {
@@ -365,16 +486,48 @@ export const DatabaseProvider = ({ children }) => {
     };
 
     const addClientTicket = async (clientId, type, subject, message) => {
+        const ticketId = `TKT-${new Date().getFullYear()}-${Math.floor(Math.random() * 900) + 100}`;
         const newTicket = {
-            id: `TKT-${new Date().getFullYear()}-${Math.floor(Math.random() * 900) + 100}`,
+            id: ticketId,
             client_id: clientId,
+            clientId,
             subject: subject || `${type} Inquiry`,
             status: 'Pending',
             date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-            message
+            message,
+            adminReply: null,
+            admin_reply: null
         };
-        const { data, error } = await supabase.from('tickets').insert([newTicket]).select();
-        if (!error && data) setTickets(prev => [data[0], ...prev]);
+        
+        // 1. Optimistic state update
+        setTickets(prev => {
+            const updated = [newTicket, ...prev];
+            try { localStorage.setItem('all_tickets', JSON.stringify(updated)); } catch(e) {}
+            return updated;
+        });
+
+        // 2. Supabase insert
+        try {
+            const { data, error } = await supabase.from('tickets').insert([{
+                id: ticketId,
+                client_id: clientId,
+                subject: newTicket.subject,
+                status: 'Pending',
+                date: newTicket.date,
+                message: message
+            }]).select();
+            
+            if (!error && data && data.length > 0) {
+                const mapped = {
+                    ...data[0],
+                    clientId: data[0].client_id || data[0].clientId,
+                    adminReply: data[0].admin_reply || data[0].adminReply
+                };
+                setTickets(prev => prev.map(t => t.id === ticketId ? mapped : t));
+            }
+        } catch(err) {
+            console.warn("Supabase ticket insertion error:", err.message);
+        }
     };
 
     const addSiteUpdate = async (projectId, subject, message) => {
@@ -527,7 +680,49 @@ export const DatabaseProvider = ({ children }) => {
             ...(updatedInstallment.active !== undefined && { active: updatedInstallment.active }),
         };
         const { error } = await supabase.from('installments').update(dbPayload).eq('id', id);
-        if (!error) setInstallments(prev => prev.map(i => i.id === id ? { ...i, ...updatedInstallment } : i));
+        if (!error) {
+            setInstallments(prev => prev.map(i => i.id === id ? { ...i, ...updatedInstallment } : i));
+
+            // If marked Paid, auto update property totalPaid and dueBalance, and insert transaction record
+            if (updatedInstallment.status === 'Paid') {
+                const instObj = installments.find(i => i.id === id);
+                if (instObj && instObj.propertyId) {
+                    const prop = properties.find(p => p.id === instObj.propertyId);
+                    if (prop) {
+                        const cleanFloat = (val) => {
+                            if (!val) return 0;
+                            const clean = String(val).replace(/[^0-9.]/g, '');
+                            const parsed = parseFloat(clean);
+                            return isNaN(parsed) ? 0 : parsed;
+                        };
+
+                        const numericPayment = cleanFloat(updatedInstallment.amount || instObj.amount);
+                        const currentPaid = cleanFloat(prop.totalPaid);
+                        const currentDue = cleanFloat(prop.dueBalance);
+
+                        const newPaid = (currentPaid + numericPayment).toLocaleString('en-IN');
+                        const newDue = Math.max(0, currentDue - numericPayment).toLocaleString('en-IN');
+
+                        // 1. Update Property
+                        const propPayload = {
+                            total_paid: newPaid,
+                            due_balance: newDue
+                        };
+                        await supabase.from('properties').update(propPayload).eq('id', prop.id);
+                        setProperties(prev => prev.map(p => p.id === prop.id ? { ...p, totalPaid: newPaid, dueBalance: newDue } : p));
+
+                        // 2. Add Transaction Record
+                        const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                        await addTransaction({
+                            propertyId: prop.id,
+                            date: dateStr,
+                            type: `Bank Transfer (${updatedInstallment.installment || instObj.installment || 'Installment'} Payment)`,
+                            amount: (updatedInstallment.amount || instObj.amount)
+                        });
+                    }
+                }
+            }
+        }
     };
 
     const deleteInstallment = async (id) => {
@@ -633,6 +828,19 @@ export const DatabaseProvider = ({ children }) => {
         }
     };
 
+    const parsePriceToValueString = (priceStr) => {
+        if (!priceStr) return '0';
+        let clean = priceStr.replace(/[৳\s,]/g, '');
+        if (clean.toLowerCase().includes('cr')) {
+            const val = parseFloat(clean.toLowerCase().replace('cr', '')) * 10000000;
+            return String(val);
+        } else if (clean.toLowerCase().includes('lakh') || clean.toLowerCase().includes('lk')) {
+            const val = parseFloat(clean.toLowerCase().replace(/lakh|lk/g, '')) * 100000;
+            return String(val);
+        }
+        return clean;
+    };
+
     const onboardClient = async (applicationId, projectId = 'p1', installmentConfig = null, unitName = null) => {
         const app = applications.find(a => a.id === applicationId);
         if (!app) return;
@@ -651,18 +859,39 @@ export const DatabaseProvider = ({ children }) => {
         if (clientError || !clientData) return;
 
         const newClientId = clientData[0].id;
+
+        // Look up flat size and price to auto-populate property details, mark flat as SOLD
+        let flatSize = '1,500 sqft';
+        let flatPrice = '0';
+        try {
+            const storedFlats = localStorage.getItem('flats_project_' + projectId);
+            if (storedFlats) {
+                const flats = JSON.parse(storedFlats);
+                const updatedFlats = flats.map(f => {
+                    if (f.unit === unitName) {
+                        flatSize = f.size || '1,500 sqft';
+                        flatPrice = parsePriceToValueString(f.price);
+                        return { ...f, status: 'SOLD' };
+                    }
+                    return f;
+                });
+                localStorage.setItem('flats_project_' + projectId, JSON.stringify(updatedFlats));
+            }
+        } catch(e) {
+            console.warn("Error marking flat sold in onboardClient:", e);
+        }
         
         const newProperty = {
             client_id: newClientId,
             project_id: projectId,
             unit_name: unitName || app.unit || 'Not specified',
             location: 'Main Block',
-            area: '1,500 sqft',
-            handover_date: 'Jan 2027',
-            total_valuation: '0',
+            area: flatSize,
+            handover_date: 'Dec 2026',
+            total_valuation: flatPrice,
             total_paid: '0',
             other_charges: '0',
-            due_balance: '0'
+            due_balance: flatPrice
         };
 
         const { data: propData, error: propErr } = await supabase.from('properties').insert([newProperty]).select();
@@ -883,11 +1112,13 @@ export const DatabaseProvider = ({ children }) => {
         onboardClient,
         addApplication,
         rejectApplication,
+        systemSettings,
+        updateSystemSettings,
         loading
     }), [
         clients, leads, applications, projects, properties,
         installments, transactions, siteUpdates, tickets,
-        projectPhotos, publicProjects, loading
+        projectPhotos, publicProjects, systemSettings, loading
     ]);
 
     return (

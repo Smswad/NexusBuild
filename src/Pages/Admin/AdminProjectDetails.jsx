@@ -313,9 +313,6 @@ const AdminProjectDetails = () => {
                             <div className="text-xs font-bold text-slate-800">
                                 Saved Gallery Photos for {formData.name} ({currentPhotos.length})
                             </div>
-                            <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                Database Persisted
-                            </span>
                         </div>
 
                         {currentPhotos.length > 0 ? (

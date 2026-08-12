@@ -160,10 +160,24 @@ const ClientManagement = () => {
     const handleAddInstallment = (e) => {
         e.preventDefault();
         if (!editForm.propertyId) return;
+
+        let formattedDate = newInstallment.dueDate;
+        try {
+            if (formattedDate) {
+                const parts = formattedDate.split('-');
+                if (parts.length === 3) {
+                    const d = new Date(formattedDate);
+                    if (!isNaN(d.getTime())) {
+                        formattedDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    }
+                }
+            }
+        } catch(err) {}
+
         addInstallment({
             propertyId: editForm.propertyId,
             installment: newInstallment.installment,
-            dueDate: newInstallment.dueDate,
+            dueDate: formattedDate,
             amount: newInstallment.amount,
             status: 'Pending',
             statusPill: 'bg-[#E1EFFE] text-[#1E429F]',
@@ -212,7 +226,15 @@ const ClientManagement = () => {
     });
 
     // Filtered data for the active client
-    const clientInstallments = editForm.propertyId ? installments.filter(i => i.propertyId === editForm.propertyId) : [];
+    const clientInstallments = editForm.propertyId 
+        ? [...installments.filter(i => i.propertyId === editForm.propertyId)].sort((a, b) => {
+            const aPaid = (a.status || '').toLowerCase() === 'paid';
+            const bPaid = (b.status || '').toLowerCase() === 'paid';
+            if (aPaid && !bPaid) return 1;
+            if (!aPaid && bPaid) return -1;
+            return new Date(a.dueDate || a.due_date) - new Date(b.dueDate || b.due_date);
+          }) 
+        : [];
     const clientTransactions = editForm.propertyId ? transactions.filter(t => t.propertyId === editForm.propertyId) : [];
     const clientTickets = selectedClient ? tickets.filter(t => t.clientId === selectedClient.id) : [];
 
@@ -654,7 +676,7 @@ const ClientManagement = () => {
                                                             </div>
                                                             <div className="flex-1">
                                                                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Date</label>
-                                                                <input type="text" placeholder="e.g. 10 May 2026" required value={newInstallment.dueDate} onChange={e => setNewInstallment({...newInstallment, dueDate: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white" />
+                                                                <input type="date" required value={newInstallment.dueDate} onChange={e => setNewInstallment({...newInstallment, dueDate: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm bg-white text-slate-800" />
                                                             </div>
                                                             <div className="flex-1">
                                                                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Amount (৳)</label>

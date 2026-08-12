@@ -73,8 +73,8 @@ export const ClientDataProvider = ({ children }) => {
         setTimeout(() => setLoading(false), 300);
     }, []);
 
-    const submitTicket = (type, subject, message) => {
-        db.addClientTicket(activeClientId, type, subject, message);
+    const submitTicket = async (type, subject, message) => {
+        await db.addClientTicket(activeClientId, type, subject, message);
         alert('Ticket submitted successfully! We will get back to you shortly.');
     };
 
@@ -91,6 +91,7 @@ export const ClientDataProvider = ({ children }) => {
         userProfile,
         activeClient,
         activeClientId,
+        activeProject,
         financials,
         projects,
         siteUpdates,

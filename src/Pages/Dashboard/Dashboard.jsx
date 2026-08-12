@@ -69,14 +69,32 @@ const DashboardContent = () => {
 
     const clientNotifications = [
         // 1. Admin replies to support tickets -> /dashboard/support
-        ...(support?.tickets || []).filter(t => t.adminReply || t.admin_reply).map(t => ({
-            id: `tkt-reply-${t.id}`,
-            title: 'Admin Replied to Support Ticket',
-            desc: `#${t.id}: ${t.adminReply || t.admin_reply}`,
-            date: t.date || 'Today',
-            badge: 'bg-blue-100 text-[#003178]',
-            url: '/dashboard/support'
-        })),
+        ...(support?.tickets || []).filter(t => {
+            try {
+                if (t.message && t.message.trim().startsWith('[')) {
+                    const msgs = JSON.parse(t.message);
+                    return msgs.length > 0 && msgs[msgs.length - 1].sender === 'admin';
+                }
+            } catch(e) {}
+            return t.adminReply || t.admin_reply;
+        }).map(t => {
+            let lastText = t.adminReply || t.admin_reply || '';
+            try {
+                if (t.message && t.message.trim().startsWith('[')) {
+                    const msgs = JSON.parse(t.message);
+                    const adminMsgs = msgs.filter(m => m.sender === 'admin');
+                    if (adminMsgs.length > 0) lastText = adminMsgs[adminMsgs.length - 1].text;
+                }
+            } catch(e) {}
+            return {
+                id: `tkt-reply-${t.id}`,
+                title: 'Support Ticket Reply Received',
+                desc: `#${t.id}: "${lastText.slice(0, 45)}${lastText.length > 45 ? '...' : ''}"`,
+                date: t.date || 'Today',
+                badge: 'bg-blue-100 text-[#003178]',
+                url: '/dashboard/support'
+            };
+        }),        
         // 2. Site broadcasts sent by admin -> /dashboard/progress
         ...(siteUpdates || []).map(u => ({
             id: `broadcast-${u.id}`,
@@ -96,14 +114,18 @@ const DashboardContent = () => {
             url: '/dashboard/financials'
         })),
         // 4. Pending/Overdue installments -> /dashboard/financials
-        ...(financials?.installments || []).filter(i => i.status === 'Pending' || i.status === 'Overdue').slice(0, 3).map(i => ({
-            id: `inst-${i.id}`,
-            title: i.status === 'Overdue' ? 'Installment Overdue' : 'Upcoming Installment Due',
-            desc: `${i.installment} of ৳${i.amount} due on ${i.dueDate}`,
-            date: i.dueDate,
-            badge: i.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700',
-            url: '/dashboard/financials'
-        }))
+        ...[...(financials?.installments || [])]
+            .sort((a, b) => new Date(a.dueDate || a.due_date) - new Date(b.dueDate || b.due_date))
+            .filter(i => i.status === 'Pending' || i.status === 'Overdue')
+            .slice(0, 5)
+            .map(i => ({
+                id: `inst-${i.id}`,
+                title: i.status === 'Overdue' ? 'Installment Overdue' : 'Upcoming Installment Due',
+                desc: `${i.installment} of ৳${i.amount} due on ${i.dueDate}`,
+                date: i.dueDate,
+                badge: i.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700',
+                url: '/dashboard/financials'
+            }))
     ];
 
     return (

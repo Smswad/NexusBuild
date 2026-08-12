@@ -20,7 +20,16 @@ const PrintView = ({ financials, userProfile }) => (
                     </div>
                 </div>
                 <div className="text-[11px] text-slate-400 mt-2">
-                    Chashiara, Narayanganj • contact@reliancehousing.com • +880 1800-000000
+                    {(() => {
+                        try {
+                            const saved = localStorage.getItem('system_settings');
+                            if (saved) {
+                                const parsed = JSON.parse(saved);
+                                return `${parsed.headOfficeAddress} • ${parsed.supportEmail} • ${parsed.supportPhone}`;
+                            }
+                        } catch(e) {}
+                        return 'Shamabay New Market, Narayanganj • info@reliancehousing.com • +880 1234 567890';
+                    })()}
                 </div>
             </div>
             <div className="text-right space-y-1">
@@ -118,8 +127,7 @@ const PrintView = ({ financials, userProfile }) => (
 
 const Overview = () => {
     const navigate = useNavigate();
-    const { loading, userProfile, financials, projects, downloadStatement, addInstallment } = useClientData();
-    const activeProject = projects[0] || { progressPhase: 1 };
+    const { loading, userProfile, financials, projects, activeProject, downloadStatement, addInstallment } = useClientData();
 
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [numInstallments, setNumInstallments] = useState(12);
@@ -157,6 +165,233 @@ const Overview = () => {
         }
         setShowScheduleModal(false);
         alert('Installment schedule generated successfully!');
+    };
+
+    const handleDownloadReceipt = (tx) => {
+        const generatePDF = () => {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'letter'
+                });
+
+                // 1. Header Banner (Navy)
+                doc.setFillColor(0, 34, 82);
+                doc.rect(0, 0, 216, 42, 'F'); // Letter width is 216mm
+
+                // Gold accent line
+                doc.setFillColor(254, 118, 42);
+                doc.rect(0, 42, 216, 3, 'F');
+
+                // Logo Box
+                doc.setFillColor(255, 255, 255);
+                doc.roundedRect(20, 11, 14, 14, 2.5, 2.5, 'F');
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.setTextColor(0, 34, 82);
+                doc.text("R", 25, 21.5);
+
+                // Company Info
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(13);
+                doc.text("RELIANCE HOUSING LTD.", 39, 18);
+                
+                doc.setTextColor(254, 118, 42);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(6.5);
+                doc.text("BUILDING TRUST, DELIVERING EXCELLENCE", 39, 23);
+
+                doc.setTextColor(190, 210, 240);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8);
+                const sysContact = (() => {
+                    try {
+                        const s = localStorage.getItem('system_settings');
+                        if (s) {
+                            const p = JSON.parse(s);
+                            return `${p.headOfficeAddress} | ${p.supportEmail} | ${p.supportPhone}`;
+                        }
+                    } catch(e) {}
+                    return "Shamabay New Market, Narayanganj | info@reliancehousing.com | +880 1234 567890";
+                })();
+                doc.text(sysContact, 39, 28);
+
+                // Official Receipt Badge
+                doc.setFillColor(209, 250, 229);
+                doc.roundedRect(152, 10, 44, 7, 1.2, 1.2, 'F');
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(6.5);
+                doc.setTextColor(6, 95, 70);
+                doc.text("OFFICIAL RECEIPT", 160, 14.8);
+
+                // Date & Ref
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8.5);
+                doc.text(`Date: ${tx.date || 'N/A'}`, 152, 25);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7.5);
+                doc.text(`Ref: ${tx.id ? tx.id.substring(0, 18) + '...' : 'N/A'}`, 152, 30);
+
+                // Title
+                doc.setTextColor(0, 34, 82);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(13);
+                doc.text("PAYMENT RECEIPT", 20, 56);
+                
+                doc.setDrawColor(226, 232, 240);
+                doc.setLineWidth(0.3);
+                doc.line(20, 59, 196, 59);
+
+                // Client & Allocation Details Grid
+                // Client (Left)
+                doc.setTextColor(148, 163, 184);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7);
+                doc.text("PREPARED FOR", 20, 67);
+
+                doc.setTextColor(15, 23, 42);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9.5);
+                doc.text(userProfile.name || 'Client Name', 20, 73);
+                
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8);
+                doc.setTextColor(71, 85, 105);
+                doc.text(`Email: ${userProfile.email || 'N/A'}`, 20, 79);
+                doc.text(`Phone: ${userProfile.phone || 'N/A'}`, 20, 84);
+
+                // Property (Right)
+                doc.setTextColor(148, 163, 184);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7);
+                doc.text("PROPERTY DETAILS", 115, 67);
+
+                doc.setTextColor(15, 23, 42);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9.5);
+                doc.text(userProfile.propertyName || 'Property Unit', 115, 73);
+                
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8);
+                doc.setTextColor(71, 85, 105);
+                doc.text(`Project: ${userProfile.projectName || 'N/A'}`, 115, 79);
+                doc.text(`Handover Date: ${userProfile.handoverDate || 'Dec 2026'}`, 115, 84);
+
+                // 3. Table Header
+                doc.setFillColor(248, 250, 252);
+                doc.rect(20, 95, 176, 8, 'F');
+                doc.setDrawColor(226, 232, 240);
+                doc.rect(20, 95, 176, 8, 'D');
+
+                doc.setTextColor(100, 116, 139);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7);
+                doc.text("ITEM DESCRIPTION", 24, 100.5);
+                doc.text("PAYMENT DETAILS", 100, 100.5);
+                doc.text("TOTAL AMOUNT", 192, 100.5, { align: 'right' });
+
+                // Table Row Content
+                doc.setTextColor(15, 23, 42);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9);
+                doc.text(tx.type || 'Bank Transfer Payment', 24, 112);
+                
+                doc.setFont("courier", "bold");
+                doc.setFontSize(7);
+                doc.setTextColor(100, 116, 139);
+                doc.text(`TXN ID: ${tx.id || 'N/A'}`, 24, 117);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8.5);
+                doc.setTextColor(71, 85, 105);
+                doc.text("Direct Bank Transfer", 100, 112);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7.5);
+                doc.text("Cleared & Confirmed", 100, 117);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                doc.setTextColor(0, 34, 82);
+                doc.text(`BDT ${tx.amount}`, 192, 114, { align: 'right' });
+
+                doc.setDrawColor(241, 245, 249);
+                doc.line(20, 123, 196, 123);
+
+                // 4. Highlight Summary Banner
+                doc.setFillColor(239, 246, 255);
+                doc.rect(20, 130, 176, 20, 'F');
+                doc.setFillColor(254, 118, 42);
+                doc.rect(20, 130, 1.5, 20, 'F');
+
+                doc.setTextColor(0, 49, 120);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7.5);
+                doc.text("TOTAL CONFIRMED PAID", 26, 137);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.text(`BDT ${tx.amount}`, 26, 145);
+
+                doc.setTextColor(4, 120, 87);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8);
+                doc.text("PAYMENT STATUS: CLEARED SUCCESS", 115, 142);
+
+                // 5. Signatures Section
+                doc.setDrawColor(203, 213, 225);
+                doc.setLineWidth(0.3);
+                doc.line(20, 190, 65, 190);
+                doc.setTextColor(148, 163, 184);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7);
+                doc.text("CLIENT SIGNATURE", 20, 195);
+
+                // Stamp in center
+                doc.setDrawColor(254, 118, 42);
+                doc.roundedRect(88, 168, 40, 15, 1.5, 1.5, 'D');
+                doc.setTextColor(254, 118, 42);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7);
+                doc.text("RELIANCE HOUSING", 108, 174, { align: 'center' });
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(6.5);
+                doc.text("VERIFIED SECURE", 108, 179, { align: 'center' });
+
+                doc.setDrawColor(203, 213, 225);
+                doc.line(151, 190, 196, 190);
+                doc.setTextColor(0, 34, 82);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7);
+                doc.text("AUTHORIZED REPRESENTATIVE", 151, 195);
+
+                // Footer System generated disclaimer
+                doc.setDrawColor(226, 232, 240);
+                doc.line(20, 215, 196, 215);
+                
+                doc.setTextColor(148, 163, 184);
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(6.5);
+                doc.text("This receipt is electronically generated and verified by Reliance Housing Ltd. database records. No physical signature is required.", 20, 221);
+
+                // Save PDF
+                doc.save(`Receipt_${tx.id || 'txn'}.pdf`);
+            } catch (err) {
+                console.error("PDF generation failed:", err);
+                alert("Receipt download failed. Please try again.");
+            }
+        };
+
+        if (!window.jspdf) {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            script.onload = generatePDF;
+            document.head.appendChild(script);
+        } else {
+            generatePDF();
+        }
     };
     
     if (loading) {
@@ -202,58 +437,71 @@ const Overview = () => {
                     <h2 className="text-[#003178] font-bold text-[18px] mb-10">{activeProject?.name || 'Project'} Construction Progress</h2>
                     
                     <div className="relative mt-8">
-                        {/* Connecting Lines */}
-                        <div className="absolute top-4 left-[12.5%] right-[12.5%] h-1 bg-[#E2E8F0] z-0 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#006E1C] transition-all duration-500 ease-out" style={{ 
-                                width: `${(Math.max(0, ((activeProject?.progressPhase && activeProject.progressPhase <= 4 ? activeProject.progressPhase : 3) - 1)) / 3) * 100}%` 
-                            }} />
-                        </div>
-                        
-                        <div className="flex justify-between items-start relative z-10">
-                            {[
-                                { id: 1, name: 'Piling &\nFoundation' },
-                                { id: 2, name: 'Structural\nCasting' },
-                                { id: 3, name: 'Finishing' },
-                                { id: 4, name: 'Handover' },
-                            ].map(step => {
-                                const oPhases = activeProject?.phases || [];
-                                const oIncomplete = oPhases.find(p => p.progress < 100);
-                                const oRaw = activeProject?.progressPhase || activeProject?.progress_phase;
-                                const currentP = oRaw && oRaw <= 4 
-                                    ? oRaw 
-                                    : (oIncomplete ? oIncomplete.id : (oPhases.length || 3));
-                                const isCompleted = currentP > step.id;
-                                const isCurrent = currentP === step.id;
-                                return (
-                                    <div key={step.id} className="flex flex-col items-center flex-1">
-                                        {isCompleted ? (
-                                            <div className="w-9 h-9 rounded-full bg-[#006E1C] border-2 border-[#006E1C] flex items-center justify-center text-white z-10 relative shadow-sm">
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            </div>
-                                        ) : isCurrent ? (
-                                            <div className="w-9 h-9 rounded-full bg-white border-4 border-[#003178] flex items-center justify-center z-10 relative shadow-md">
-                                                <div className="w-3.5 h-3.5 rounded-full bg-[#003178] animate-pulse" />
-                                            </div>
-                                        ) : (
-                                            <div className="w-9 h-9 rounded-full bg-white border-2 border-[#CBD5E1] flex items-center justify-center text-slate-400 font-bold text-xs z-10 relative">
-                                                {step.id}
-                                            </div>
-                                        )}
-                                        <div className={`text-[11px] uppercase tracking-wider text-center mt-4 whitespace-pre-line ${
-                                            isCurrent 
-                                                ? 'font-bold text-[#003178]' 
-                                                : isCompleted 
-                                                ? 'font-semibold text-[#006E1C]' 
-                                                : 'font-medium text-slate-400'
-                                        }`}>
-                                            {step.name}
-                                        </div>
+                        {(() => {
+                            const oPhases = activeProject?.phases || [
+                                { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
+                                { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 50 },
+                                { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
+                                { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 }
+                            ];
+                            const currentP = activeProject?.progressPhase || activeProject?.progress_phase || 1;
+                            
+                            return (
+                                <>
+                                    {/* Connecting Lines */}
+                                    <div className="absolute top-4 left-[12.5%] right-[12.5%] h-1 bg-[#E2E8F0] z-0 rounded-full overflow-hidden">
+                                        <div className="h-full bg-[#006E1C] transition-all duration-500 ease-out" style={{ 
+                                            width: `${Math.min(100, (Math.max(0, (currentP - 1)) / (oPhases.length - 1 || 3)) * 100)}%` 
+                                        }} />
                                     </div>
-                                );
-                            })}
-                        </div>
+                                    
+                                    <div className="flex justify-between items-start relative z-10">
+                                        {oPhases.map(step => {
+                                            const isCurrent = step.id === currentP;
+                                            const isCompleted = step.id < currentP;
+                                            return (
+                                                <div key={step.id} className="flex flex-col items-center flex-1">
+                                                    {isCompleted ? (
+                                                        <div className="w-9 h-9 rounded-full bg-[#006E1C] border-2 border-[#006E1C] flex items-center justify-center text-white z-10 relative shadow-sm">
+                                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        </div>
+                                                    ) : isCurrent ? (
+                                                        <div className="w-9 h-9 rounded-full bg-white border-4 border-[#003178] flex items-center justify-center z-10 relative shadow-md">
+                                                            <div className="w-3.5 h-3.5 rounded-full bg-[#003178] animate-pulse" />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-9 h-9 rounded-full bg-white border-2 border-[#CBD5E1] flex items-center justify-center text-slate-400 font-bold text-xs z-10 relative">
+                                                            {step.id}
+                                                        </div>
+                                                    )}
+                                                    <div className={`text-[11px] uppercase tracking-wider text-center mt-4 whitespace-pre-line ${
+                                                        isCurrent 
+                                                            ? 'font-bold text-[#003178]' 
+                                                            : isCompleted 
+                                                            ? 'font-semibold text-[#006E1C]' 
+                                                            : 'font-medium text-slate-400'
+                                                    }`}>
+                                                        {step.name}
+                                                    </div>
+                                                    {step.date && (
+                                                        <div className={`text-[10px] text-center mt-1 font-medium ${isCurrent ? 'text-[#003178] font-bold' : 'text-slate-400'}`}>
+                                                            {step.date}
+                                                        </div>
+                                                    )}
+                                                    {step.progress > 0 && step.progress < 100 && (
+                                                        <span className="mt-1 px-2 py-0.5 bg-[#E1EFFE] text-[#003178] font-extrabold text-[9px] rounded-full border border-blue-200">
+                                                            {step.progress}% COMPLETE
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </div>
                 </div>
 
@@ -306,15 +554,9 @@ const Overview = () => {
                             <div>
                                 <h3 className="font-bold text-slate-800">No Installment Schedule Set</h3>
                                 <p className="text-slate-500 text-sm mt-1 max-w-sm mx-auto">
-                                    An installment schedule has not been configured for your property yet. You can create your schedule now.
+                                    An installment schedule has not been configured for your property yet. Please contact the administrator to setup your payment schedule.
                                 </p>
                             </div>
-                            <button 
-                                onClick={() => setShowScheduleModal(true)} 
-                                className="px-5 py-2 bg-[#fe762a] hover:bg-[#a14000] text-[#5e2200] hover:text-white font-bold rounded-lg shadow transition-colors cursor-pointer"
-                            >
-                                Configure Installment Schedule
-                            </button>
                         </div>
                     ) : (
                         <table className="w-full text-left border-collapse">
@@ -327,7 +569,13 @@ const Overview = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#E2E8F0]">
-                                {financials.installments.map((inst) => (
+                                {[...financials.installments].sort((a, b) => {
+                                    const aPaid = (a.status || '').toLowerCase() === 'paid';
+                                    const bPaid = (b.status || '').toLowerCase() === 'paid';
+                                    if (aPaid && !bPaid) return 1;
+                                    if (!aPaid && bPaid) return -1;
+                                    return new Date(a.dueDate || a.due_date) - new Date(b.dueDate || b.due_date);
+                                }).map((inst) => (
                                     <tr key={inst.id} className={inst.active ? "bg-blue-50/30 border-l-4 border-[#003178]" : "hover:bg-slate-50"}>
                                         <td className={`py-4 px-6 text-sm ${inst.active ? 'text-slate-800 font-bold pl-5' : 'text-slate-700 font-medium'}`}>
                                             {inst.installment}
@@ -411,7 +659,10 @@ const Overview = () => {
                                 </div>
                                 <div className="text-right">
                                     <div className="font-bold text-sm text-slate-800">৳ {tx.amount}</div>
-                                    <button className="text-[10px] uppercase tracking-wider font-bold text-[#003178] mt-0.5 hover:underline flex items-center justify-end gap-1">
+                                    <button 
+                                        onClick={() => handleDownloadReceipt(tx)}
+                                        className="text-[10px] uppercase tracking-wider font-bold text-[#003178] mt-0.5 hover:underline flex items-center justify-end gap-1 cursor-pointer"
+                                    >
                                         <Download size={10} /> Receipt
                                     </button>
                                 </div>

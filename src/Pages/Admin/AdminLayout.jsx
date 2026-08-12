@@ -88,13 +88,30 @@ const AdminLayoutContent = () => {
     ] : [];
 
     const adminNotifications = [
-        // 1. Pending Support Tickets from Clients -> /admin/tickets
-        ...(tickets || []).filter(t => t.status !== 'Resolved').map(t => {
+        // 1. Pending Support Tickets / Client Replies -> /admin/tickets
+        ...(tickets || []).filter(t => {
+            try {
+                if (t.message && t.message.trim().startsWith('[')) {
+                    const msgs = JSON.parse(t.message);
+                    return msgs.length > 0 && msgs[msgs.length - 1].sender === 'client';
+                }
+            } catch(e) {}
+            return t.status !== 'Resolved';
+        }).map(t => {
             const client = clients.find(c => c.id === t.clientId);
+            let lastText = t.message || '';
+            try {
+                if (t.message && t.message.trim().startsWith('[')) {
+                    const msgs = JSON.parse(t.message);
+                    const clientMsgs = msgs.filter(m => m.sender === 'client');
+                    if (clientMsgs.length > 0) lastText = clientMsgs[clientMsgs.length - 1].text;
+                }
+            } catch(e) {}
+
             return {
                 id: `admin-tkt-${t.id}`,
-                title: `Client Ticket: ${t.subject || 'Inquiry'}`,
-                desc: `From ${client?.name || 'Client'}: ${t.message || 'Support request submitted.'}`,
+                title: `Client Message: ${t.subject || 'Inquiry'}`,
+                desc: `From ${client?.name || 'Client'}: "${lastText.slice(0, 45)}${lastText.length > 45 ? '...' : ''}"`,
                 date: t.date || 'Today',
                 badge: 'bg-blue-100 text-blue-700',
                 url: '/admin/tickets'
@@ -158,7 +175,7 @@ const AdminLayoutContent = () => {
                         </div>
                         <div>
                             <div className="text-white font-bold text-lg leading-none">Reliance Housing Ltd.</div>
-                            <div className="text-blue-200 text-[10px] mt-0.5 uppercase tracking-wider">Super Admin Panel</div>
+                            <div className="text-blue-200 text-[10px] mt-0.5 uppercase tracking-wider">Admin Panel</div>
                         </div>
                     </div>
                 </div>
@@ -363,7 +380,7 @@ const AdminLayoutContent = () => {
                         {/* Profile Icon */}
                         <div className="flex items-center gap-3 border-l border-slate-200 pl-6">
                             <div className="text-right">
-                                <div className="text-sm font-bold text-slate-800">Super Admin (MD)</div>
+                                <div className="text-sm font-bold text-slate-800">Admin (MD)</div>
                                 <div className="text-xs text-slate-500">Reliance Housing Ltd.</div>
                             </div>
                             <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200">

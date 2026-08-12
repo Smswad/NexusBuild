@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, Building2, Bell, Shield, Palette, Settings, CheckCircle } from 'lucide-react';
+import { useDatabase } from '../../Context/DatabaseContext';
 
 const AdminSettings = () => {
+    const { systemSettings, updateSystemSettings } = useDatabase();
     const [activeTab, setActiveTab] = useState('general');
+    const [settings, setSettings] = useState(systemSettings);
+
+    useEffect(() => {
+        if (systemSettings) setSettings(systemSettings);
+    }, [systemSettings]);
 
     const handleSave = (e) => {
         e.preventDefault();
-        alert('Settings saved successfully!');
+        updateSystemSettings(settings);
+        alert('Settings saved successfully! System configurations have been updated globally across all pages.');
     };
 
     return (
@@ -73,25 +81,50 @@ const AdminSettings = () => {
                                 <div className="grid grid-cols-2 gap-5">
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company Name</label>
-                                        <input type="text" defaultValue="Reliance Housing Ltd." className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C]" />
+                                        <input 
+                                            type="text" 
+                                            value={settings.companyName} 
+                                            onChange={e => setSettings({...settings, companyName: e.target.value})}
+                                            className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C] text-slate-800 bg-white" 
+                                        />
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Registration Number</label>
-                                        <input type="text" defaultValue="REG-2023-998811" className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C]" />
+                                        <input 
+                                            type="text" 
+                                            value={settings.regNumber} 
+                                            onChange={e => setSettings({...settings, regNumber: e.target.value})}
+                                            className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C] text-slate-800 bg-white" 
+                                        />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Head Office Address</label>
-                                    <input type="text" defaultValue="123 Corporate Tower, Banani, Dhaka" className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C]" />
+                                    <input 
+                                        type="text" 
+                                        value={settings.headOfficeAddress} 
+                                        onChange={e => setSettings({...settings, headOfficeAddress: e.target.value})}
+                                        className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C] text-slate-800 bg-white" 
+                                    />
                                 </div>
                                 <div className="grid grid-cols-2 gap-5">
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Support Email</label>
-                                        <input type="email" defaultValue="support@reliancehousing.com" className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C]" />
+                                        <input 
+                                            type="email" 
+                                            value={settings.supportEmail} 
+                                            onChange={e => setSettings({...settings, supportEmail: e.target.value})}
+                                            className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C] text-slate-800 bg-white" 
+                                        />
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Support Phone</label>
-                                        <input type="text" defaultValue="+880 1700-123456" className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C]" />
+                                        <input 
+                                            type="text" 
+                                            value={settings.supportPhone} 
+                                            onChange={e => setSettings({...settings, supportPhone: e.target.value})}
+                                            className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A4B9C] text-slate-800 bg-white" 
+                                        />
                                     </div>
                                 </div>
                             </div>

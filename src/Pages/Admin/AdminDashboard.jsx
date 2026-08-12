@@ -177,6 +177,30 @@ const AdminDashboard = () => {
     const isGlobal = activeProject === 'all';
     const currentProject = projects.find(p => p.id === activeProject);
 
+    const getFlatsListForProject = (projectId) => {
+        try {
+            const stored = localStorage.getItem('flats_project_' + projectId);
+            if (stored) {
+                return JSON.parse(stored);
+            }
+        } catch(e) {}
+        // Fallback default list
+        return [
+            { id: 'f1', unit: 'Flat 1A', size: '1,200 sqft', price: '৳1.25Cr', status: 'AVAILABLE' },
+            { id: 'f2', unit: 'Flat 1B', size: '1,500 sqft', price: '৳1.55Cr', status: 'SOLD' },
+            { id: 'f3', unit: 'Flat 2A', size: '1,200 sqft', price: '৳1.25Cr', status: 'RESERVED' },
+            { id: 'f4', unit: 'Flat 2B', size: '1,500 sqft', price: '৳1.55Cr', status: 'AVAILABLE' }
+        ];
+    };
+
+    const getProjectStats = (projectId) => {
+        const flats = getFlatsListForProject(projectId);
+        return {
+            total: flats.length,
+            sold: flats.filter(f => f.status === 'SOLD').length
+        };
+    };
+
     // Calculate dynamic stats
     const totalRevenue = transactions.reduce((sum, tx) => sum + parseInt(tx.amount.replace(/,/g, '')), 0);
     const totalReceivables = properties.reduce((sum, p) => sum + parseInt(p.dueBalance.replace(/,/g, '')), 0);
@@ -185,14 +209,17 @@ const AdminDashboard = () => {
     const revenueGrowth = totalContractVal > 0 ? ((totalRevenue / totalContractVal) * 100).toFixed(1) : '0.0';
 
     const activeClients = clients.length;
-    const unitsSold = properties.length;
+    const projectStatsList = projects.map(p => getProjectStats(p.id));
+    const unitsSold = isGlobal
+        ? projectStatsList.reduce((sum, s) => sum + s.sold, 0)
+        : getProjectStats(activeProject).sold;
     const pendingApprovals = applications.filter(a => a.status === 'Pending').length;
     const newLeads = leads.filter(l => l.status === 'New').length;
     const activeProjectsCount = projects.length;
     
     const totalUnitsCount = isGlobal 
-        ? projects.reduce((sum, p) => sum + (parseInt(p.totalUnits) || 0), 0)
-        : (currentProject ? parseInt(currentProject.totalUnits) || 0 : 0);
+        ? projectStatsList.reduce((sum, s) => sum + s.total, 0)
+        : getProjectStats(activeProject).total;
 
     // Format currency
     const formatBDT = (amount) => new Intl.NumberFormat('en-IN').format(amount);
@@ -305,7 +332,10 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-5 rounded-xl border border-[#E2E8F0] shadow-sm">
+                    <div 
+                        onClick={() => navigate('/admin/onboarding')}
+                        className="bg-white p-5 rounded-xl border border-[#E2E8F0] shadow-sm cursor-pointer hover:shadow-md hover:border-[#1A4B9C] transition-all"
+                    >
                         <div className="flex items-center gap-2 text-slate-600 font-bold text-sm mb-4">
                             <AlertCircle size={16} className="text-red-500" />
                             <span>Pending Approvals</span>
@@ -316,7 +346,10 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-5 rounded-xl border border-[#E2E8F0] shadow-sm">
+                    <div 
+                        onClick={() => navigate('/admin/leads')}
+                        className="bg-white p-5 rounded-xl border border-[#E2E8F0] shadow-sm cursor-pointer hover:shadow-md hover:border-emerald-500 transition-all"
+                    >
                         <div className="flex items-center gap-2 text-slate-600 font-bold text-sm mb-4">
                             <UserPlus size={16} className="text-emerald-500" />
                             <span>New Public Leads</span>
@@ -352,6 +385,7 @@ const AdminDashboard = () => {
                                 </thead>
                                 <tbody className="divide-y divide-[#E2E8F0] text-xs">
                                     {projects.map(proj => {
+                                        const projStats = getProjectStats(proj.id);
                                         const projProps = properties.filter(p => p.projectId === proj.id);
                                         const projTxs = transactions.filter(t => projProps.some(p => p.id === t.propertyId));
                                         
@@ -365,9 +399,9 @@ const AdminDashboard = () => {
                                                     <div className="font-bold text-slate-800">{proj.name}</div>
                                                     <div className="text-[10px] text-slate-500">ID: {proj.id}</div>
                                                 </td>
-                                                <td className="px-6 py-3 text-center font-bold text-slate-700">{proj.totalUnits || 0}</td>
-                                                <td className="px-6 py-3 text-center font-bold text-slate-700">{projProps.length}</td>
-                                                <td className="px-6 py-3 text-right font-bold text-slate-800">৳ {formatBDT(projValuation)}</td>
+                                                <td className="px-6 py-3 text-center font-bold text-slate-700">{projStats.total}</td>
+                                                <td className="px-6 py-3 text-center font-bold text-slate-700">{projStats.sold}</td>
+                                                <td className="px-6 py-3 text-right font-bold text-slate-880">৳ {formatBDT(projValuation)}</td>
                                                 <td className="px-6 py-3 text-right font-bold text-emerald-600">৳ {formatBDT(projRevenue)}</td>
                                                 <td className="px-6 py-3 text-right font-bold text-red-600">৳ {formatBDT(projDue)}</td>
                                             </tr>

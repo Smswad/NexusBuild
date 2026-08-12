@@ -107,32 +107,44 @@ const AdminTickets = () => {
                                 </span>
                             </div>
                             
-                            {/* Client Message */}
-                            <div className="mb-4">
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Client Message:</div>
-                                <p className="text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-100 text-sm whitespace-pre-wrap leading-relaxed">
-                                    {ticket.message || 'No description provided.'}
-                                </p>
-                            </div>
+                            {/* Client Message (Thread conversation) */}
+                            {(() => {
+                                let msgs = [];
+                                try {
+                                    if (ticket.message && ticket.message.trim().startsWith('[')) {
+                                        msgs = JSON.parse(ticket.message);
+                                    } else {
+                                        msgs = [];
+                                        if (ticket.message) {
+                                            msgs.push({ sender: 'client', text: ticket.message, date: ticket.date || 'Original' });
+                                        }
+                                        if (ticket.adminReply || ticket.admin_reply) {
+                                            msgs.push({ sender: 'admin', text: ticket.adminReply || ticket.admin_reply, date: ticket.date || 'Original' });
+                                        }
+                                    }
+                                } catch(e) {
+                                    msgs = [{ sender: 'client', text: ticket.message, date: ticket.date }];
+                                }
 
-                            {/* Existing Admin Reply */}
-                            {ticket.adminReply && !isReplying && (
-                                <div className="mb-4 bg-[#E1EFFE]/60 border border-[#1A4B9C]/20 rounded-lg p-4 text-xs text-slate-800">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="flex items-center gap-1.5 text-[#1A4B9C] font-bold">
-                                            <MessageSquare size={13} /> Official Admin Reply:
-                                        </span>
-                                        <button 
-                                            type="button" 
-                                            onClick={() => handleOpenReply(ticket)}
-                                            className="text-[10px] text-[#1A4B9C] font-bold hover:underline cursor-pointer"
-                                        >
-                                            Edit Reply
-                                        </button>
+                                return (
+                                    <div className="mb-4">
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Conversation History:</div>
+                                        <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-200/60 max-h-64 overflow-y-auto flex flex-col">
+                                            {msgs.map((m, idx) => {
+                                                const isClient = m.sender === 'client';
+                                                return (
+                                                    <div key={idx} className={`flex flex-col mb-1 ${isClient ? 'items-start' : 'items-end'}`}>
+                                                        <span className="text-[9px] text-slate-400 font-bold mb-1">{isClient ? (client?.name || 'Client') : 'Super Admin'} • {m.date}</span>
+                                                        <div className={`p-3 rounded-lg text-xs max-w-lg ${isClient ? 'bg-white text-slate-800 border border-slate-200 rounded-tl-none' : 'bg-[#E1EFFE] text-[#1A4B9C] rounded-tr-none border border-[#1A4B9C]/10'}`}>
+                                                            <p className="whitespace-pre-wrap leading-relaxed">{m.text}</p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm">{ticket.adminReply}</p>
-                                </div>
-                            )}
+                                );
+                            })()}
 
                             {/* Inline Reply Form */}
                             {isReplying && (

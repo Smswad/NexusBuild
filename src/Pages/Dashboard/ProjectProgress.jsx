@@ -4,6 +4,7 @@ import {
     Camera, FileText, Wrench, Clock, Download
 } from 'lucide-react';
 import { useClientData } from '../../Context/ClientDataContext';
+import { useDatabase } from '../../Context/DatabaseContext';
 
 const ICONS = {
     'Site Photo': Camera,
@@ -12,16 +13,14 @@ const ICONS = {
 };
 
 const ProjectProgress = () => {
-    const { loading, projects, siteUpdates, downloadStatement } = useClientData();
-    const [activeProjectId, setActiveProjectId] = useState(projects[0]?.id);
+    const { loading, projects, activeProject: currentClientProject, siteUpdates, downloadStatement } = useClientData();
+    const { projectPhotos } = useDatabase();
+    const [activeProjectId, setActiveProjectId] = useState(currentClientProject?.id || projects[0]?.id);
+    const [selectedPhotoUrl, setSelectedPhotoUrl] = useState(null);
 
-    const activeProject = projects.find(p => p.id === activeProjectId) || projects[0];
+    const activeProject = projects.find(p => p.id === activeProjectId) || currentClientProject || projects[0];
     const clientPhases = activeProject?.phases || [];
-    const incompleteClientPhase = clientPhases.find(p => p.progress < 100);
-    const rawPhase = activeProject?.progressPhase || activeProject?.progress_phase;
-    const phase = rawPhase && rawPhase <= 4 
-        ? rawPhase 
-        : (incompleteClientPhase ? incompleteClientPhase.id : (clientPhases.length || 3));
+    const phase = activeProject?.progressPhase || activeProject?.progress_phase || 1;
 
     if (loading) {
         return (
@@ -72,18 +71,18 @@ const ProjectProgress = () => {
                 <div className="relative mt-8 pb-4">
                     {/* Connecting Lines */}
                     <div className="absolute top-4 left-[12.5%] right-[12.5%] h-1 bg-[#E2E8F0] z-0 rounded-full overflow-hidden">
-                        <div className={`h-full bg-[#006E1C] transition-all duration-500 ease-out`} style={{ width: `${(Math.max(0, phase - 1) / 3) * 100}%` }} />
+                        <div className={`h-full bg-[#006E1C] transition-all duration-500 ease-out`} style={{ width: `${Math.min(100, (Math.max(0, phase - 1) / (clientPhases.length - 1 || 3)) * 100)}%` }} />
                     </div>
                     
                     <div className="flex justify-between items-start relative z-10">
-                        {[
-                            { id: 1, name: 'Piling &\nFoundation' },
-                            { id: 2, name: 'Structural\nCasting' },
-                            { id: 3, name: 'Finishing' },
-                            { id: 4, name: 'Handover' },
-                        ].map(step => {
-                            const isCompleted = phase > step.id;
-                            const isCurrent = phase === step.id;
+                        {(activeProject?.phases || [
+                            { id: 1, name: 'Piling & Foundation', date: 'Completed Dec 23', progress: 100 },
+                            { id: 2, name: 'Structural Basement & Columns', date: 'Target: Feb 24', progress: 50 },
+                            { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: May 26', progress: 0 },
+                            { id: 4, name: 'Finishing & Handover', date: 'Target: Dec 26', progress: 0 }
+                        ]).map(step => {
+                            const isCurrent = step.id === phase;
+                            const isCompleted = step.id < phase;
                             return (
                                 <div key={step.id} className="flex flex-col items-center flex-1">
                                     {isCompleted ? (
@@ -109,6 +108,58 @@ const ProjectProgress = () => {
                                             : 'font-medium text-slate-400'
                                     }`}>
                                         {step.name}
+                                    </div>
+                                    {step.date && (
+                                        <div className={`text-[10px] text-center mt-1 font-medium ${isCurrent ? 'text-[#003178] font-bold' : 'text-slate-400'}`}>
+                                            {step.date}
+                                        </div>
+                                    )}
+                                    {step.progress > 0 && step.progress < 100 && (
+                                        <span className="mt-1 px-2 py-0.5 bg-[#E1EFFE] text-[#003178] font-extrabold text-[9px] rounded-full border border-blue-200">
+                                            {step.progress}% COMPLETE
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Milestone Detailed Progress Breakdown */}
+                <div className="mt-8 pt-6 border-t border-[#E2E8F0] space-y-4">
+                    <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4">Milestone Progress Breakdown</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {(activeProject?.phases || []).map(p => {
+                            const isComp = p.id < phase || p.progress >= 100;
+                            const isCurr = p.id === phase;
+                            return (
+                                <div key={p.id} className="p-4 bg-slate-50 border border-[#E2E8F0] rounded-xl flex flex-col justify-between">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-xs text-slate-800">{p.name}</div>
+                                            <div className="text-[10px] text-slate-500 mt-0.5">{p.date}</div>
+                                        </div>
+                                        <div>
+                                            {isComp ? (
+                                                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-extrabold text-[9px] rounded border border-emerald-200">COMPLETED</span>
+                                            ) : isCurr ? (
+                                                <span className="px-2 py-0.5 bg-[#E1EFFE] text-[#003178] font-extrabold text-[9px] rounded border border-blue-200 animate-pulse">IN PROGRESS</span>
+                                            ) : (
+                                                <span className="px-2 py-0.5 bg-slate-100 text-slate-400 font-bold text-[9px] rounded border border-slate-200">UPCOMING</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1 mt-2">
+                                        <div className="flex justify-between text-[10px] font-bold text-slate-600">
+                                            <span>Progress</span>
+                                            <span>{isComp ? 100 : p.progress}%</span>
+                                        </div>
+                                        <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden">
+                                            <div 
+                                                className={`h-full ${isComp ? 'bg-[#006E1C]' : 'bg-[#003178]'} transition-all duration-500`}
+                                                style={{ width: `${isComp ? 100 : p.progress}%` }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -167,6 +218,50 @@ const ProjectProgress = () => {
                     )}
                 </div>
             </div>
+
+            {/* 3. Project Photo Gallery */}
+            <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm p-6 mb-8">
+                <h2 className="text-[#003178] font-bold text-[18px] mb-6">Site Photo Gallery</h2>
+                {(() => {
+                    const currentPhotos = (projectPhotos || []).filter(photo => photo.projectId === activeProjectId || photo.project_id === activeProjectId);
+                    if (currentPhotos.length > 0) {
+                        return (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {currentPhotos.map(photo => (
+                                    <div 
+                                        key={photo.id} 
+                                        className="group relative border border-[#E2E8F0] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow bg-slate-50 aspect-video cursor-pointer"
+                                        onClick={() => setSelectedPhotoUrl(photo.url)}
+                                    >
+                                        <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3 text-white">
+                                            <p className="text-[11px] font-bold truncate">{photo.caption || 'Site Photo'}</p>
+                                            <p className="text-[9px] text-slate-300 font-mono mt-0.5">{photo.date || 'Recent'}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    }
+                    return (
+                        <div className="p-8 text-center text-slate-400 text-sm italic border border-[#E2E8F0] border-dashed rounded-lg">
+                            No site progress photos uploaded for {activeProject?.name || 'this project'} yet.
+                        </div>
+                    );
+                })()}
+            </div>
+
+            {/* Lightbox Modal */}
+            {selectedPhotoUrl && (
+                <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4 cursor-pointer" onClick={() => setSelectedPhotoUrl(null)}>
+                    <div className="relative max-w-4xl max-h-full">
+                        <img src={selectedPhotoUrl} alt="Preview" className="max-w-full max-h-[85vh] rounded-lg shadow-2xl border border-white/10" />
+                        <button onClick={() => setSelectedPhotoUrl(null)} className="absolute -top-10 right-0 text-white hover:text-slate-350 font-bold text-sm bg-white/10 px-3 py-1 rounded-full cursor-pointer">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

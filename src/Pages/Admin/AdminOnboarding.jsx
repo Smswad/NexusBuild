@@ -75,23 +75,29 @@ const AdminOnboarding = () => {
             <div className="grid grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
                     <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Applications</div>
-                    <div className="text-2xl font-extrabold text-slate-800 mt-1">112</div>
+                    <div className="text-2xl font-extrabold text-slate-800 mt-1">{(applications || []).length}</div>
                     <div className="text-[10px] text-slate-500 mt-1 uppercase">Active pipeline</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
                     <div className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Pending KYC</div>
-                    <div className="text-2xl font-extrabold text-slate-800 mt-1">24</div>
+                    <div className="text-2xl font-extrabold text-slate-800 mt-1">
+                        {(applications || []).filter(a => a.status === 'Pending' || a.stage === 'KYC Verification').length}
+                    </div>
                     <div className="text-[10px] text-slate-500 mt-1 uppercase">Awaiting docs</div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm bg-red-50">
                     <div className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Action Required</div>
-                    <div className="text-2xl font-extrabold text-red-700 mt-1">5</div>
+                    <div className="text-2xl font-extrabold text-red-700 mt-1">
+                        {(applications || []).filter(a => a.status === 'Action Required').length}
+                    </div>
                     <div className="text-[10px] text-red-600 mt-1 uppercase font-medium">Needs management review</div>
                 </div>
                 <div className="bg-[#1A4B9C] p-4 rounded-xl border border-[#153B7C] shadow-sm text-white">
                     <div className="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Approved (MTD)</div>
-                    <div className="text-2xl font-extrabold mt-1">42</div>
-                    <div className="text-[10px] text-emerald-300 mt-1 font-bold uppercase">Ready for handover</div>
+                    <div className="text-2xl font-extrabold mt-1">
+                        {(applications || []).filter(a => a.status === 'Approved').length}
+                    </div>
+                    <div className="text-[10px] text-emerald-300 mt-1 font-bold uppercase">Ready for onboarding</div>
                 </div>
             </div>
 
@@ -297,7 +303,10 @@ const AdminOnboarding = () => {
                                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Assign Project</label>
                                  <select 
                                      value={selectedProjectId} 
-                                     onChange={(e) => setSelectedProjectId(e.target.value)}
+                                     onChange={(e) => {
+                                         setSelectedProjectId(e.target.value);
+                                         setSelectedUnitName('Not specified');
+                                     }}
                                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#1A4B9C] text-sm"
                                  >
                                      {projects.map(p => (
@@ -306,16 +315,43 @@ const AdminOnboarding = () => {
                                  </select>
                              </div>
 
-                             {/* Unit Name Input */}
+                             {/* Unit Name Input (Dropdown Selector) */}
                              <div>
-                                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Unit Name / Number</label>
-                                 <input 
-                                     type="text"
-                                     value={selectedUnitName}
-                                     onChange={(e) => setSelectedUnitName(e.target.value)}
-                                     placeholder="e.g. 5A"
-                                     className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#1A4B9C] text-sm"
-                                 />
+                                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Assign Property Unit</label>
+                                 {(() => {
+                                     let availableFlats = [];
+                                     try {
+                                         const stored = localStorage.getItem('flats_project_' + selectedProjectId);
+                                         if (stored) {
+                                             const list = JSON.parse(stored);
+                                             availableFlats = list.filter(f => f.status === 'AVAILABLE' || f.status === 'RESERVED' || f.unit === selectedUnitName);
+                                         } else {
+                                             availableFlats = [
+                                                 { id: 'f1', unit: 'Flat 1A', size: '1,200 sqft', price: '৳1.25Cr', status: 'AVAILABLE' },
+                                                 { id: 'f2', unit: 'Flat 1B', size: '1,500 sqft', price: '৳1.55Cr', status: 'SOLD' },
+                                                 { id: 'f3', unit: 'Flat 2A', size: '1,200 sqft', price: '৳1.25Cr', status: 'RESERVED' },
+                                                 { id: 'f4', unit: 'Flat 2B', size: '1,500 sqft', price: '৳1.55Cr', status: 'AVAILABLE' }
+                                             ].filter(f => f.status === 'AVAILABLE' || f.status === 'RESERVED');
+                                         }
+                                     } catch(e) {
+                                         availableFlats = [];
+                                     }
+
+                                     return (
+                                         <select 
+                                             value={selectedUnitName} 
+                                             onChange={(e) => setSelectedUnitName(e.target.value)}
+                                             className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-[#1A4B9C] text-sm bg-white"
+                                         >
+                                             <option value="Not specified">Select Unit...</option>
+                                             {availableFlats.map(f => (
+                                                 <option key={f.id} value={f.unit}>
+                                                     {f.unit} ({f.size} - {f.price}) - {f.status}
+                                                 </option>
+                                             ))}
+                                         </select>
+                                     );
+                                 })()}
                              </div>
 
                              {/* Modal Actions */}

@@ -20,15 +20,22 @@ const AdminFinancials = () => {
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
 
+    const cleanInt = (val) => {
+        if (!val) return 0;
+        const clean = String(val).replace(/[^0-9.]/g, '');
+        const parsed = parseInt(clean);
+        return isNaN(parsed) ? 0 : parsed;
+    };
+
     const formatBDT = (amount) => {
         if (!amount) return '0';
-        return new Intl.NumberFormat('en-IN').format(parseInt(String(amount).replace(/,/g, '')));
+        return new Intl.NumberFormat('en-IN').format(cleanInt(amount));
     };
 
     // Global Stats
-    const totalRevenue = transactions.reduce((sum, tx) => sum + parseInt(String(tx.amount).replace(/,/g, '')), 0);
-    const netOutstanding = properties.reduce((sum, p) => sum + parseInt(String(p.dueBalance).replace(/,/g, '')), 0);
-    const totalOverdue = installments.filter(i => i.status === 'Overdue').reduce((sum, i) => sum + parseInt(String(i.amount).replace(/,/g, '')), 0);
+    const totalRevenue = (transactions || []).reduce((sum, tx) => sum + cleanInt(tx.amount), 0);
+    const netOutstanding = (properties || []).reduce((sum, p) => sum + cleanInt(p.dueBalance), 0);
+    const totalOverdue = (installments || []).filter(i => i.status === 'Overdue').reduce((sum, i) => sum + cleanInt(i.amount), 0);
 
     const enrichedProperties = properties.map(prop => {
         const client = clients.find(c => c.id === prop.clientId);

@@ -42,6 +42,7 @@ CREATE TABLE public.projects (
     name TEXT NOT NULL,
     total_units INTEGER DEFAULT 0,
     progress_phase INTEGER DEFAULT 1,
+    phases JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
@@ -146,4 +147,25 @@ INSERT INTO public.public_projects (id, name, status, status_bg, location, type,
 ON CONFLICT (id) DO NOTHING;
 
 ALTER TABLE public.public_projects DISABLE ROW LEVEL SECURITY;
+
+-- 11. System Settings Table (Global company configurations)
+CREATE TABLE public.system_settings (
+    id TEXT PRIMARY KEY DEFAULT 'global',
+    settings JSONB NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.system_settings DISABLE ROW LEVEL SECURITY;
+
+-- Insert default system settings
+INSERT INTO public.system_settings (id, settings) VALUES
+    ('global', '{
+        "companyName": "Reliance Housing Ltd.",
+        "regNumber": "REG-2023-998811",
+        "headOfficeAddress": "Shamabay New Market, 259 B B Road, Narayanganj",
+        "supportEmail": "info@reliancehousing.com",
+        "supportPhone": "+880 1234 567890"
+    }'::jsonb)
+ON CONFLICT (id) DO NOTHING;
+
 

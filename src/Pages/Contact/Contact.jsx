@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import {
     Mail, Phone, Clock, MapPin, Send, MessageSquare,
@@ -58,7 +58,14 @@ const SUBJECTS = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 const Contact = () => {
-    const { addLead } = useDatabase();
+    const { addLead, systemSettings } = useDatabase();
+    const savedSettingsToUse = systemSettings || {
+        companyName: 'Reliance Housing Ltd.',
+        headOfficeAddress: 'Shamabay New Market, 259 B B Road, Narayanganj',
+        supportEmail: 'info@reliancehousing.com',
+        supportPhone: '+880 1234 567890'
+    };
+
     const [form, setForm] = useState({
         fullName: '',
         email:    '',
@@ -142,19 +149,19 @@ const Contact = () => {
                     {/* Quick contact link */}
                     <div className="flex items-center gap-4 mt-8">
                         <a
-                            href="tel:+8801234567890"
+                            href={`tel:${savedSettingsToUse.supportPhone}`}
                             className="inline-flex items-center gap-2 text-[14px] text-[#b0c8eb] hover:text-white transition-colors"
                         >
                             <Phone size={14} className="text-[#fe762a]" />
-                            +880 1234 567890
+                            {savedSettingsToUse.supportPhone}
                         </a>
                         <span className="text-white/20">|</span>
                         <a
-                            href="mailto:info@reliancehousing.com"
+                            href={`mailto:${savedSettingsToUse.supportEmail}`}
                             className="inline-flex items-center gap-2 text-[14px] text-[#b0c8eb] hover:text-white transition-colors"
                         >
                             <Mail size={14} className="text-[#fe762a]" />
-                            info@reliancehousing.com
+                            {savedSettingsToUse.supportEmail}
                         </a>
                     </div>
                 </div>
@@ -164,34 +171,42 @@ const Contact = () => {
             <section className="py-16 bg-[#f3f4f5]">
                 <div className="max-w-[1184px] mx-auto px-6 sm:px-10 lg:px-12">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        {CARDS.map(({ id, icon: Icon, iconBg, title, lines }) => (
-                            <div
-                                key={id}
-                                className="bg-white border border-[#c4c6ce] p-6 flex flex-col gap-2"
-                            >
-                                {/* Icon badge — 48×48 */}
+                        {CARDS.map(({ id, icon: Icon, iconBg, title, lines }) => {
+                            const dynamicLines = lines.map(line => {
+                                if (id === 'general' && line.label === 'Email') return { ...line, value: savedSettingsToUse.supportEmail };
+                                if (id === 'general' && line.label === 'Phone') return { ...line, value: savedSettingsToUse.supportPhone };
+                                if (id === 'support' && line.label === 'Email') return { ...line, value: savedSettingsToUse.supportEmail };
+                                return line;
+                            });
+                            return (
                                 <div
-                                    className="w-12 h-12 flex items-center justify-center mb-2 flex-shrink-0"
-                                    style={{ background: iconBg }}
+                                    key={id}
+                                    className="bg-white border border-[#c4c6ce] p-6 flex flex-col gap-2"
                                 >
-                                    <Icon size={20} className="text-white" />
-                                </div>
+                                    {/* Icon badge — 48×48 */}
+                                    <div
+                                        className="w-12 h-12 flex items-center justify-center mb-2 flex-shrink-0"
+                                        style={{ background: iconBg }}
+                                    >
+                                        <Icon size={20} className="text-white" />
+                                    </div>
 
-                                {/* Title */}
-                                <h3 className="text-[20px] font-semibold text-[#191c1d] leading-[32px]">
-                                    {title}
-                                </h3>
+                                    {/* Title */}
+                                    <h3 className="text-[20px] font-semibold text-[#191c1d] leading-[32px]">
+                                        {title}
+                                    </h3>
 
-                                {/* Lines */}
-                                <div className="flex flex-col gap-1">
-                                    {lines.map(({ label, value }) => (
-                                        <p key={label} className="text-[16px] font-normal text-[#43474d] leading-[24px]">
-                                            {value}
-                                        </p>
-                                    ))}
+                                    {/* Lines */}
+                                    <div className="flex flex-col gap-1">
+                                        {dynamicLines.map(({ label, value }) => (
+                                            <p key={label} className="text-[16px] font-normal text-[#43474d] leading-[24px]">
+                                                {value}
+                                            </p>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </section>
@@ -404,9 +419,7 @@ const Contact = () => {
                                             Address
                                         </span>
                                         <p className="text-[14px] font-normal text-[#43474d] leading-[22px]">
-                                            Shamabay New Market<br />
-                                            259 B B Road<br />
-                                            Narayanganj, Bangladesh
+                                            {savedSettingsToUse.headOfficeAddress}
                                         </p>
                                     </div>
 
@@ -442,7 +455,7 @@ const Contact = () => {
                             {/* Quick contact badges */}
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <a
-                                    href="tel:+8801234567890"
+                                    href={`tel:${savedSettingsToUse.supportPhone}`}
                                     className="
                                         flex-1 flex items-center gap-3 bg-[#000f22] px-4 py-4
                                         hover:bg-[#0a2540] transition-colors duration-200 group
@@ -453,11 +466,11 @@ const Contact = () => {
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-semibold text-[#768dad] uppercase tracking-wider">Call Us</p>
-                                        <p className="text-[13px] font-semibold text-white">+880 1234 567890</p>
+                                        <p className="text-[13px] font-semibold text-white">{savedSettingsToUse.supportPhone}</p>
                                     </div>
                                 </a>
                                 <a
-                                    href="mailto:info@reliancehousing.com"
+                                    href={`mailto:${savedSettingsToUse.supportEmail}`}
                                     className="
                                         flex-1 flex items-center gap-3 bg-white border border-[#c4c6ce] px-4 py-4
                                         hover:border-[#a14000] transition-colors duration-200
@@ -468,7 +481,7 @@ const Contact = () => {
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-semibold text-[#74777e] uppercase tracking-wider">Email</p>
-                                        <p className="text-[13px] font-semibold text-[#191c1d]">info@reliancehousing.com</p>
+                                        <p className="text-[13px] font-semibold text-[#191c1d]">{savedSettingsToUse.supportEmail}</p>
                                     </div>
                                 </a>
                             </div>
