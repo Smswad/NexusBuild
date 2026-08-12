@@ -37,7 +37,12 @@ export const PROJECTS = [
             "Full Backup Generator & Water Treatment",
             "High-Speed Passenger & Service Lifts"
         ],
-        coordinates: { lat: 23.6238, lng: 90.4993 }
+        coordinates: { lat: 23.6238, lng: 90.4993 },
+        mapLink: "https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed",
+        nearbyHospitals: "Narayanganj 200 Bed Hospital (0.8 km), Popular Diagnostic Center (1.2 km)",
+        nearbySchools: "Ideal School & College (0.6 km), Narayanganj Govt High School (1.1 km)",
+        nearbyColleges: "Tolaram Govt College (1.3 km)",
+        nearbyMarkets: "Shamabay New Market (0.3 km), Balur Math Market (0.7 km)"
     },
     {
         id: "p2",
@@ -45,8 +50,8 @@ export const PROJECTS = [
         name: "Green Valley Residency",
         status: "READY TO MOVE",
         statusBg: "#0a3d2e",
-        location: "BB Road, Narayanganj",
-        fullAddress: "Green Valley Lane, Off BB Road, Narayanganj",
+        location: "Dhanmondi",
+        fullAddress: "Road 27, Dhanmondi, Dhaka",
         type: "Residential",
         image: "/Frontend/Projects/The_Heritage_Plaza.svg",
         gallery: [
@@ -54,8 +59,8 @@ export const PROJECTS = [
             "/Frontend/Projects/Decades_of_Trust_in_Narayanganj.svg",
             "/Frontend/Projects/Hero_Section.svg"
         ],
-        description: "Eco-friendly luxury residential gated community featuring lush green balconies, solar power integration, and riverfront peaceful surroundings.",
-        fullDescription: "Green Valley Residency is Narayanganj's premier eco-inspired luxury residential sanctuary. Nestled in a quiet green corridor near BB Road, it provides serene environment with rooftop gardens, children's play areas, and energy-efficient building systems.",
+        description: "Eco-friendly luxury residential gated community featuring lush green balconies, solar power integration, and peaceful surroundings.",
+        fullDescription: "Green Valley Residency is a premier eco-inspired luxury residential sanctuary nestled in Dhanmondi, Dhaka. Designed for serene living with rooftop gardens, children's play areas, and energy-efficient building systems.",
         priceRange: "৳ 1.10 Cr – ৳ 2.60 Cr",
         totalUnits: 24,
         specs: [
@@ -73,7 +78,12 @@ export const PROJECTS = [
             "Landscaped Courtyard & Children's Play Zone",
             "Full Generator Backup for All Essential Units"
         ],
-        coordinates: { lat: 23.6158, lng: 90.5010 }
+        coordinates: { lat: 23.7461, lng: 90.3742 },
+        mapLink: "https://maps.google.com/maps?q=23.7461,90.3742&z=15&output=embed",
+        nearbyHospitals: "Labaid Specialized Hospital (0.5 km), Square Hospital (1.4 km)",
+        nearbySchools: "Scholastica School (0.8 km), Mastermind School (1.2 km)",
+        nearbyColleges: "Dhaka City College (0.7 km), State University of Bangladesh (1.5 km)",
+        nearbyMarkets: "Shimanto Square (0.6 km), Rapa Plaza (1.1 km)"
     }
 ];
 

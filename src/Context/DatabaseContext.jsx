@@ -268,7 +268,12 @@ export const DatabaseProvider = ({ children }) => {
                             image: p.image,
                             description: p.description,
                             price: p.price,
-                            area: p.area
+                            area: p.area,
+                            mapLink: p.map_link || p.mapLink,
+                            nearbyHospitals: p.nearby_hospitals || p.nearbyHospitals,
+                            nearbySchools: p.nearby_schools || p.nearbySchools,
+                            nearbyColleges: p.nearby_colleges || p.nearbyColleges,
+                            nearbyMarkets: p.nearby_markets || p.nearbyMarkets
                         }));
                     
                     if (validPublicProjects.length > 0) {
@@ -792,7 +797,12 @@ export const DatabaseProvider = ({ children }) => {
                 image: updatedProj.image,
                 description: updatedProj.description,
                 price: updatedProj.price,
-                area: updatedProj.area
+                area: updatedProj.area,
+                map_link: updatedProj.mapLink,
+                nearby_hospitals: updatedProj.nearbyHospitals,
+                nearby_schools: updatedProj.nearbySchools,
+                nearby_colleges: updatedProj.nearbyColleges,
+                nearby_markets: updatedProj.nearbyMarkets
             };
             const { error } = await supabase.from('public_projects').update(dbPayload).eq('id', id);
             if (error) console.warn("[DatabaseContext] Supabase update note:", error.message);

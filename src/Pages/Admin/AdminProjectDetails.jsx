@@ -64,15 +64,19 @@ const AdminProjectDetails = () => {
         name: '',
         status: 'AVAILABLE',
         statusBg: '#a14000',
-        location: 'Narayanganj, Dhaka',
+        location: 'Narayanganj',
         type: 'Residential',
         image: '/Frontend/Projects/Reliance_Zenith_Towers.svg',
         description: 'Luxury residential development equipped with modern amenities.',
         detailsLink: '#',
-        mapLink: '#',
+        mapLink: 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed',
         price: '৳ 1.25 Crore - ৳ 2.50 Crore',
         area: '1,200 - 2,200 sqft',
-        totalUnits: 25
+        totalUnits: 25,
+        nearbyHospitals: '',
+        nearbySchools: '',
+        nearbyColleges: '',
+        nearbyMarkets: ''
     });
 
     useEffect(() => {
@@ -86,10 +90,14 @@ const AdminProjectDetails = () => {
                 image: matchingPublicProj.image || '/Frontend/Projects/Hero_Section.svg',
                 description: matchingPublicProj.description || 'Flagship real estate project equipped with modern infrastructure amenities.',
                 detailsLink: matchingPublicProj.detailsLink || '#',
-                mapLink: matchingPublicProj.mapLink || '#',
+                mapLink: matchingPublicProj.mapLink || matchingPublicProj.map_link || 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed',
                 price: matchingPublicProj.price || '৳ 1.50 Crore - ৳ 3.50 Crore',
                 area: matchingPublicProj.area || '1,400 - 2,800 sqft',
-                totalUnits: currentProject.totalUnits || matchingPublicProj.totalUnits || 32
+                totalUnits: currentProject.totalUnits || matchingPublicProj.totalUnits || 32,
+                nearbyHospitals: matchingPublicProj.nearbyHospitals || matchingPublicProj.nearby_hospitals || 'Narayanganj 200 Bed Hospital (0.8 km), Popular Diagnostic (1.2 km)',
+                nearbySchools: matchingPublicProj.nearbySchools || matchingPublicProj.nearby_schools || 'Ideal School & College (0.6 km), Narayanganj Govt High School (1.1 km)',
+                nearbyColleges: matchingPublicProj.nearbyColleges || matchingPublicProj.nearby_colleges || 'Tolaram Govt College (1.3 km)',
+                nearbyMarkets: matchingPublicProj.nearbyMarkets || matchingPublicProj.nearby_markets || 'Shamabay New Market (0.3 km), Balur Math Market (0.7 km)'
             });
         }
     }, [currentProject?.id]);
@@ -447,15 +455,65 @@ const AdminProjectDetails = () => {
                             />
                         </div>
 
-                        <div>
-                            <label className="block font-bold text-slate-600 uppercase tracking-wider mb-1">Google Maps Embedded Link</label>
+                        <div className="col-span-2">
+                            <label className="block font-bold text-slate-600 uppercase tracking-wider mb-1">Google Maps Location Link / Embed URL</label>
                             <input 
                                 type="text"
                                 value={formData.mapLink}
                                 onChange={(e) => setFormData({ ...formData, mapLink: e.target.value })}
-                                placeholder="https://maps.google.com/..."
+                                placeholder="e.g. https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed"
                                 className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1A4B9C]"
                             />
+                        </div>
+
+                        {/* Nearby Amenities (Within 2 km) Section */}
+                        <div className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
+                            <div className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <MapPin size={14} className="text-[#1A4B9C]" />
+                                Nearby Amenities (Within 2 km Radius for GIS Map View)
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block font-bold text-slate-500 text-[10px] uppercase mb-1">🏥 Nearby Hospitals (Name & Distance)</label>
+                                    <input 
+                                        type="text"
+                                        value={formData.nearbyHospitals}
+                                        onChange={(e) => setFormData({ ...formData, nearbyHospitals: e.target.value })}
+                                        placeholder="e.g. Labaid Hospital (0.8 km), Square Hospital (1.5 km)"
+                                        className="w-full border border-[#E2E8F0] rounded px-2.5 py-1.5 text-xs text-slate-800 bg-white focus:outline-none focus:border-[#1A4B9C]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-500 text-[10px] uppercase mb-1">🏫 Nearby Schools (Name & Distance)</label>
+                                    <input 
+                                        type="text"
+                                        value={formData.nearbySchools}
+                                        onChange={(e) => setFormData({ ...formData, nearbySchools: e.target.value })}
+                                        placeholder="e.g. Ideal School & College (0.6 km), Scholastica (1.1 km)"
+                                        className="w-full border border-[#E2E8F0] rounded px-2.5 py-1.5 text-xs text-slate-800 bg-white focus:outline-none focus:border-[#1A4B9C]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-500 text-[10px] uppercase mb-1">🎓 Nearby Colleges / Varsities</label>
+                                    <input 
+                                        type="text"
+                                        value={formData.nearbyColleges}
+                                        onChange={(e) => setFormData({ ...formData, nearbyColleges: e.target.value })}
+                                        placeholder="e.g. Dhaka City College (0.7 km), Tolaram College (1.3 km)"
+                                        className="w-full border border-[#E2E8F0] rounded px-2.5 py-1.5 text-xs text-slate-800 bg-white focus:outline-none focus:border-[#1A4B9C]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-bold text-slate-500 text-[10px] uppercase mb-1">🛒 Nearby Markets / Shopping Malls</label>
+                                    <input 
+                                        type="text"
+                                        value={formData.nearbyMarkets}
+                                        onChange={(e) => setFormData({ ...formData, nearbyMarkets: e.target.value })}
+                                        placeholder="e.g. Shimanto Square (0.6 km), Shamabay Market (0.3 km)"
+                                        className="w-full border border-[#E2E8F0] rounded px-2.5 py-1.5 text-xs text-slate-800 bg-white focus:outline-none focus:border-[#1A4B9C]"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         <div className="col-span-2">
@@ -463,7 +521,7 @@ const AdminProjectDetails = () => {
                             <textarea 
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1A4B9C] h-24 resize-none"
+                                className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#1A4B9C] h-20 resize-none"
                                 required
                             ></textarea>
                         </div>
