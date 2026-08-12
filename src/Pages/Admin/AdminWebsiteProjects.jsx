@@ -160,7 +160,7 @@ const AdminWebsiteProjects = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6 px-4 lg:px-0 text-slate-800">
             
             {/* Header */}
             <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end mb-6">
@@ -212,7 +212,7 @@ const AdminWebsiteProjects = () => {
                             </div>
                             <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed flex-1 mb-4">{project.description}</p>
                             
-                            <div className="flex gap-2 mt-auto pt-4 border-t border-[#E2E8F0] justify-between items-center">
+                            <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-[#E2E8F0] justify-between items-center">
                                 <button 
                                     onClick={() => openEditModal(project)}
                                     className="px-3 py-1.5 bg-blue-50 text-[#1A4B9C] text-xs font-bold rounded hover:bg-blue-100 transition-colors cursor-pointer flex items-center gap-1.5"
@@ -258,10 +258,10 @@ const AdminWebsiteProjects = () => {
                         </div>
                         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
                             <div className="p-6 space-y-5 overflow-y-auto flex-1">
-                            <div className="grid grid-cols-2 gap-5">
-                                <div className="col-span-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="sm:col-span-2">
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Project Name</label>
-                                    <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                    <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] bg-white text-slate-800" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</label>
@@ -277,28 +277,28 @@ const AdminWebsiteProjects = () => {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Location</label>
-                                    <input type="text" required value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                    <input type="text" required value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] bg-white text-slate-800" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Details Page Link</label>
-                                    <input type="text" placeholder="/projects/zenith" value={formData.detailsLink} onChange={e => setFormData({...formData, detailsLink: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                    <input type="text" placeholder="/projects/zenith" value={formData.detailsLink} onChange={e => setFormData({...formData, detailsLink: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] bg-white text-slate-800" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Google Maps Link</label>
-                                    <input type="text" placeholder="https://maps.google.com/..." value={formData.mapLink} onChange={e => setFormData({...formData, mapLink: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                    <input type="text" placeholder="https://maps.google.com/..." value={formData.mapLink} onChange={e => setFormData({...formData, mapLink: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] bg-white text-slate-800" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Price Info</label>
-                                    <input type="text" placeholder="e.g. Starting from ৳1.2Cr" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                    <input type="text" placeholder="e.g. Starting from ৳1.2Cr" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] bg-white text-slate-800" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Area / Size Info</label>
-                                    <input type="text" placeholder="e.g. 1,200 - 2,500 sqft" value={formData.area} onChange={e => setFormData({...formData, area: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                    <input type="text" placeholder="e.g. 1,200 - 2,500 sqft" value={formData.area} onChange={e => setFormData({...formData, area: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] bg-white text-slate-800" />
                                 </div>
                                 
-                                <div className="col-span-2">
+                                <div className="sm:col-span-2">
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Project Image</label>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {/* Drag and Drop Zone */}
                                         <div 
                                             onDragOver={(e) => e.preventDefault()}
@@ -320,7 +320,7 @@ const AdminWebsiteProjects = () => {
                                         {/* Direct Link Input */}
                                         <div className="flex flex-col justify-center gap-2">
                                             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><LinkIcon size={12}/> Or Image URL</div>
-                                            <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C]" />
+                                            <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] bg-white text-slate-800" />
                                             {formData.image && (
                                                 <div className="mt-2 h-16 w-32 rounded border border-slate-200 overflow-hidden">
                                                     <img src={formData.image} className="w-full h-full object-cover" alt="Preview" />
@@ -330,9 +330,9 @@ const AdminWebsiteProjects = () => {
                                     </div>
                                 </div>
 
-                                <div className="col-span-2">
+                                <div className="sm:col-span-2">
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Description</label>
-                                    <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] h-24 resize-none"></textarea>
+                                    <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] h-24 resize-none bg-white text-slate-800"></textarea>
                                 </div>
                             </div>
                             </div>
