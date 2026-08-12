@@ -185,7 +185,7 @@ const Projects = () => {
                     className="absolute inset-0 w-full h-full object-cover select-none"
                 />
                 {/* Dark overlay for text legibility */}
-                <div className="absolute inset-0 bg-[#000f22]/45" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#000f22]/90 via-[#000f22]/70 to-[#000f22]/30" />
 
                 <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 lg:px-12 py-16 lg:py-24">
                     <div className="max-w-[672px] flex flex-col gap-4">
