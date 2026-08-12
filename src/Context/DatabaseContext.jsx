@@ -860,8 +860,7 @@ export const DatabaseProvider = ({ children }) => {
                 image: updatedProj.image,
                 description: updatedProj.description,
                 price: updatedProj.price,
-                area: updatedProj.area,
-                map_link: updatedProj.mapLink || updatedProj.map_link
+                area: updatedProj.area
             };
             const { error } = await supabase.from('public_projects').upsert([dbPayload]);
             if (error) console.warn("[DatabaseContext] Supabase upsert note:", error.message);
