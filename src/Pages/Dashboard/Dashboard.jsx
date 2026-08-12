@@ -131,16 +131,16 @@ const DashboardContent = () => {
 
     return (
         <div className="flex h-screen overflow-hidden font-sans bg-[#F0F4F8] print:block print:h-auto print:overflow-visible">
-            {/* ══ MOBILE OVERLAY ══════════════════════════════════════════════ */}
+            {/* ══ MOBILE OVERLAY ════════════════════════════════ */}
             {sidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    className="fixed inset-0 bg-black/50 z-[55] lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
             {/* ══ SIDEBAR ══════════════════════════════════════════════════════ */}
-            <aside className={`fixed lg:relative inset-y-0 left-0 z-50 w-[280px] lg:w-[340px] flex-shrink-0 flex flex-col bg-[#003178] text-white print:hidden transition-transform duration-300 ease-in-out ${
+            <aside className={`fixed lg:relative inset-y-0 left-0 z-[60] w-[280px] lg:w-[340px] flex-shrink-0 flex flex-col bg-[#003178] text-white print:hidden transition-transform duration-300 ease-in-out ${
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
             }`}>
                 
