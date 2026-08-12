@@ -252,16 +252,7 @@ const Gismap = () => {
                                 allowFullScreen
                             ></iframe>
 
-                            {/* Floating Info Overlay Box */}
-                            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md border border-slate-200 p-3 rounded-xl shadow-lg max-w-xs text-xs space-y-1">
-                                <div className="font-extrabold text-slate-900">{activeProject.name}</div>
-                                <div className="text-[#fe762a] font-bold flex items-center gap-1">
-                                    <MapPin size={12} /> {activeProject.location}
-                                </div>
-                                <p className="text-slate-500 text-[11px] line-clamp-2 mt-1">
-                                    {activeProject.description}
-                                </p>
-                            </div>
+
                         </div>
                     </div>
                 </div>
