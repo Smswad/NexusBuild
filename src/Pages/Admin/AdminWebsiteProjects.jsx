@@ -163,24 +163,24 @@ const AdminWebsiteProjects = () => {
         <div className="max-w-6xl mx-auto space-y-6">
             
             {/* Header */}
-            <div className="flex justify-between items-end mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end mb-6">
                 <div>
                     <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">Website Content</div>
                     <h1 className="text-2xl font-bold text-slate-800">Public Projects Portfolio</h1>
                     <p className="text-slate-500 text-sm mt-1">Manage the projects displayed on the public website.</p>
                 </div>
-                <div className="flex gap-3">
-                    <div className="relative">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <div className="relative w-full sm:w-auto">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input 
                             type="text" 
                             placeholder="Search projects..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="pl-9 pr-4 py-2 border border-[#E2E8F0] rounded-lg text-sm w-64 outline-none focus:border-[#1A4B9C]"
+                            className="pl-9 pr-4 py-2 border border-[#E2E8F0] rounded-lg text-sm w-full sm:w-64 outline-none focus:border-[#1A4B9C] bg-white text-slate-800"
                         />
                     </div>
-                    <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-bold shadow-sm transition-colors">
+                    <button onClick={openAddModal} className="flex items-center justify-center gap-2 px-4 py-2 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-bold shadow-sm transition-colors cursor-pointer w-full sm:w-auto flex-shrink-0">
                         <Plus size={16} /> Add New Project
                     </button>
                 </div>
