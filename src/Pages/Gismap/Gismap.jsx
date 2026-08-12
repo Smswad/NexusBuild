@@ -11,51 +11,23 @@ import {
 const Gismap = () => {
     const { publicProjects = [] } = useDatabase();
 
-    // Extract unique location names for sidebar filtering (e.g., Dhanmondi, Narayanganj)
-    const uniqueLocations = useMemo(() => {
-        const locs = new Set(['Dhanmondi', 'Narayanganj']);
-        publicProjects.forEach(p => {
-            if (p.location) {
-                const primaryLoc = p.location.split(',')[0].trim();
-                if (primaryLoc) {
-                    locs.add(primaryLoc.charAt(0).toUpperCase() + primaryLoc.slice(1));
-                }
-            }
-        });
-        return Array.from(locs);
-    }, [publicProjects]);
-
-    const [selectedLocation, setSelectedLocation] = useState('ALL');
     const [selectedProjectId, setSelectedProjectId] = useState(publicProjects[0]?.id || 'p1');
     const [searchQuery, setSearchQuery] = useState('');
-
-    // Handle switching location area tab: automatically pick first project in that area!
-    const handleSelectLocation = (loc) => {
-        setSelectedLocation(loc);
-        const firstMatching = publicProjects.find(p => 
-            loc === 'ALL' || (p.location && p.location.toLowerCase().includes(loc.toLowerCase()))
-        );
-        if (firstMatching) {
-            setSelectedProjectId(firstMatching.id);
-        }
-    };
 
     // Handle project card click: select project but keep list visible (no auto-filtering list)
     const handleSelectProject = (proj) => {
         setSelectedProjectId(proj.id);
     };
 
-    // Filter projects based on location & search query
+    // Filter projects based on search query
     const filteredProjects = useMemo(() => {
         return publicProjects.filter(p => {
-            const matchLoc = selectedLocation === 'ALL' || 
-                (p.location && p.location.toLowerCase().includes(selectedLocation.toLowerCase()));
             const matchSearch = !searchQuery || 
                 p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                 (p.location && p.location.toLowerCase().includes(searchQuery.toLowerCase()));
-            return matchLoc && matchSearch;
+            return matchSearch;
         });
-    }, [publicProjects, selectedLocation, searchQuery]);
+    }, [publicProjects, searchQuery]);
 
     // Active selected project object
     const activeProject = useMemo(() => {
@@ -191,37 +163,8 @@ const Gismap = () => {
                         
                         {/* Area Location Filter Tabs */}
                         <div className="p-4 border-b border-[#E2E8F0] bg-slate-50 space-y-3">
-                            <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider flex justify-between items-center">
-                                <span>Filter by Location Area</span>
-                                <span className="bg-[#E1EFFE] text-[#1A4B9C] px-2 py-0.5 rounded font-bold">{uniqueLocations.length} Areas</span>
-                            </div>
-
-                            {/* Location Pills */}
-                            <div className="flex flex-wrap gap-1.5">
-                                <button
-                                    onClick={() => handleSelectLocation('ALL')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                                        selectedLocation === 'ALL' 
-                                            ? 'bg-[#1A4B9C] text-white shadow-sm' 
-                                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                                    }`}
-                                >
-                                    All Locations
-                                </button>
-
-                                {uniqueLocations.map(loc => (
-                                    <button
-                                        key={loc}
-                                        onClick={() => handleSelectLocation(loc)}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                                            selectedLocation === loc 
-                                                ? 'bg-[#1A4B9C] text-white shadow-sm' 
-                                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                                        }`}
-                                    >
-                                        <MapPin size={12} /> {loc}
-                                    </button>
-                                ))}
+                            <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider">
+                                Search Property Projects
                             </div>
 
                             {/* Search Input */}
