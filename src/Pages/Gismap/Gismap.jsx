@@ -68,6 +68,12 @@ const Gismap = () => {
 
         let raw = (proj.mapLink || proj.map_link || '').trim();
 
+        // If empty or default placeholder '#', fallback to location search
+        if (!raw || raw === '#') {
+            const query = encodeURIComponent(`${proj.name || ''} ${proj.location || ''}`.trim());
+            return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
+        }
+
         // 1. If Admin pasted full iframe HTML snippet e.g. <iframe src="https://www.google.com/maps/embed?..." ...></iframe>
         if (raw.includes('<iframe') && raw.includes('src=')) {
             const match = raw.match(/src=["']([^"']+)["']/i);
@@ -89,13 +95,24 @@ const Gismap = () => {
             }
         }
 
-        // 4. If it contains coordinate pair like 23.6238, 90.4993
+        // 4. If it contains coordinate pair like 23.6238, 90.4993 or q=23.6238,90.4993
         const pairMatch = raw.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
         if (pairMatch) {
             return `https://maps.google.com/maps?q=${pairMatch[1]},${pairMatch[2]}&z=16&output=embed`;
         }
 
-        // 5. If it's a full URL or search link, attempt search embed parameter
+        // 5. If it's a google maps place link like https://www.google.com/maps/place/Dhanmondi+32+Dhaka
+        if (raw.includes('google.com/maps/place/')) {
+            try {
+                const placePart = raw.split('google.com/maps/place/')[1].split('/')[0].split('?')[0];
+                if (placePart) {
+                    const decoded = decodeURIComponent(placePart).replace(/\+/g, ' ');
+                    return `https://maps.google.com/maps?q=${encodeURIComponent(decoded)}&z=16&output=embed`;
+                }
+            } catch(e) {}
+        }
+
+        // 6. If it's a search URL or HTTP link
         if (raw.startsWith('http://') || raw.startsWith('https://')) {
             try {
                 const urlObj = new URL(raw);
@@ -104,19 +121,10 @@ const Gismap = () => {
                     return `https://maps.google.com/maps?q=${encodeURIComponent(qParam)}&z=15&output=embed`;
                 }
             } catch(e) {}
-            return `https://maps.google.com/maps?q=${encodeURIComponent(raw)}&z=15&output=embed`;
         }
 
-        // 6. Fallback based on project location & name
-        const locLower = (proj.location || '').toLowerCase();
-        if (locLower.includes('dhanmondi')) {
-            return 'https://maps.google.com/maps?q=23.7461,90.3742&z=15&output=embed';
-        }
-        if (locLower.includes('narayanganj') || locLower.includes('shamabay') || locLower.includes('balur')) {
-            return 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed';
-        }
-
-        const query = encodeURIComponent(`${proj.name || ''} ${proj.location || ''}`.trim() || 'Bangladesh');
+        // 7. Fallback based on project name & location
+        const query = encodeURIComponent(`${proj.name || ''} ${proj.location || ''}`.trim());
         return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
     };
 
@@ -317,7 +325,7 @@ const Gismap = () => {
                         {/* Interactive Embedded Map Viewport */}
                         <div className="flex-1 bg-slate-100 relative">
                             <iframe
-                                key={activeProject.id || getMapEmbedUrl(activeProject)}
+                                key={`${activeProject.id || 'p1'}_${getMapEmbedUrl(activeProject)}`}
                                 title={`GIS Map for ${activeProject.name}`}
                                 src={getMapEmbedUrl(activeProject)}
                                 className="w-full h-full border-0"
