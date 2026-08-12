@@ -163,10 +163,30 @@ const AdminLayoutContent = () => {
         }
     };
 
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Auto-close sidebar on navigation (mobile/tablet sizes)
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [navigate]);
+
     return (
-        <div className="flex h-screen overflow-hidden font-sans bg-[#F3F4F6] print:block print:h-auto print:overflow-visible">
+        <div className="flex h-screen overflow-hidden font-sans bg-[#F3F4F6] print:block print:h-auto print:overflow-visible relative">
+            
+            {/* Mobile Sidebar Overlay Backdrop */}
+            {isSidebarOpen && (
+                <div 
+                    onClick={() => setIsSidebarOpen(false)} 
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[55] lg:hidden"
+                />
+            )}
+
             {/* ══ SIDEBAR (260px) ══════════════════════════════════════════════ */}
-            <aside className="w-[260px] flex-shrink-0 flex flex-col bg-[#1A4B9C] text-white print:hidden">
+            <aside className={`
+                fixed inset-y-0 left-0 z-[60] w-[260px] flex-shrink-0 flex flex-col bg-[#1A4B9C] text-white print:hidden transition-transform duration-300 ease-in-out
+                lg:static lg:translate-x-0
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            `}>
                 
                 {/* Header Logo Area */}
                 <div className="p-6 pb-8">
@@ -175,9 +195,15 @@ const AdminLayoutContent = () => {
                             <Building2 size={18} />
                         </div>
                         <div>
-                            <div className="text-white font-bold text-lg leading-none">Reliance Housing Ltd.</div>
+                            <div className="text-white font-bold text-sm sm:text-base leading-none">Reliance Housing Ltd.</div>
                             <div className="text-blue-200 text-[10px] mt-0.5 uppercase tracking-wider">Admin Panel</div>
                         </div>
+                        <button 
+                            onClick={() => setIsSidebarOpen(false)} 
+                            className="lg:hidden text-blue-200 hover:text-white p-1 ml-auto cursor-pointer"
+                        >
+                            <X size={20} />
+                        </button>
                     </div>
                 </div>
 
@@ -241,9 +267,16 @@ const AdminLayoutContent = () => {
             <div className="flex-1 flex flex-col overflow-hidden print:block print:h-auto print:overflow-visible">
                 
                 {/* Top Header (70px) */}
-                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-8 flex items-center justify-between z-50 relative print:hidden">
-                    <div ref={searchRef} className="relative w-[450px]">
-                        <div className="flex items-center gap-3 bg-[#F3F4F6] rounded-lg px-4 py-2 w-full">
+                <header className="h-[70px] flex-shrink-0 bg-white border-b border-[#E2E8F0] px-4 lg:px-8 flex items-center justify-between z-40 relative print:hidden">
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={() => setIsSidebarOpen(true)} 
+                            className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer flex-shrink-0"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+                        </button>
+                        <div ref={searchRef} className="relative w-[150px] sm:w-[280px] md:w-[350px] lg:w-[450px]">
+                            <div className="flex items-center gap-2 sm:gap-3 bg-[#F3F4F6] rounded-lg px-3 sm:px-4 py-2 w-full">
                             <Search size={18} className="text-slate-400" />
                             <input 
                                 type="text" 
@@ -297,6 +330,7 @@ const AdminLayoutContent = () => {
                                 </div>
                             </div>
                         )}
+                    </div>
                     </div>
 
                     <div className="flex items-center gap-6">
@@ -380,7 +414,7 @@ const AdminLayoutContent = () => {
 
                         {/* Profile Icon */}
                         <div className="flex items-center gap-3 border-l border-slate-200 pl-6">
-                            <div className="text-right">
+                            <div className="text-right hidden sm:block">
                                 <div className="text-sm font-bold text-slate-800">Admin (MD)</div>
                                 <div className="text-xs text-slate-500">Reliance Housing Ltd.</div>
                             </div>
