@@ -110,7 +110,7 @@ const Support = () => {
             <div className="flex-1 flex flex-col gap-6 min-w-0">
                 
                 {/* Active Tickets Table */}
-                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm">
                     <div className="p-6 border-b border-[#E2E8F0] flex items-center justify-between">
                         <h3 className="font-bold text-[18px] text-[#003178]">Recent Tickets</h3>
                     </div>

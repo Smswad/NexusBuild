@@ -438,7 +438,7 @@ const FinancialLedger = () => {
                 </div>
 
                 {/* ── Installment Schedule Table ── */}
-                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm overflow-hidden">
+                <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-sm">
                     <div className="p-6 border-b border-[#E2E8F0]">
                         <h2 className="text-[#003178] font-bold text-[18px]">Installment Schedule</h2>
                     </div>
