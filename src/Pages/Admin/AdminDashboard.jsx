@@ -246,10 +246,10 @@ const AdminDashboard = () => {
                 revenueGrowth={revenueGrowth}
             />
 
-            <div className="max-w-5xl mx-auto space-y-6 print:hidden">
+            <div className="max-w-5xl mx-auto space-y-6 px-4 lg:px-0 print:hidden">
                 
                 {/* Header */}
-                <div className="flex justify-between items-end">
+                <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end">
                     <div>
                         <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">
                             {isGlobal ? "Global Portfolio Context" : "Project Portfolio Context"}
@@ -279,7 +279,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Top Row: 2 Large Cards */}
                     <div className="bg-white p-5 rounded-xl border border-[#E2E8F0] shadow-sm flex flex-col justify-between">
                         <div className="flex justify-between items-start mb-4">
@@ -319,7 +319,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Bottom Row: 3 Smaller Cards */}
                     <div className="bg-white p-5 rounded-xl border border-[#E2E8F0] shadow-sm">
                         <div className="flex items-center gap-2 text-slate-600 font-bold text-sm mb-4">
@@ -372,7 +372,8 @@ const AdminDashboard = () => {
                             </span>
                         </div>
                         <div className="divide-y divide-[#E2E8F0]">
-                            <table className="w-full text-left border-collapse">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[700px]">
                                 <thead>
                                     <tr className="bg-white border-b border-[#E2E8F0] text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                                         <th className="px-6 py-3">Project Name</th>
@@ -410,23 +411,24 @@ const AdminDashboard = () => {
                                 </tbody>
                             </table>
                         </div>
+                        </div>
                     </div>
                 )}
 
                 {/* Quick Actions */}
                 <div>
                     <h3 className="text-sm font-bold text-slate-800 mb-3">Quick Actions</h3>
-                    <div className="flex gap-3">
-                        <button onClick={() => navigate('/admin/management')} className="flex items-center gap-2 px-4 py-2 bg-[#1A4B9C] text-white rounded-lg font-medium hover:bg-[#153B7C] transition-colors shadow-sm text-sm">
+                    <div className="flex flex-wrap gap-3">
+                        <button onClick={() => navigate('/admin/management')} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-[#1A4B9C] text-white rounded-lg font-medium hover:bg-[#153B7C] transition-colors shadow-sm text-sm cursor-pointer">
                             <UserPlus size={16} /> Add Client
                         </button>
-                        <button onClick={() => navigate('/admin/financials')} className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm">
+                        <button onClick={() => navigate('/admin/financials')} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm cursor-pointer">
                             <CreditCard size={16} /> Record Payment
                         </button>
-                        <button onClick={() => navigate('/admin/onboarding')} className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm">
+                        <button onClick={() => navigate('/admin/onboarding')} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm cursor-pointer">
                             <CheckSquare size={16} /> Approve Registration
                         </button>
-                        <button onClick={() => navigate('/admin/progress')} className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm">
+                        <button onClick={() => navigate('/admin/progress')} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm cursor-pointer">
                             <Megaphone size={16} /> Publish Announcement
                         </button>
                     </div>
@@ -446,9 +448,9 @@ const AdminDashboard = () => {
                             const unitName = property ? property.unitName : 'Unknown Unit';
                             
                             return (
-                                <div key={tx.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                                    <div className="flex items-center gap-4 w-1/4">
-                                        <div className="w-8 h-8 rounded bg-[#DEF7EC] text-[#03543F] flex items-center justify-center">
+                                <div key={tx.id} className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-slate-50 transition-colors">
+                                    <div className="flex items-center gap-4 md:w-1/4">
+                                        <div className="w-8 h-8 rounded bg-[#DEF7EC] text-[#03543F] flex items-center justify-center flex-shrink-0">
                                             <CreditCard size={16} />
                                         </div>
                                         <div>
@@ -456,9 +458,9 @@ const AdminDashboard = () => {
                                             <div className="text-xs text-slate-500">{tx.reference || 'Bank Transfer'}</div>
                                         </div>
                                     </div>
-                                    <div className="w-1/4 text-sm font-bold text-slate-800">{clientName}</div>
-                                    <div className="w-1/4 text-sm text-slate-500">{unitName} Payment</div>
-                                    <div className="w-1/4 flex items-center justify-end gap-6">
+                                    <div className="text-sm font-bold text-slate-800 md:w-1/4">{clientName}</div>
+                                    <div className="text-sm text-slate-500 md:w-1/4">{unitName} Payment</div>
+                                    <div className="flex items-center justify-between md:justify-end gap-6 md:w-1/4">
                                         <div className="text-sm font-extrabold text-slate-800">৳{tx.amount}</div>
                                         <div className="text-xs text-slate-400 flex items-center gap-1"><Clock size={12}/> {tx.date}</div>
                                     </div>

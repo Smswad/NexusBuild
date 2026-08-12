@@ -231,10 +231,10 @@ const AdminProjectDetails = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6 text-slate-800">
+        <div className="max-w-5xl mx-auto space-y-6 px-4 lg:px-0 text-slate-800">
             
             {/* Header with Back button & Project Switcher */}
-            <div className="flex justify-between items-end border-b border-slate-200 pb-4">
+            <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end border-b border-slate-200 pb-4">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <button 
@@ -282,8 +282,8 @@ const AdminProjectDetails = () => {
                         {formData.name} Hero Banner & Photo Gallery
                     </h3>
 
-                    <div className="grid grid-cols-3 gap-6">
-                        <div className="col-span-1">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-1">
                             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Current Hero Photo</div>
                             <div className="h-44 rounded-lg border border-slate-200 overflow-hidden relative group bg-slate-100">
                                 <img src={formData.image} alt="Hero Preview" className="w-full h-full object-cover" />
@@ -293,7 +293,7 @@ const AdminProjectDetails = () => {
                             </div>
                         </div>
 
-                        <div className="col-span-2 space-y-4">
+                        <div className="md:col-span-2 space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Image URL / File Link</label>
                                 <div className="flex gap-2">
@@ -344,7 +344,7 @@ const AdminProjectDetails = () => {
                         </div>
 
                         {currentPhotos.length > 0 ? (
-                            <div className="grid grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 {currentPhotos.map(photo => (
                                     <div key={photo.id} className="relative group rounded-lg border border-slate-200 overflow-hidden bg-slate-100 h-32">
                                         <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover" />
@@ -394,7 +394,7 @@ const AdminProjectDetails = () => {
                         Project Specifications & Location Details
                     </h3>
 
-                    <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                         <div>
                             <label className="block font-bold text-slate-600 uppercase tracking-wider mb-1">Project Name</label>
                             <input 
@@ -475,7 +475,7 @@ const AdminProjectDetails = () => {
                             />
                         </div>
 
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                             <div className="flex justify-between items-center mb-1">
                                 <label className="block font-bold text-slate-600 uppercase tracking-wider">Google Maps Location Link / Embed URL</label>
                                 <span className="text-[10px] text-slate-400">Accepts Embed HTML, Share Link, or Coordinates</span>
@@ -493,12 +493,12 @@ const AdminProjectDetails = () => {
                         </div>
 
                         {/* Nearby Amenities (Within 2 km) Section */}
-                        <div className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
+                        <div className="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
                             <div className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                                 <MapPin size={14} className="text-[#1A4B9C]" />
                                 Nearby Amenities (Within 2 km Radius for GIS Map View)
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="block font-bold text-slate-500 text-[10px] uppercase mb-1">🏥 Nearby Hospitals (Name & Distance)</label>
                                     <input 
@@ -542,7 +542,7 @@ const AdminProjectDetails = () => {
                             </div>
                         </div>
 
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                             <label className="block font-bold text-slate-600 uppercase tracking-wider mb-1">Project Description & Overview</label>
                             <textarea 
                                 value={formData.description}
@@ -575,13 +575,13 @@ const AdminProjectDetails = () => {
                 </div>
 
                 {/* Add Flat Inline Form */}
-                <form onSubmit={handleAddFlat} className="p-4 bg-blue-50/50 border-b border-[#E2E8F0] flex items-center gap-3 text-xs">
+                <form onSubmit={handleAddFlat} className="p-4 bg-blue-50/50 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center gap-3 text-xs">
                     <input 
                         type="text" 
                         placeholder="Flat No (e.g. Flat 3A)" 
                         value={newFlat.unit} 
                         onChange={e => setNewFlat({...newFlat, unit: e.target.value})}
-                        className="px-3 py-1.5 border border-slate-300 rounded bg-white font-bold w-36"
+                        className="px-3 py-1.5 border border-slate-300 rounded bg-white font-bold w-full sm:w-36"
                         required
                     />
                     <input 
@@ -589,30 +589,31 @@ const AdminProjectDetails = () => {
                         placeholder="Size (e.g. 1,450 sqft)" 
                         value={newFlat.size} 
                         onChange={e => setNewFlat({...newFlat, size: e.target.value})}
-                        className="px-3 py-1.5 border border-slate-300 rounded bg-white w-36"
+                        className="px-3 py-1.5 border border-slate-300 rounded bg-white w-full sm:w-36"
                     />
                     <input 
                         type="text" 
                         placeholder="Price (e.g. ৳1.45Cr)" 
                         value={newFlat.price} 
                         onChange={e => setNewFlat({...newFlat, price: e.target.value})}
-                        className="px-3 py-1.5 border border-slate-300 rounded bg-white font-bold w-36"
+                        className="px-3 py-1.5 border border-slate-300 rounded bg-white font-bold w-full sm:w-36"
                     />
                     <select 
                         value={newFlat.status}
                         onChange={e => setNewFlat({...newFlat, status: e.target.value})}
-                        className="px-3 py-1.5 border border-slate-300 rounded bg-white font-bold"
+                        className="px-3 py-1.5 border border-slate-300 rounded bg-white font-bold w-full sm:w-auto"
                     >
                         <option value="AVAILABLE">AVAILABLE</option>
                         <option value="RESERVED">RESERVED</option>
                         <option value="SOLD">SOLD</option>
                     </select>
-                    <button type="submit" className="px-4 py-1.5 bg-[#1A4B9C] text-white font-bold rounded hover:bg-[#153B7C] cursor-pointer flex items-center gap-1">
+                    <button type="submit" className="px-4 py-1.5 bg-[#1A4B9C] text-white font-bold rounded hover:bg-[#153B7C] cursor-pointer flex items-center justify-center gap-1 w-full sm:w-auto">
                         <Plus size={14} /> Add Flat
                     </button>
                 </form>
 
-                <table className="w-full text-left border-collapse text-xs">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs min-w-[500px]">
                     <thead>
                         <tr className="bg-white border-b border-[#E2E8F0] text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             <th className="px-6 py-3">Flat Unit</th>
@@ -655,7 +656,8 @@ const AdminProjectDetails = () => {
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
 
             {/* DANGER ZONE: Delete Entire Project */}

@@ -241,17 +241,17 @@ const ClientManagement = () => {
     const totalDue = properties.reduce((sum, p) => sum + (parseInt(String(p.dueBalance).replace(/,/g, '')) || 0), 0);
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6 px-4 lg:px-0 text-slate-800">
             
             {/* Header */}
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end">
                 <div>
                     <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">Client Management</div>
                     <h1 className="text-2xl font-bold text-slate-800">Master Client Management</h1>
                     <p className="text-slate-500 text-sm mt-1">Manage all active clients, update financial standing, and resolve tickets.</p>
                 </div>
-                <div className="flex gap-3">
-                    <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
+                <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+                    <div className="flex-1 sm:flex-none flex items-center justify-between gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
                         <Filter size={14} className="text-slate-400" />
                         <select 
                             value={statusFilter}
@@ -263,7 +263,7 @@ const ClientManagement = () => {
                             <option value="Pending">Pending</option>
                         </select>
                     </div>
-                    <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors">
+                    <button onClick={() => setIsAddModalOpen(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors cursor-pointer flex-shrink-0">
                         <Plus size={14} /> Add Client
                     </button>
                 </div>
@@ -271,8 +271,27 @@ const ClientManagement = () => {
 
             {/* Directory Table */}
             <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm overflow-hidden mb-10">
+                <div className="px-6 py-4 border-b border-[#E2E8F0] flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center bg-slate-50">
+                    <h3 className="text-sm font-bold text-slate-800">Client Directory</h3>
+                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-auto">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input 
+                                type="text" 
+                                placeholder="Search clients..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-9 pr-4 py-1.5 border border-[#E2E8F0] rounded-lg text-xs w-full sm:w-64 outline-none focus:border-[#1A4B9C] bg-white text-slate-800"
+                            />
+                        </div>
+                        <button onClick={exportToCSV} className="flex items-center justify-center gap-2 px-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-slate-600 hover:bg-slate-50 font-bold shadow-sm transition-colors text-xs cursor-pointer w-full sm:w-auto flex-shrink-0">
+                            <Download size={12} /> Export CSV
+                        </button>
+                    </div>
+                </div>
 
-                <table className="w-full text-left border-collapse">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr className="bg-white border-b border-[#E2E8F0] text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             <th className="px-6 py-3">User</th>
@@ -336,7 +355,8 @@ const ClientManagement = () => {
                             );
                         })}
                     </tbody>
-                </table>
+                    </table>
+                </div>
             </div>
 
             {/* Add Client Modal */}

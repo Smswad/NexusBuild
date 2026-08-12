@@ -42,17 +42,17 @@ const AdminOnboarding = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-6 px-4 lg:px-0 text-slate-800">
             
             {/* Header */}
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end">
                 <div>
                     <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">Registration</div>
                     <h1 className="text-2xl font-bold text-slate-800">Client Onboarding</h1>
                     <p className="text-slate-500 text-sm mt-1">Review, verify, and approve new client applications.</p>
                 </div>
-                <div className="flex gap-3">
-                    <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
+                <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+                    <div className="flex-1 sm:flex-none flex items-center justify-between gap-1.5 bg-white border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 shadow-sm text-xs text-slate-600">
                         <Filter size={14} className="text-slate-400" />
                         <select 
                             value={statusFilter}
@@ -65,14 +65,14 @@ const AdminOnboarding = () => {
                             <option value="Approved">Approved</option>
                         </select>
                     </div>
-                    <button onClick={approveAllApplications} className="flex items-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors cursor-pointer">
+                    <button onClick={approveAllApplications} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-1.5 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-sm font-medium shadow-sm transition-colors cursor-pointer flex-shrink-0">
                         <UserCheck size={14} /> Auto-Approve Batch
                     </button>
                 </div>
             </div>
 
             {/* Stats Row */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
                     <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Applications</div>
                     <div className="text-2xl font-extrabold text-slate-800 mt-1">{(applications || []).length}</div>
@@ -103,23 +103,24 @@ const AdminOnboarding = () => {
 
             {/* Onboarding Table */}
             <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm overflow-hidden mb-10">
-                <div className="px-6 py-4 border-b border-[#E2E8F0] flex justify-between items-center bg-slate-50">
+                <div className="px-6 py-4 border-b border-[#E2E8F0] flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center bg-slate-50">
                     <h3 className="text-sm font-bold text-slate-800">Application Queue</h3>
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-auto">
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                             <input 
                                 type="text" 
                                 placeholder="Search by name, ID..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9 pr-4 py-1.5 border border-[#E2E8F0] rounded-lg text-xs w-64 outline-none focus:border-[#1A4B9C]"
+                                className="pl-9 pr-4 py-1.5 border border-[#E2E8F0] rounded-lg text-xs w-full sm:w-64 outline-none focus:border-[#1A4B9C] bg-white text-slate-800"
                             />
                         </div>
                     </div>
                 </div>
 
-                <table className="w-full text-left border-collapse">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[700px]">
                     <thead>
                         <tr className="bg-white border-b border-[#E2E8F0] text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             <th className="px-6 py-3">Applicant Name</th>
@@ -185,6 +186,7 @@ const AdminOnboarding = () => {
                      </tbody>
                  </table>
              </div>
+            </div>
 
              {/* Onboarding Scheduler Modal */}
              {showSchedulerModal && (

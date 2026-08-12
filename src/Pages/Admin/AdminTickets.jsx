@@ -45,7 +45,7 @@ const AdminTickets = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6 text-slate-800">
+        <div className="max-w-5xl mx-auto space-y-6 px-4 lg:px-0 text-slate-800">
             {/* Header */}
             <div className="flex justify-between items-end">
                 <div>
@@ -57,7 +57,7 @@ const AdminTickets = () => {
 
             {/* Filter Controls */}
             <div className="bg-white border border-[#E2E8F0] p-4 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="flex gap-2 w-full sm:w-auto">
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     {['All', 'Pending', 'In Review', 'Resolved'].map(status => (
                         <button
                             key={status}
@@ -93,7 +93,7 @@ const AdminTickets = () => {
 
                     return (
                         <div key={ticket.id} className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
-                            <div className="flex justify-between items-start mb-4">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs font-bold text-slate-400">{ticket.id}</span>

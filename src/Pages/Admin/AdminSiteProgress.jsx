@@ -117,10 +117,10 @@ const AdminSiteProgress = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="max-w-5xl mx-auto space-y-6 px-4 lg:px-0 text-slate-800">
             
             {/* Header */}
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-end">
                 <div>
                     <div className="text-[10px] font-bold text-[#1A4B9C] uppercase tracking-wider mb-1">Project Switcher</div>
                     <h1 className="text-2xl font-bold text-slate-800">{selectedProject.name} Construction</h1>
@@ -128,13 +128,13 @@ const AdminSiteProgress = () => {
                 </div>
                 <button 
                     onClick={() => setIsAddPhaseOpen(true)}
-                    className="flex items-center gap-2 px-3.5 py-2 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-3.5 py-2 bg-[#1A4B9C] text-white rounded-lg hover:bg-[#153B7C] text-xs font-bold shadow-sm transition-colors cursor-pointer flex-shrink-0"
                 >
                     <Plus size={14} /> Add New Milestone
                 </button>
             </div>
 
-            <div className="flex gap-6">
+            <div className="flex flex-col lg:flex-row gap-6">
                 {/* Timeline Column */}
                 <div className="flex-1 bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6">
                     <div className="flex justify-between items-center mb-4">
@@ -353,7 +353,7 @@ const AdminSiteProgress = () => {
                 )}
 
                 {/* Broadcast Column */}
-                <div className="w-[380px] space-y-6">
+                <div className="w-full lg:w-[380px] space-y-6 flex-shrink-0">
                     <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6">
                         <div className="flex items-center gap-2 mb-4">
                             <MegaphoneIcon />
