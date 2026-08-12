@@ -5,6 +5,7 @@ import {
     Link as LinkIcon, AlertTriangle, Layers, Home, Check, ArrowLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { PROJECTS } from '../../data/projectsData';
 
 const AdminProjectDetails = () => {
     const { 
@@ -81,23 +82,24 @@ const AdminProjectDetails = () => {
 
     useEffect(() => {
         if (currentProject) {
+            const defaultProj = PROJECTS.find(p => p.id === currentProject.id) || {};
             setFormData({
                 name: currentProject.name || matchingPublicProj.name || '',
                 status: matchingPublicProj.status || 'AVAILABLE',
                 statusBg: matchingPublicProj.statusBg || '#a14000',
-                location: matchingPublicProj.location || 'Narayanganj',
-                type: matchingPublicProj.type || 'Mixed Use',
-                image: matchingPublicProj.image || '/Frontend/Projects/Hero_Section.svg',
-                description: matchingPublicProj.description || 'Flagship real estate project equipped with modern infrastructure amenities.',
-                detailsLink: matchingPublicProj.detailsLink || '#',
-                mapLink: matchingPublicProj.mapLink || matchingPublicProj.map_link || 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed',
-                price: matchingPublicProj.price || '৳ 1.50 Crore - ৳ 3.50 Crore',
-                area: matchingPublicProj.area || '1,400 - 2,800 sqft',
-                totalUnits: currentProject.totalUnits || matchingPublicProj.totalUnits || 32,
-                nearbyHospitals: matchingPublicProj.nearbyHospitals || matchingPublicProj.nearby_hospitals || 'Narayanganj 200 Bed Hospital (0.8 km), Popular Diagnostic (1.2 km)',
-                nearbySchools: matchingPublicProj.nearbySchools || matchingPublicProj.nearby_schools || 'Ideal School & College (0.6 km), Narayanganj Govt High School (1.1 km)',
-                nearbyColleges: matchingPublicProj.nearbyColleges || matchingPublicProj.nearby_colleges || 'Tolaram Govt College (1.3 km)',
-                nearbyMarkets: matchingPublicProj.nearbyMarkets || matchingPublicProj.nearby_markets || 'Shamabay New Market (0.3 km), Balur Math Market (0.7 km)'
+                location: matchingPublicProj.location || defaultProj.location || 'Narayanganj',
+                type: matchingPublicProj.type || defaultProj.type || 'Mixed Use',
+                image: matchingPublicProj.image || defaultProj.image || '/Frontend/Projects/Hero_Section.svg',
+                description: matchingPublicProj.description || defaultProj.description || 'Flagship real estate project equipped with modern infrastructure amenities.',
+                detailsLink: matchingPublicProj.detailsLink || defaultProj.detailsLink || '#',
+                mapLink: matchingPublicProj.mapLink || matchingPublicProj.map_link || defaultProj.mapLink || 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed',
+                price: matchingPublicProj.price || defaultProj.price || '৳ 1.50 Crore - ৳ 3.50 Crore',
+                area: matchingPublicProj.area || defaultProj.area || '1,400 - 2,800 sqft',
+                totalUnits: currentProject.totalUnits || matchingPublicProj.totalUnits || defaultProj.totalUnits || 32,
+                nearbyHospitals: matchingPublicProj.nearbyHospitals || matchingPublicProj.nearby_hospitals || defaultProj.nearbyHospitals || '',
+                nearbySchools: matchingPublicProj.nearbySchools || matchingPublicProj.nearby_schools || defaultProj.nearbySchools || '',
+                nearbyColleges: matchingPublicProj.nearbyColleges || matchingPublicProj.nearby_colleges || defaultProj.nearbyColleges || '',
+                nearbyMarkets: matchingPublicProj.nearbyMarkets || matchingPublicProj.nearby_markets || defaultProj.nearbyMarkets || ''
             });
         }
     }, [currentProject?.id]);
