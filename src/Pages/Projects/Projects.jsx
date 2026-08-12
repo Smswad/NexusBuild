@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router";
-import { Search, MapPin, ArrowRight, Wrench, CalendarCheck, RotateCcw } from "lucide-react";
+import { Search, MapPin, ArrowRight, Wrench, CalendarCheck, RotateCcw, CheckCircle2 } from "lucide-react";
 import { useDatabase } from "../../Context/DatabaseContext";
+import { supabase } from "../../lib/supabaseClient";
 
 // ── Public image paths (files in /public/frontend/projects/) ──────────────────
 const IMG_HERO = "/Frontend/Projects/Hero_Section.svg";
@@ -35,6 +36,63 @@ const ImageWithSkeleton = ({ src, alt, className }) => {
 
 const Projects = () => {
     const { publicProjects } = useDatabase();
+
+    const [showRemodeling, setShowRemodeling] = useState(false);
+    const [showSiteVisit, setShowSiteVisit] = useState(false);
+    const [showGeneralInquiry, setShowGeneralInquiry] = useState(false);
+
+    // Form inputs state
+    const [formName, setFormName] = useState('');
+    const [formEmail, setFormEmail] = useState('');
+    const [formPhone, setFormPhone] = useState('');
+    const [formDescription, setFormDescription] = useState('');
+    const [formPlotSize, setFormPlotSize] = useState('');
+    const [formAddress, setFormAddress] = useState('');
+    const [formProject, setFormProject] = useState('Sardar Tower – Block A');
+
+    const handleInquirySubmit = async (type, details) => {
+        try {
+            const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            let interestText = details.description;
+            if (type === 'Remodeling') {
+                interestText = `Remodeling Inquiry: Plot Size - ${details.plotSize}, Address - ${details.address}. Requirements: ${details.description}`;
+            } else if (type === 'Site Visit') {
+                interestText = `Site Visit Schedule: Project - ${details.project}. Comments: ${details.description}`;
+            } else {
+                interestText = `General Inquiry: ${details.description}`;
+            }
+
+            const payload = {
+                name: details.name,
+                phone: details.phone || 'N/A',
+                interest: `${interestText} (Email: ${details.email || 'N/A'})`,
+                source: `${type} Inquiry`,
+                status: 'New',
+                date: dateStr
+            };
+
+            const { error } = await supabase.from('leads').insert([payload]);
+            if (error) {
+                alert('Submission failed: ' + error.message);
+            } else {
+                alert('Thank you! Your inquiry has been submitted. Our team will get back to you soon.');
+                setShowRemodeling(false);
+                setShowSiteVisit(false);
+                setShowGeneralInquiry(false);
+                // Reset fields
+                setFormName('');
+                setFormEmail('');
+                setFormPhone('');
+                setFormDescription('');
+                setFormPlotSize('');
+                setFormAddress('');
+                setFormProject('Sardar Tower – Block A');
+            }
+        } catch(err) {
+            alert('Error submitting inquiry: ' + err.message);
+        }
+    };
+
     // ── Filter State ──────────────────────────────────────────────────────────
     const [locationFilter, setLocationFilter] = useState("");
     const [typeFilter, setTypeFilter] = useState("");
@@ -364,55 +422,70 @@ const Projects = () => {
             </section>
 
             {/* ══════════════════════════════════════════════════════════════
-             * 4. SERVICES & REMODELING SECTION
+             * 4. PROFESSIONAL SERVICES & REMODELING
              * ══════════════════════════════════════════════════════════════ */}
-            <section className="bg-[#000f22] py-16 lg:py-20 px-6 lg:px-12">
-                <div className="max-w-[1280px] mx-auto flex flex-col lg:flex-row gap-12 lg:gap-12">
+            <section className="bg-[#000f22] py-16 lg:py-24 px-6 lg:px-12">
+                <div className="max-w-[1280px] mx-auto flex flex-col lg:flex-row gap-12 items-center">
 
-                    {/* Left column */}
-                    <div className="flex-1 flex flex-col gap-4 max-w-[488px]">
-                        <h2 className="text-[28px] lg:text-[32px] font-semibold text-white leading-tight">
+                    {/* Left details */}
+                    <div className="flex-1 flex flex-col gap-6 max-w-[540px]">
+                        <span className="text-[12px] font-semibold text-[#fe762a] uppercase tracking-wider">
+                            Comprehensive Care
+                        </span>
+                        <h2 className="text-[28px] lg:text-[36px] font-bold text-white leading-tight">
                             Professional Services &amp; Remodeling
                         </h2>
                         <p className="text-[16px] lg:text-[18px] font-normal text-[#768dad] leading-relaxed">
-                            Beyond construction, we offer comprehensive project operations, remodeling, and site visit scheduling for existing and new property owners.
+                            Beyond construction, NexusBuild offers full-scale interior remodeling, architectural consulting, and on-site scheduling for home and business owners.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-6 py-4">
+                        <div className="flex flex-col gap-4 py-2">
                             <div className="flex items-start gap-4">
-                                <div className="w-9 h-9 bg-[#a14000] flex items-center justify-center flex-shrink-0">
-                                    <Wrench size={18} className="text-white" />
+                                <div className="w-10 h-10 bg-[#a14000] flex items-center justify-center flex-shrink-0 rounded-[4px]">
+                                    <Wrench size={20} className="text-white" />
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                    <h4 className="text-[14px] font-bold text-white">Remodeling</h4>
-                                    <p className="text-[12px] text-[#768dad] leading-snug">Full-scope interior &amp; structural renovation services.</p>
+                                    <h4 className="text-[16px] font-bold text-white">Full-Scope Remodeling</h4>
+                                    <p className="text-[14px] text-[#768dad]">Custom interior design, structural renovations, and modern fittings.</p>
                                 </div>
                             </div>
+
                             <div className="flex items-start gap-4">
-                                <div className="w-9 h-9 bg-[#a14000] flex items-center justify-center flex-shrink-0">
-                                    <CalendarCheck size={18} className="text-white" />
+                                <div className="w-10 h-10 bg-[#a14000] flex items-center justify-center flex-shrink-0 rounded-[4px]">
+                                    <CheckCircle2 size={20} className="text-white" />
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                    <h4 className="text-[14px] font-bold text-white">Site Visits</h4>
-                                    <p className="text-[12px] text-[#768dad] leading-snug">Scheduled on-site assessments with expert consultants.</p>
+                                    <h4 className="text-[16px] font-bold text-white">Consultation &amp; Site Visits</h4>
+                                    <p className="text-[14px] text-[#768dad]">Scheduled on-site inspections guided by senior structural engineers.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div>
-                            <Link
-                                to="/contact"
-                                className="inline-flex items-center gap-3 px-8 py-4 bg-[#fe762a] hover:bg-[#a14000] text-[#5e2200] hover:text-white text-[14px] font-bold transition-colors duration-200 min-h-[52px]"
+                        <div className="flex flex-wrap gap-4 pt-4">
+                            <button
+                                onClick={() => setShowRemodeling(true)}
+                                className="px-6 py-3.5 bg-[#fe762a] hover:bg-[#a14000] text-[#5e2200] hover:text-white text-[13px] font-extrabold transition-colors duration-200 rounded-[4px] shadow-md cursor-pointer flex items-center gap-1.5"
                             >
-                                Inquire for Service
-                                <ArrowRight size={16} />
-                            </Link>
+                                Request Remodeling <ArrowRight size={14} />
+                            </button>
+                            <button
+                                onClick={() => setShowSiteVisit(true)}
+                                className="px-6 py-3.5 bg-white border-2 border-[#fe762a] text-[#fe762a] hover:bg-[#fe762a] hover:text-white text-[13px] font-extrabold transition-colors duration-200 rounded-[4px] cursor-pointer flex items-center gap-1.5"
+                            >
+                                Schedule Site Visit <ArrowRight size={14} />
+                            </button>
+                            <button
+                                onClick={() => setShowGeneralInquiry(true)}
+                                className="px-6 py-3.5 bg-[#001E3D] text-white hover:bg-slate-800 text-[13px] font-extrabold transition-colors duration-200 rounded-[4px] cursor-pointer flex items-center gap-1.5"
+                            >
+                                General Inquiry <ArrowRight size={14} />
+                            </button>
                         </div>
                     </div>
 
-                    {/* Right column — services image */}
-                    <div className="flex-1 max-w-[488px] mx-auto lg:mx-0">
-                        <div className="w-full aspect-square max-h-[488px] rounded-[4px] overflow-hidden">
+                    {/* Right image */}
+                    <div className="flex-1 max-w-[540px] w-full">
+                        <div className="w-full aspect-[4/3] rounded-[8px] overflow-hidden border border-white/10 shadow-2xl">
                             <img
                                 src={IMG_SERVICES}
                                 alt="Professional Services & Remodeling"
@@ -468,6 +541,160 @@ const Projects = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Remodeling Request Modal */}
+            {showRemodeling && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+                        <div className="bg-[#001E3D] px-6 py-4 text-white flex justify-between items-center">
+                            <h3 className="font-bold text-base">Request Professional Remodeling</h3>
+                            <button onClick={() => setShowRemodeling(false)} className="text-slate-400 hover:text-white font-bold text-lg cursor-pointer">×</button>
+                        </div>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleInquirySubmit('Remodeling', {
+                                name: formName,
+                                email: formEmail,
+                                phone: formPhone,
+                                description: formDescription,
+                                plotSize: formPlotSize,
+                                address: formAddress
+                            });
+                        }} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name *</label>
+                                <input required type="text" value={formName} onChange={e => setFormName(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Phone Number *</label>
+                                    <input required type="text" value={formPhone} onChange={e => setFormPhone(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address</label>
+                                    <input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Plot Size (e.g. 3 Katha)</label>
+                                    <input type="text" value={formPlotSize} onChange={e => setFormPlotSize(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Site Location Address</label>
+                                    <input type="text" value={formAddress} onChange={e => setFormAddress(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Remodeling Scope Details *</label>
+                                <textarea required value={formDescription} onChange={e => setFormDescription(e.target.value)} rows={3} placeholder="Please detail the modifications or redesign you need..." className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]"></textarea>
+                            </div>
+                            <div className="pt-2 flex justify-end gap-3">
+                                <button type="button" onClick={() => setShowRemodeling(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-[#fe762a] hover:bg-[#a14000] text-white rounded text-xs font-bold cursor-pointer">Submit Request</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Site Visit Schedule Modal */}
+            {showSiteVisit && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+                        <div className="bg-[#001E3D] px-6 py-4 text-white flex justify-between items-center">
+                            <h3 className="font-bold text-base">Schedule Site Visit</h3>
+                            <button onClick={() => setShowSiteVisit(false)} className="text-slate-400 hover:text-white font-bold text-lg cursor-pointer">×</button>
+                        </div>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleInquirySubmit('Site Visit', {
+                                name: formName,
+                                email: formEmail,
+                                phone: formPhone,
+                                description: formDescription,
+                                project: formProject
+                            });
+                        }} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name *</label>
+                                <input required type="text" value={formName} onChange={e => setFormName(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Phone Number *</label>
+                                    <input required type="text" value={formPhone} onChange={e => setFormPhone(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address</label>
+                                    <input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Select Project to Visit *</label>
+                                <select value={formProject} onChange={e => setFormProject(e.target.value)} className="w-full px-3 py-2 border border-[#E2E8F0] rounded text-sm text-slate-800 focus:outline-none bg-white">
+                                    <option value="Sardar Tower – Block A">Sardar Tower (Chashiara)</option>
+                                    <option value="Shapla Green Fields">Shapla Green Fields (Chashiara)</option>
+                                    <option value="Shamabai Biponi Bitan">Shamabai Biponi Bitan (Narayanganj Sadar)</option>
+                                    <option value="Bhuiyan Heights">Bhuiyan Heights (Narayanganj Sadar)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Preferred Date &amp; Notes *</label>
+                                <textarea required value={formDescription} onChange={e => setFormDescription(e.target.value)} rows={3} placeholder="Please mention preferred date/time and any specific instructions..." className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]"></textarea>
+                            </div>
+                            <div className="pt-2 flex justify-end gap-3">
+                                <button type="button" onClick={() => setShowSiteVisit(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-[#fe762a] hover:bg-[#a14000] text-white rounded text-xs font-bold cursor-pointer">Schedule Visit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* General Inquiry Modal */}
+            {showGeneralInquiry && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+                        <div className="bg-[#001E3D] px-6 py-4 text-white flex justify-between items-center">
+                            <h3 className="font-bold text-base">Submit General Inquiry</h3>
+                            <button onClick={() => setShowGeneralInquiry(false)} className="text-slate-400 hover:text-white font-bold text-lg cursor-pointer">×</button>
+                        </div>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleInquirySubmit('General', {
+                                name: formName,
+                                email: formEmail,
+                                phone: formPhone,
+                                description: formDescription
+                            });
+                        }} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Your Name *</label>
+                                <input required type="text" value={formName} onChange={e => setFormName(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Phone Number *</label>
+                                    <input required type="text" value={formPhone} onChange={e => setFormPhone(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address</label>
+                                    <input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Inquiry / Message *</label>
+                                <textarea required value={formDescription} onChange={e => setFormDescription(e.target.value)} rows={4} placeholder="Please type your message or question here..." className="w-full px-3 py-2 border border-slate-300 rounded text-sm text-slate-800 focus:outline-none focus:border-[#fe762a]"></textarea>
+                            </div>
+                            <div className="pt-2 flex justify-end gap-3">
+                                <button type="button" onClick={() => setShowGeneralInquiry(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
+                                <button type="submit" className="px-5 py-2 bg-[#fe762a] hover:bg-[#a14000] text-white rounded text-xs font-bold cursor-pointer">Submit Inquiry</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
