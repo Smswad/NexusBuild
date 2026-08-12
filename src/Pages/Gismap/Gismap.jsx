@@ -76,6 +76,61 @@ const Gismap = () => {
         return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
     };
 
+    // ─── Location-aware amenity profiles ─────────────────────────────────────
+    // Fallback neighborhoods are selected by matching the active project's
+    // location string, so text + distance numbers differ per project region.
+    const AREA_AMENITY_PROFILES = [
+        {
+            match: /dhanmondi|dhaka|gulshan|banani|badda|uttara|mirpur|mogbazar|aftabnagar|rampura|east west|west|tejgaon|mohakhali|bashundhara/i,
+            hospitals: 'Labaid Specialized Hospital (0.5 km), Square Hospital (1.4 km), Ibn Sina Hospital (1.1 km)',
+            schools: 'Scholastica School (0.8 km), Mastermind International (1.2 km), Maple Leaf International (0.9 km)',
+            colleges: 'Dhaka City College (0.7 km), State University of Bangladesh (1.5 km), ULAB (1.8 km)',
+            markets: 'Shimanto Square (0.6 km), Rapa Plaza (1.1 km), Metro Shopping Mall (1.3 km)'
+        },
+        {
+            match: /narayanganj|bb road|shamabay/i,
+            hospitals: 'Narayanganj 200 Bed Hospital (0.8 km), Popular Diagnostic Center (1.2 km), General Hospital (1.5 km)',
+            schools: 'Ideal School & College (0.6 km), Narayanganj Govt High School (1.1 km), Morning Star School (1.4 km)',
+            colleges: 'Tolaram Govt College (1.3 km), Narayanganj College (1.6 km), MW High School & College (1.8 km)',
+            markets: 'Shamabay New Market (0.3 km), Balur Math Super Market (0.7 km), Narayanganj Central Market (1.0 km)'
+        },
+        {
+            match: /chattogram|chittagong|port city|agrabad/i,
+            hospitals: 'Chattogram General Hospital (0.9 km), Chevron Clinical Lab (1.3 km), Metropole Hospital (1.7 km)',
+            schools: 'Agrabad Govt High School (0.7 km), Chattogram Collegiate School (1.1 km), Crescent Public School (1.6 km)',
+            colleges: 'Chattogram College (1.2 km), Govt Hazi Mohammad Mohsin College (1.8 km)',
+            markets: 'Agrabad Access Road Market (0.4 km), New Market GEC (0.9 km), Reazuddin Bazar (1.5 km)'
+        },
+        {
+            match: /sylhet|zindabazar|amberkhana/i,
+            hospitals: 'Sylhet MAG Osmani Hospital (0.7 km), Synergy Hospital (1.4 km)',
+            schools: 'Sylhet Govt Pilot High School (0.6 km), Scholarshome (1.2 km)',
+            colleges: 'Sylhet MC College (1.1 km), Sylhet Polytechnic (1.9 km)',
+            markets: 'Zindabazar Market (0.3 km), Amberkhana New Market (0.8 km), Fenchuganj Bazar (1.6 km)'
+        },
+        {
+            match: /rajshahi|khulna|barishal|barisal|rangpur|mymensingh|cumilla|comilla/i,
+            hospitals: 'City General Hospital (1.0 km), Specialized Diagnostic Center (1.4 km)',
+            schools: 'Govt High School (0.8 km), Model School & College (1.2 km)',
+            colleges: 'Govt College (1.3 km), Medical University (1.9 km)',
+            markets: 'Central Super Market (0.5 km), City New Market (1.0 km), Posh Bazar (1.5 km)'
+        }
+    ];
+
+    const DEFAULT_AMENITIES = {
+        hospitals: 'City General Hospital (1.0 km), Specialized Diagnostic Center (1.4 km)',
+        schools: 'Govt High School (0.8 km), Model School & College (1.2 km)',
+        colleges: 'Govt College (1.3 km)',
+        markets: 'Central Super Market (0.5 km), City New Market (1.0 km)'
+    };
+
+    const getAreaProfile = (location) => {
+        const loc = (location || '').toLowerCase();
+        return AREA_AMENITY_PROFILES.find(p => p.match.test(loc)) || {};
+    };
+
+    const areaProfile = getAreaProfile(activeProject.location || activeProject.name);
+
     // Helper to parse comma-separated amenity lists
     const parseAmenityList = (rawString, defaultFallback) => {
         const val = rawString || defaultFallback;
@@ -85,30 +140,22 @@ const Gismap = () => {
 
     const hospitals = parseAmenityList(
         activeProject.nearbyHospitals || activeProject.nearby_hospitals,
-        activeProject.location?.toLowerCase().includes('dhanmondi')
-            ? 'Labaid Specialized Hospital (0.5 km), Square Hospital (1.4 km), Ibn Sina Hospital (1.1 km)'
-            : 'Narayanganj 200 Bed Hospital (0.8 km), Popular Diagnostic Center (1.2 km), General Hospital (1.5 km)'
+        areaProfile.hospitals || DEFAULT_AMENITIES.hospitals
     );
 
     const schools = parseAmenityList(
         activeProject.nearbySchools || activeProject.nearby_schools,
-        activeProject.location?.toLowerCase().includes('dhanmondi')
-            ? 'Scholastica School (0.8 km), Mastermind International (1.2 km), Maple Leaf International (0.9 km)'
-            : 'Ideal School & College (0.6 km), Narayanganj Govt High School (1.1 km), Morning Star School (1.4 km)'
+        areaProfile.schools || DEFAULT_AMENITIES.schools
     );
 
     const colleges = parseAmenityList(
         activeProject.nearbyColleges || activeProject.nearby_colleges,
-        activeProject.location?.toLowerCase().includes('dhanmondi')
-            ? 'Dhaka City College (0.7 km), State University of Bangladesh (1.5 km), ULAB (1.8 km)'
-            : 'Tolaram Govt College (1.3 km), Narayanganj College (1.6 km), MW High School & College (1.8 km)'
+        areaProfile.colleges || DEFAULT_AMENITIES.colleges
     );
 
     const markets = parseAmenityList(
         activeProject.nearbyMarkets || activeProject.nearby_markets,
-        activeProject.location?.toLowerCase().includes('dhanmondi')
-            ? 'Shimanto Square (0.6 km), Rapa Plaza (1.1 km), Metro Shopping Mall (1.3 km)'
-            : 'Shamabay New Market (0.3 km), Balur Math Super Market (0.7 km), Narayanganj Central Market (1.0 km)'
+        areaProfile.markets || DEFAULT_AMENITIES.markets
     );
 
     return (

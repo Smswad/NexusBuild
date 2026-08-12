@@ -302,10 +302,10 @@ export const DatabaseProvider = ({ children }) => {
                                 ...defaultProj, 
                                 ...proj,
                                 mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
-                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || defaultProj.nearbyHospitals,
-                                nearbySchools: meta.nearbySchools || proj.nearbySchools || defaultProj.nearbySchools,
-                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || defaultProj.nearbyColleges,
-                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || defaultProj.nearbyMarkets
+                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
+                                nearbySchools: meta.nearbySchools || proj.nearbySchools,
+                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
+                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
                             });
                         });
                         setPublicProjects(Array.from(mergedMap.values()));
@@ -340,10 +340,10 @@ export const DatabaseProvider = ({ children }) => {
                                     ...defaultProj, 
                                     ...proj,
                                     mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
-                                    nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || defaultProj.nearbyHospitals,
-                                    nearbySchools: meta.nearbySchools || proj.nearbySchools || defaultProj.nearbySchools,
-                                    nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || defaultProj.nearbyColleges,
-                                    nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || defaultProj.nearbyMarkets
+                                    nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
+                                    nearbySchools: meta.nearbySchools || proj.nearbySchools,
+                                    nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
+                                    nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
                                 });
                             });
                         }
