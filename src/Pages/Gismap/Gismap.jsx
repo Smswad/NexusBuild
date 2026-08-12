@@ -104,21 +104,10 @@ const Gismap = () => {
             <div className="bg-[#000f22] text-white py-10 px-6 border-b border-[#0a2540] relative overflow-hidden">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
                     <div>
-                        <div className="flex items-center gap-2 text-[#fe762a] text-xs font-bold uppercase tracking-widest mb-1">
-                            <Navigation size={14} /> Interactive GIS Infrastructure Mapping
-                        </div>
                         <h1 className="text-3xl font-extrabold tracking-tight">Project Location & Nearby Amenities</h1>
                         <p className="text-slate-300 text-xs mt-1 max-w-2xl">
-                            Explore property developments by area (Dhanmondi, Narayanganj) with real-time GIS mapping and verified 2 km radius nearby public amenities.
+                            Explore property developments by area (Dhanmondi, Narayanganj) with real-time GIS mapping and nearby public amenities.
                         </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10 text-xs">
-                        <ShieldCheck size={18} className="text-emerald-400" />
-                        <div>
-                            <div className="font-bold text-white">GIS Verified Coordinates</div>
-                            <div className="text-[10px] text-slate-300">Updated from Admin Panel Specifications</div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -303,9 +292,6 @@ const Gismap = () => {
                                 Nearby Amenities for <span className="text-[#1A4B9C]">{activeProject.name}</span>
                             </h2>
                         </div>
-                        <span className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-bold border border-emerald-200 self-start sm:self-auto">
-                            ✓ Verified 2 KM Surroundings
-                        </span>
                     </div>
 
                     {/* 4 Amenity Cards Grid: Hospitals, Schools, Colleges, Markets */}
