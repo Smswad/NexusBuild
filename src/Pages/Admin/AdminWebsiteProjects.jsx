@@ -223,13 +223,14 @@ const AdminWebsiteProjects = () => {
 
             {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-none shadow-2xl w-full max-w-2xl overflow-hidden">
-                        <div className="px-6 py-4 border-b border-[#E2E8F0] flex justify-between items-center bg-slate-50">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-none shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+                        <div className="px-6 py-4 border-b border-[#E2E8F0] flex justify-between items-center bg-slate-50 flex-shrink-0">
                             <h3 className="font-bold text-slate-800">{modalMode === 'add' ? 'Add New Project' : 'Edit Project'}</h3>
                             <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
                         </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                            <div className="p-6 space-y-5 overflow-y-auto flex-1">
                             <div className="grid grid-cols-2 gap-5">
                                 <div className="col-span-2">
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Project Name</label>
@@ -299,7 +300,8 @@ const AdminWebsiteProjects = () => {
                                     <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A4B9C] h-24 resize-none"></textarea>
                                 </div>
                             </div>
-                            <div className="pt-4 flex justify-between gap-3 border-t border-[#E2E8F0]">
+                            </div>
+                            <div className="p-6 border-t border-[#E2E8F0] flex justify-between gap-3 flex-shrink-0 bg-slate-50">
                                 {modalMode === 'edit' && (
                                     <button 
                                         type="button" 
@@ -309,14 +311,14 @@ const AdminWebsiteProjects = () => {
                                                 setIsModalOpen(false);
                                             }
                                         }}
-                                        className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm"
+                                        className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-[4px] text-sm font-bold transition-colors shadow-sm cursor-pointer"
                                     >
                                         Delete Project
                                     </button>
                                 )}
                                 <div className="flex gap-3 ml-auto">
-                                    <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2 text-slate-600 bg-slate-100 rounded-lg text-sm font-bold hover:bg-slate-200">Cancel</button>
-                                    <button type="submit" className="px-5 py-2 bg-[#1A4B9C] text-white rounded-lg text-sm font-bold hover:bg-[#153B7C]">Save Project</button>
+                                    <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2 text-slate-600 bg-slate-100 rounded-[4px] text-sm font-bold hover:bg-slate-200 cursor-pointer">Cancel</button>
+                                    <button type="submit" className="px-5 py-2 bg-[#1A4B9C] text-white rounded-[4px] text-sm font-bold hover:bg-[#153B7C] cursor-pointer">Save Project</button>
                                 </div>
                             </div>
                         </form>
