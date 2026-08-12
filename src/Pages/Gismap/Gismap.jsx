@@ -66,20 +66,48 @@ const Gismap = () => {
     const getMapEmbedUrl = (proj) => {
         if (!proj) return 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed';
 
-        let link = proj.mapLink || proj.map_link || '';
-        if (link && link.includes('google.com/maps') && !link.includes('output=embed')) {
-            if (link.includes('?')) {
-                link += '&output=embed';
-            } else {
-                link += '?output=embed';
+        let raw = (proj.mapLink || proj.map_link || '').trim();
+
+        // 1. If Admin pasted full iframe HTML snippet e.g. <iframe src="https://www.google.com/maps/embed?..." ...></iframe>
+        if (raw.includes('<iframe') && raw.includes('src=')) {
+            const match = raw.match(/src=["']([^"']+)["']/i);
+            if (match && match[1]) {
+                raw = match[1];
             }
-            return link;
-        }
-        if (link && link.includes('http')) {
-            return link;
         }
 
-        // Fallback coordinates based on location text
+        // 2. If it's a direct valid embed URL (e.g. google.com/maps/embed?pb=... or already contains output=embed)
+        if (raw.includes('google.com/maps/embed') || raw.includes('output=embed')) {
+            return raw;
+        }
+
+        // 3. If it contains @latitude,longitude e.g. https://www.google.com/maps/place/Sardar+Tower/@23.6238,90.4993,17z
+        if (raw.includes('@')) {
+            const coordsMatch = raw.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+            if (coordsMatch) {
+                return `https://maps.google.com/maps?q=${coordsMatch[1]},${coordsMatch[2]}&z=16&output=embed`;
+            }
+        }
+
+        // 4. If it contains coordinate pair like 23.6238, 90.4993
+        const pairMatch = raw.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+        if (pairMatch) {
+            return `https://maps.google.com/maps?q=${pairMatch[1]},${pairMatch[2]}&z=16&output=embed`;
+        }
+
+        // 5. If it's a full URL or search link, attempt search embed parameter
+        if (raw.startsWith('http://') || raw.startsWith('https://')) {
+            try {
+                const urlObj = new URL(raw);
+                const qParam = urlObj.searchParams.get('q') || urlObj.searchParams.get('query');
+                if (qParam) {
+                    return `https://maps.google.com/maps?q=${encodeURIComponent(qParam)}&z=15&output=embed`;
+                }
+            } catch(e) {}
+            return `https://maps.google.com/maps?q=${encodeURIComponent(raw)}&z=15&output=embed`;
+        }
+
+        // 6. Fallback based on project location & name
         const locLower = (proj.location || '').toLowerCase();
         if (locLower.includes('dhanmondi')) {
             return 'https://maps.google.com/maps?q=23.7461,90.3742&z=15&output=embed';
@@ -87,15 +115,9 @@ const Gismap = () => {
         if (locLower.includes('narayanganj') || locLower.includes('shamabay') || locLower.includes('balur')) {
             return 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed';
         }
-        if (locLower.includes('gulshan')) {
-            return 'https://maps.google.com/maps?q=23.7925,90.4078&z=15&output=embed';
-        }
-        if (locLower.includes('uttara')) {
-            return 'https://maps.google.com/maps?q=23.8759,90.3795&z=15&output=embed';
-        }
 
-        const query = encodeURIComponent(proj.location || proj.name || 'Bangladesh');
-        return `https://maps.google.com/maps?q=${query}&z=14&output=embed`;
+        const query = encodeURIComponent(`${proj.name || ''} ${proj.location || ''}`.trim() || 'Bangladesh');
+        return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
     };
 
     // Helper to parse comma-separated amenity lists

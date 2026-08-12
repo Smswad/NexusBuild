@@ -780,7 +780,12 @@ export const DatabaseProvider = ({ children }) => {
 
     const updatePublicProject = async (id, updatedProj) => {
         setPublicProjects(prev => {
-            const updated = prev.map(p => p.id === id ? { ...p, ...updatedProj } : p);
+            const updated = prev.map(p => p.id === id ? { 
+                ...p, 
+                ...updatedProj, 
+                map_link: updatedProj.mapLink || updatedProj.map_link,
+                mapLink: updatedProj.mapLink || updatedProj.map_link
+            } : p);
             try { localStorage.setItem('all_public_projects', JSON.stringify(updated)); } catch(e) {}
             return updated;
         });
