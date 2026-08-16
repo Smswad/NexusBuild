@@ -31,3 +31,10 @@ dist-ssr
 
 # Do NOT ignore the template file
 !.env.example
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
