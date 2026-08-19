@@ -70,22 +70,130 @@ export const DatabaseProvider = ({ children }) => {
     const [projectPhotos, setProjectPhotos] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Mock public projects (use static PROJECTS list as default fallback)
-    const [publicProjects, setPublicProjects] = useState(PROJECTS);
+    // Mock public projects (use saved localStorage or static PROJECTS list as default)
+    const [publicProjects, setPublicProjects] = useState(() => {
+        try {
+            const savedSettings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+            const metaObj = savedSettings.projectsMeta || {};
+            const savedLocal = JSON.parse(localStorage.getItem('all_public_projects') || '[]');
+            const localMap = new Map(savedLocal.map(p => [p.id, p]));
+
+            return PROJECTS.map(proj => {
+                const meta = metaObj[proj.id] || {};
+                const localProj = localMap.get(proj.id) || {};
+                const rawStatus = (localProj.status || proj.status || 'AVAILABLE').toUpperCase();
+                const cleanStatus = rawStatus.includes('READY') ? 'AVAILABLE' : rawStatus;
+                return {
+                    ...proj,
+                    ...localProj,
+                    status: cleanStatus,
+                    statusBg: cleanStatus === 'AVAILABLE' ? '#a14000' : (localProj.statusBg || proj.statusBg),
+                    image: meta.image !== undefined ? meta.image : (localProj.image || proj.image),
+                    gallery: meta.gallery !== undefined ? meta.gallery : (localProj.gallery || proj.gallery),
+                    mapLink: meta.mapLink || localProj.mapLink || proj.mapLink,
+                    nearbyHospitals: meta.nearbyHospitals || localProj.nearbyHospitals || proj.nearbyHospitals,
+                    nearbySchools: meta.nearbySchools || localProj.nearbySchools || proj.nearbySchools,
+                    nearbyColleges: meta.nearbyColleges || localProj.nearbyColleges || proj.nearbyColleges,
+                    nearbyMarkets: meta.nearbyMarkets || localProj.nearbyMarkets || proj.nearbyMarkets
+                };
+            });
+        } catch(e) {}
+        return PROJECTS;
+    });
 
     // Global System Settings State
+    const DEFAULT_SYSTEM_SETTINGS = {
+        companyName: 'Reliance Housing Ltd.',
+        regNumber: 'REG-2023-998811',
+        headOfficeAddress: 'Shamabay New Market, 259 B B Road, Narayanganj',
+        supportEmail: 'info@reliancehousing.com',
+        supportPhone: '+880 1234 567890',
+        primaryColor: '#1A4B9C',
+        companyLogo: null,
+        heroTagline: 'Reliance Housing Ltd.',
+        heroHeadline: "Building Narayanganj's Future Architecture.",
+        heroSubtitle: 'Precision-engineered residential complexes, commercial hubs, and GIS-mapped land developments designed for the next generation.',
+        heroCta1Text: 'Explore All Projects',
+        heroCta1Link: '/projects',
+        heroCta2Text: 'Interactive GIS Map',
+        heroCta2Link: '/gismap',
+        heroImage: null,
+        // About Page Configurations
+        aboutHeroEyebrow: 'Est. 2003 · Narayanganj, Bangladesh',
+        aboutHeroHeadline: 'Decades of Trust in Narayanganj.',
+        aboutHeroSubtitle: "What began in the bustling corridors of Shamabay New Market, B B Road, has evolved into Narayanganj's hallmark of infrastructure excellence. Reliance Housing Ltd. was founded on a simple promise: to build not just structures, but legacies of trust and architectural integrity.",
+        aboutHeroCta1Text: 'Explore Our Heritage',
+        aboutHeroCta1Link: '/',
+        aboutHeroCta2Text: 'View on Map',
+        aboutHeroCta2Link: '/gismap',
+        aboutPeopleEyebrow: 'Our People',
+        aboutPeopleTitle: "The Visionaries Behind Narayanganj's Finest Landmarks",
+        aboutPeopleSubtitle: "The visionaries behind Narayanganj's finest landmarks.",
+        aboutTeamMembers: [
+            {
+                name: 'Mohammed A. Rahman',
+                role: 'Chief Executive Officer',
+                badge: 'CEO',
+                bg: '#000f22',
+                text: '#fff',
+                bio: 'Over 25 years leading landmark infrastructure projects across Bangladesh.'
+            },
+            {
+                name: 'Nasreen Hossain',
+                role: 'Director of Engineering',
+                badge: 'ENG',
+                bg: '#a14000',
+                text: '#fff',
+                bio: 'Structural engineer with international credentials and 18 years of field leadership.'
+            },
+            {
+                name: 'Tanvir Islam',
+                role: 'GIS Specialist',
+                badge: 'GIS',
+                bg: '#0a3d2e',
+                text: '#fff',
+                bio: 'Pioneer in applying geospatial intelligence to urban real estate development.'
+            },
+            {
+                name: 'Fatima Begum',
+                role: 'Client Relations Manager',
+                badge: 'CRM',
+                bg: '#5e2200',
+                text: '#fff',
+                bio: 'Dedicated to delivering exceptional client experiences throughout every project lifecycle.'
+            }
+        ],
+        // Contact Page Configurations
+        contactHeroTitle: 'Get In Touch',
+        contactHeroSubtitle: "Whether you're enquiring about a project, exploring investment opportunities, or need support — our team is ready to assist you.",
+        contactOfficeHours: 'Mon – Fri: 9:00 AM – 6:00 PM\nSaturday: 9:00 AM – 2:00 PM\nSunday: Closed',
+        contactMapLat: '23.622',
+        contactMapLng: '90.500',
+        contactGeneralTitle: 'General Inquiries',
+        contactGeneralEmail: 'info@reliancehousing.com',
+        contactGeneralPhone: '+880 1234 567890',
+        contactSalesTitle: 'Sales & Investment',
+        contactSalesEmail: 'sales@nexusbuild.com',
+        contactSalesHours: 'Mon – Fri: 9:00 AM – 6:00 PM',
+        contactSupportTitle: 'Customer Support',
+        contactSupportEmail: 'support@reliancehousing.com',
+        contactSupportHours: 'Mon – Sat: 8:00 AM – 8:00 PM',
+        // Dedicated Account Executive Details (Client Portal Support)
+        accountExecName: 'Farhana Islam',
+        accountExecRole: 'Dedicated Account Exec',
+        accountExecEmail: 'farhana@reliance.com',
+        accountExecPhone: '+880 1700-123456'
+    };
+
     const [systemSettings, setSystemSettings] = useState(() => {
         try {
             const saved = localStorage.getItem('system_settings');
-            if (saved) return JSON.parse(saved);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                return { ...DEFAULT_SYSTEM_SETTINGS, ...parsed };
+            }
         } catch(e) {}
-        return {
-            companyName: 'Reliance Housing Ltd.',
-            regNumber: 'REG-2023-998811',
-            headOfficeAddress: 'Shamabay New Market, 259 B B Road, Narayanganj',
-            supportEmail: 'info@reliancehousing.com',
-            supportPhone: '+880 1234 567890'
-        };
+        return DEFAULT_SYSTEM_SETTINGS;
     });
 
     const updateSystemSettings = async (newSettings) => {
@@ -104,6 +212,12 @@ export const DatabaseProvider = ({ children }) => {
             console.error("Failed to sync settings to Supabase:", e);
         }
     };
+
+    useEffect(() => {
+        if (systemSettings?.primaryColor) {
+            document.documentElement.style.setProperty('--primary-color', systemSettings.primaryColor);
+        }
+    }, [systemSettings?.primaryColor]);
 
     useEffect(() => {
         const handleSync = () => {
@@ -301,6 +415,8 @@ export const DatabaseProvider = ({ children }) => {
                             mergedMap.set(proj.id, { 
                                 ...defaultProj, 
                                 ...proj,
+                                image: meta.image !== undefined ? meta.image : (proj.image || defaultProj.image),
+                                gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || defaultProj.gallery),
                                 mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
                                 nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
                                 nearbySchools: meta.nearbySchools || proj.nearbySchools,
@@ -324,6 +440,8 @@ export const DatabaseProvider = ({ children }) => {
                             const meta = metaObj[proj.id] || {};
                             mergedMap.set(proj.id, {
                                 ...proj,
+                                image: meta.image !== undefined ? meta.image : proj.image,
+                                gallery: meta.gallery !== undefined ? meta.gallery : proj.gallery,
                                 mapLink: meta.mapLink || proj.mapLink,
                                 nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
                                 nearbySchools: meta.nearbySchools || proj.nearbySchools,
@@ -339,6 +457,8 @@ export const DatabaseProvider = ({ children }) => {
                                 mergedMap.set(proj.id, { 
                                     ...defaultProj, 
                                     ...proj,
+                                    image: meta.image !== undefined ? meta.image : (proj.image || defaultProj.image),
+                                    gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || defaultProj.gallery),
                                     mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
                                     nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
                                     nearbySchools: meta.nearbySchools || proj.nearbySchools,
@@ -875,13 +995,16 @@ export const DatabaseProvider = ({ children }) => {
         // Update projects state
         setProjects(prev => prev.map(p => p.id === id ? { ...p, name: updatedProj.name || p.name } : p));
 
-        // Save map link and nearby amenities metadata inside system_settings
+        // Save image, gallery, map link and nearby amenities metadata inside system_settings
         const currentMeta = systemSettings?.projectsMeta || {};
         const updatedSettings = {
             ...systemSettings,
             projectsMeta: {
                 ...currentMeta,
                 [id]: {
+                    ...(currentMeta[id] || {}),
+                    image: updatedProj.image,
+                    gallery: updatedProj.gallery,
                     mapLink: updatedProj.mapLink || updatedProj.map_link,
                     nearbyHospitals: updatedProj.nearbyHospitals,
                     nearbySchools: updatedProj.nearbySchools,

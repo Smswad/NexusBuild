@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, Building2 } from "lucide-react";
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 // Figma spec (consistent across all frames):
@@ -18,7 +17,6 @@ import { Mail, Phone, MapPin } from "lucide-react";
 import { useDatabase } from "../../Context/DatabaseContext";
 
 const Footer = () => {
-    const [email, setEmail] = useState("");
     const { systemSettings } = useDatabase();
 
     const currentSettings = systemSettings || {
@@ -31,13 +29,29 @@ const Footer = () => {
     return (
         <footer className="bg-[#000f22] text-white border-t border-[#0a2540]">
 
-            {/* ── Main Grid — Figma: 4 columns, 48px all-around padding ── */}
-            <div className="max-w-[1280px] mx-auto px-6 lg:px-12 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+            {/* ── Main Grid ── */}
+            <div className="max-w-[1280px] mx-auto px-6 lg:px-12 py-12 grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
 
                 {/* Column 1: Brand */}
                 <div className="flex flex-col gap-6">
-                    {/* Figma: "NexusBuild" 24px fw=700 white */}
-                    <h3 className="text-[24px] font-bold text-white tracking-tight">NexusBuild</h3>
+                    <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+                        {currentSettings?.companyLogo ? (
+                            <img 
+                                src={currentSettings.companyLogo} 
+                                alt={currentSettings?.companyName || 'Logo'} 
+                                className="h-16 w-auto max-w-[280px] object-contain" 
+                            />
+                        ) : (
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-11 h-11 bg-white text-[#000f22] rounded-xl flex items-center justify-center font-bold shadow-xs">
+                                    <Building2 size={24} />
+                                </div>
+                                <span className="text-[22px] font-extrabold text-white tracking-tight">
+                                    {currentSettings?.companyName || 'Reliance Housing Ltd.'}
+                                </span>
+                            </div>
+                        )}
+                    </Link>
                     {/* Figma: 12px fw=500 white */}
                     <p className="text-[12px] font-medium text-white leading-relaxed">
                         Building the future of Bangladesh with transparency, integrity, and innovative GIS technology.
@@ -101,61 +115,13 @@ const Footer = () => {
                         </li>
                     </ul>
                 </div>
-
-                {/* Column 4: Newsletter — Figma: heading #ffb694, input white bg r=2, Subscribe btn #a14000 */}
-                <div className="flex flex-col gap-4">
-                    <h4 className="text-[16px] font-bold text-[#ffb694] tracking-tight">Newsletter</h4>
-                    <p className="text-[12px] font-medium text-white leading-relaxed">
-                        Get the latest project updates and investment opportunities.
-                    </p>
-                    <form
-                        onSubmit={(e) => e.preventDefault()}
-                        className="flex flex-col gap-2"
-                    >
-                        {/* Figma: white bg, r=2, white stroke 1px, 9px V / 16px H pad */}
-                        <input
-                            type="email"
-                            placeholder="Email address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="
-                                w-full px-4 py-[9px]
-                                bg-white border border-white rounded-[2px]
-                                text-[14px] font-semibold text-[#191c1d] placeholder-[#6b7280]
-                                focus:outline-none focus:ring-1 focus:ring-[#a14000]
-                                transition-all
-                            "
-                            required
-                        />
-                        {/* Figma: Subscribe btn — #a14000 fill, white text 14px fw=700 */}
-                        <button
-                            type="submit"
-                            className="w-full py-2 bg-[#a14000] hover:bg-[#5e2200] text-white text-[14px] font-bold transition-colors duration-200 cursor-pointer"
-                        >
-                            Subscribe
-                        </button>
-                    </form>
-                </div>
             </div>
 
-            {/* ── Bottom bar — Figma: border-top white, 24px V pad, 12px fw=500 white ── */}
-            <div className="border-t border-white max-w-[1280px] mx-auto px-6 lg:px-12 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                {/* Figma: "© 2026 Reliance Housing Ltd. All rights reserved." */}
+            {/* ── Bottom bar ── */}
+            <div className="border-t border-white max-w-[1280px] mx-auto px-6 lg:px-12 py-6 flex items-center justify-center text-center">
                 <span className="text-[12px] font-medium text-white">
                     © 2026 {currentSettings.companyName}. All rights reserved.
                 </span>
-                {/* Figma: right links — Security | Sitemap | Cookie Policy */}
-                <div className="flex items-center gap-6">
-                    {["Security", "Sitemap", "Cookie Policy"].map((label) => (
-                        <a
-                            key={label}
-                            href="#"
-                            className="text-[12px] font-medium text-white hover:text-[#ffb694] transition-colors duration-200"
-                        >
-                            {label}
-                        </a>
-                    ))}
-                </div>
             </div>
         </footer>
     );

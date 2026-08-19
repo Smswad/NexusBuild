@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Navbar from '../../Components/Header/Navbar';
 import Footer from '../../Components/Footer/Footer';
 import { useDatabase } from '../../Context/DatabaseContext';
 import { 
-    MapPin, Building2, Layers, Search, Navigation, 
-    Hospital, GraduationCap, School, ShoppingBag, ExternalLink,
-    CheckCircle2, Compass, ArrowRight, ShieldCheck, ChevronRight
+    MapPin, Search, 
+    Hospital, GraduationCap, School, ShoppingBag,
+    CheckCircle2, Compass, ChevronRight
 } from 'lucide-react';
 
 const Gismap = () => {
@@ -34,13 +34,13 @@ const Gismap = () => {
         return publicProjects.find(p => p.id === selectedProjectId) || filteredProjects[0] || publicProjects[0] || {};
     }, [publicProjects, selectedProjectId, filteredProjects]);
 
-    // Helper to format google map embed link or coordinates
+    // Helper to format google map embed link or coordinates pointing out exact location marker
     const getMapEmbedUrl = (proj) => {
-        if (!proj) return 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed';
+        if (!proj) return 'https://maps.google.com/maps?q=23.6238,90.4993&z=16&output=embed';
 
         let raw = (proj.mapLink || proj.map_link || '').trim();
 
-        // 1. If Admin pasted full iframe HTML snippet e.g. <iframe src="https://www.google.com/maps/embed?..." ...></iframe>
+        // 1. Extract src if admin pasted full <iframe> HTML tag
         if (raw.includes('<iframe') && raw.includes('src=')) {
             const match = raw.match(/src=["']([^"']+)["']/i);
             if (match && match[1]) {
@@ -48,32 +48,51 @@ const Gismap = () => {
             }
         }
 
-        // 2. If it's a direct valid embed URL (e.g. google.com/maps/embed?pb=... or already contains output=embed)
-        if (raw.includes('google.com/maps/embed') || raw.includes('output=embed')) {
-            return raw;
+        // 2. Extract latitude & longitude coordinates from any URL format
+        // Format A: @23.6238,90.4993
+        const atCoords = raw.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (atCoords) {
+            return `https://maps.google.com/maps?q=${atCoords[1]},${atCoords[2]}&z=16&output=embed`;
         }
 
-        // 3. Prioritize Location / Address text if available!
-        if (proj.location && proj.location.trim()) {
-            return `https://maps.google.com/maps?q=${encodeURIComponent(proj.location.trim())}&z=15&output=embed`;
+        // Format B: !3d23.6238!4d90.4993
+        const d3d4 = raw.match(/!3d(-?\d+\.\d+).*?!4d(-?\d+\.\d+)/);
+        if (d3d4) {
+            return `https://maps.google.com/maps?q=${d3d4[1]},${d3d4[2]}&z=16&output=embed`;
         }
 
-        // 4. Fallback parsing if coordinates or search params are embedded in the link
-        if (raw.includes('@')) {
-            const coordsMatch = raw.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-            if (coordsMatch) {
-                return `https://maps.google.com/maps?q=${coordsMatch[1]},${coordsMatch[2]}&z=16&output=embed`;
-            }
+        // Format C: q=23.6238,90.4993 or ll=23.6238,90.4993
+        const qCoords = raw.match(/(?:q|ll)=(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+        if (qCoords) {
+            return `https://maps.google.com/maps?q=${qCoords[1]},${qCoords[2]}&z=16&output=embed`;
         }
 
+        // Format D: raw pair string e.g. "23.6238, 90.4993"
         const pairMatch = raw.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
         if (pairMatch) {
             return `https://maps.google.com/maps?q=${pairMatch[1]},${pairMatch[2]}&z=16&output=embed`;
         }
 
-        // 5. Fallback search Google Maps with project name & location
-        const query = encodeURIComponent(`${proj.name || ''} ${proj.location || ''}`.trim() || 'Narayanganj, Bangladesh');
-        return `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
+        // 3. Direct embed URL with pb= or output=embed
+        if (raw.includes('google.com/maps/embed') || raw.includes('output=embed')) {
+            return raw;
+        }
+
+        // 4. If raw is a text address or location link
+        if (raw && !raw.startsWith('http://') && !raw.startsWith('https://')) {
+            return `https://maps.google.com/maps?q=${encodeURIComponent(raw)}&z=16&output=embed`;
+        }
+
+        // 5. Fallback: Build exact location pinpoint using project coordinates or full address
+        if (proj.coordinates && proj.coordinates.lat && proj.coordinates.lng) {
+            return `https://maps.google.com/maps?q=${proj.coordinates.lat},${proj.coordinates.lng}&z=16&output=embed`;
+        }
+
+        const exactQuery = [proj.name, proj.fullAddress || proj.location]
+            .filter(Boolean)
+            .join(', ');
+
+        return `https://maps.google.com/maps?q=${encodeURIComponent(exactQuery || 'Narayanganj, Bangladesh')}&z=16&output=embed`;
     };
 
     // ─── Location-aware amenity profiles ─────────────────────────────────────
@@ -275,17 +294,6 @@ const Gismap = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            {activeProject.mapLink && (
-                                <a
-                                    href={activeProject.mapLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="px-3 py-1.5 bg-white border border-[#E2E8F0] text-[#1A4B9C] hover:bg-blue-50 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
-                                >
-                                    Open in Full Google Maps <ExternalLink size={12} />
-                                </a>
-                            )}
                         </div>
 
                         {/* Interactive Embedded Map Viewport */}

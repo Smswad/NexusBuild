@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import {
-    Target, Eye, MapPin, ArrowRight, Building2, Calendar,
+    Target, Eye, MapPin, ArrowRight, Calendar,
     ChevronRight, Mail, Globe,
 } from 'lucide-react';
 import Navbar from '../../Components/Header/Navbar';
@@ -89,6 +89,22 @@ const TEAM = [
 const About = () => {
     const { systemSettings } = useDatabase();
     const headAddress = systemSettings?.headOfficeAddress || 'Shamabay New Market, 259 B B Road, Narayanganj';
+
+    // Dynamic About Hero Properties
+    const heroEyebrow = systemSettings?.aboutHeroEyebrow || 'Est. 2003 · Narayanganj, Bangladesh';
+    const heroHeadline = systemSettings?.aboutHeroHeadline || 'Decades of Trust in Narayanganj.';
+    const heroSubtitle = systemSettings?.aboutHeroSubtitle || "What began in the bustling corridors of Shamabay New Market, B B Road, has evolved into Narayanganj's hallmark of infrastructure excellence. Reliance Housing Ltd. was founded on a simple promise: to build not just structures, but legacies of trust and architectural integrity.";
+    const heroCta1Text = systemSettings?.aboutHeroCta1Text || 'Explore Our Heritage';
+    const heroCta1Link = systemSettings?.aboutHeroCta1Link || '/';
+    const heroCta2Text = systemSettings?.aboutHeroCta2Text || 'View on Map';
+    const heroCta2Link = systemSettings?.aboutHeroCta2Link || '/gismap';
+
+    // Dynamic Our People Properties
+    const peopleEyebrow = systemSettings?.aboutPeopleEyebrow || 'Our People';
+    const peopleTitle = systemSettings?.aboutPeopleTitle || "The Visionaries Behind Narayanganj's Finest Landmarks";
+    const peopleSubtitle = systemSettings?.aboutPeopleSubtitle || "The visionaries behind Narayanganj's finest landmarks.";
+    const teamMembers = systemSettings?.aboutTeamMembers?.length ? systemSettings.aboutTeamMembers : TEAM;
+
     return (
         <div className="flex flex-col min-h-screen font-[Inter,sans-serif] bg-[#f3f4f5]">
             <Navbar />
@@ -120,27 +136,24 @@ const About = () => {
                     <div className="flex items-center gap-3 mb-8">
                         <div className="w-8 h-[2px] bg-[#fe762a]" />
                         <span className="text-[11px] font-semibold text-[#fe762a] uppercase tracking-[0.22em]">
-                            Est. 2003 · Narayanganj, Bangladesh
+                            {heroEyebrow}
                         </span>
                     </div>
 
                     {/* Headline */}
                     <h1 className="text-[48px] sm:text-[56px] lg:text-[64px] font-bold text-white leading-[1.05] tracking-tight mb-6 max-w-[700px]">
-                        Decades of Trust<br />
-                        <span className="text-[#fe762a]">in Narayanganj.</span>
+                        {heroHeadline}
                     </h1>
 
                     {/* Subtitle */}
                     <p className="text-[18px] font-normal text-[#b0c8eb] leading-[28px] max-w-[600px] mb-10">
-                        What began in the bustling corridors of Shamabay New Market, B B Road, has evolved into
-                        Narayanganj's hallmark of infrastructure excellence. Reliance Housing Ltd. was founded on
-                        a simple promise: to build not just structures, but legacies of trust and architectural integrity.
+                        {heroSubtitle}
                     </p>
 
                     {/* CTA */}
                     <div className="flex flex-wrap gap-4">
                         <Link
-                            to="/"
+                            to={heroCta1Link}
                             className="
                                 inline-flex items-center gap-2
                                 bg-[#fe762a] hover:bg-[#a14000]
@@ -149,11 +162,11 @@ const About = () => {
                                 transition-colors duration-200
                             "
                         >
-                            Explore Our Heritage
+                            {heroCta1Text}
                             <ArrowRight size={16} />
                         </Link>
                         <Link
-                            to="/gismap"
+                            to={heroCta2Link}
                             className="
                                 inline-flex items-center gap-2
                                 border border-[#fe762a] hover:bg-[#fe762a]/10
@@ -163,7 +176,7 @@ const About = () => {
                             "
                         >
                             <MapPin size={16} />
-                            View on Map
+                            {heroCta2Text}
                         </Link>
                     </div>
                 </div>
@@ -325,60 +338,62 @@ const About = () => {
                     {/* Section heading */}
                     <div className="text-center mb-16">
                         <span className="text-[11px] font-semibold text-[#a14000] uppercase tracking-[0.22em] block mb-4">
-                            Our People
+                            {peopleEyebrow}
                         </span>
                         <h2 className="text-[32px] font-semibold text-[#000f22] tracking-tight">
-                            The Visionaries Behind<br className="hidden sm:block" /> Narayanganj's Finest Landmarks
+                            {peopleTitle}
                         </h2>
                         <p className="mt-3 text-[16px] text-[#74777e] max-w-[480px] mx-auto">
-                            The visionaries behind Narayanganj's finest landmarks.
+                            {peopleSubtitle}
                         </p>
                     </div>
 
                     {/* Team grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {TEAM.map((member) => (
+                        {teamMembers.map((member, idx) => (
                             <div
-                                key={member.name}
-                                className="bg-white border border-[#e1e3e4] overflow-hidden group hover:shadow-[0px_8px_24px_#0000001a] transition-shadow duration-300"
+                                key={member.name + idx}
+                                className="bg-white border border-[#e1e3e4] overflow-hidden group hover:shadow-[0px_8px_24px_#0000001a] transition-shadow duration-300 flex flex-col justify-between"
                             >
-                                {/* Avatar / colour header */}
-                                <div
-                                    className="h-[120px] flex items-center justify-center"
-                                    style={{ background: member.bg }}
-                                >
+                                <div>
+                                    {/* Avatar / colour header */}
                                     <div
-                                        className="w-16 h-16 flex items-center justify-center text-[22px] font-bold border-2 border-white/30"
-                                        style={{ color: member.text }}
+                                        className="h-[120px] flex items-center justify-center"
+                                        style={{ background: member.bg || '#000f22' }}
                                     >
-                                        {member.badge}
+                                        <div
+                                            className="w-16 h-16 flex items-center justify-center text-[22px] font-bold border-2 border-white/30"
+                                            style={{ color: member.text || '#ffffff' }}
+                                        >
+                                            {member.badge || 'TEAM'}
+                                        </div>
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="p-5">
+                                        <h3 className="text-[15px] font-semibold text-[#191c1d] leading-tight mb-1">
+                                            {member.name}
+                                        </h3>
+                                        <p
+                                            className="text-[11px] font-bold uppercase tracking-wider mb-3 pb-3 border-b border-[#e1e3e4]"
+                                            style={{ color: member.bg || '#a14000' }}
+                                        >
+                                            {member.role}
+                                        </p>
+                                        <p className="text-[13px] font-normal text-[#74777e] leading-[20px]">
+                                            {member.bio}
+                                        </p>
                                     </div>
                                 </div>
 
-                                {/* Info */}
-                                <div className="p-5">
-                                    <h3 className="text-[15px] font-semibold text-[#191c1d] leading-tight mb-1">
-                                        {member.name}
-                                    </h3>
-                                    <p
-                                        className="text-[11px] font-bold uppercase tracking-wider mb-3 pb-3 border-b border-[#e1e3e4]"
-                                        style={{ color: member.bg }}
-                                    >
-                                        {member.role}
-                                    </p>
-                                    <p className="text-[13px] font-normal text-[#74777e] leading-[20px]">
-                                        {member.bio}
-                                    </p>
-
-                                    {/* Social row */}
-                                    <div className="flex items-center gap-2 mt-4">
-                                        <button className="w-8 h-8 border border-[#e1e3e4] flex items-center justify-center hover:border-[#a14000] hover:text-[#a14000] transition-colors text-[#74777e]">
-                                            <Globe size={13} />
-                                        </button>
-                                        <button className="w-8 h-8 border border-[#e1e3e4] flex items-center justify-center hover:border-[#a14000] hover:text-[#a14000] transition-colors text-[#74777e]">
-                                            <Mail size={13} />
-                                        </button>
-                                    </div>
+                                {/* Social row */}
+                                <div className="px-5 pb-5 pt-2 flex items-center gap-2">
+                                    <button className="w-8 h-8 border border-[#e1e3e4] flex items-center justify-center hover:border-[#a14000] hover:text-[#a14000] transition-colors text-[#74777e] rounded cursor-pointer">
+                                        <Globe size={13} />
+                                    </button>
+                                    <button className="w-8 h-8 border border-[#e1e3e4] flex items-center justify-center hover:border-[#a14000] hover:text-[#a14000] transition-colors text-[#74777e] rounded cursor-pointer">
+                                        <Mail size={13} />
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -415,7 +430,7 @@ const About = () => {
                                 Building the future of Bangladesh with transparency, integrity, and innovative GIS technology.
                             </h2>
                             <p className="text-[18px] font-normal text-[#b0c8eb] leading-[28px]">
-                                Since our founding at Shamabay New Market, Reliance Housing Ltd. has been synonymous
+                                Since our founding at Shamabay New Market, {systemSettings?.companyName || 'Reliance Housing Ltd.'} has been synonymous
                                 with stability and innovation in the local infrastructure landscape.
                             </p>
                         </div>

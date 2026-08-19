@@ -58,10 +58,10 @@ export const ClientDataProvider = ({ children }) => {
 
     const support = {
         exec: {
-            name: 'Farhana Islam',
-            role: 'Dedicated Account Exec',
-            email: 'farhana@reliance.com',
-            phone: '+880 1700-123456'
+            name: db.systemSettings?.accountExecName || 'Farhana Islam',
+            role: db.systemSettings?.accountExecRole || 'Dedicated Account Exec',
+            email: db.systemSettings?.accountExecEmail || 'farhana@reliance.com',
+            phone: db.systemSettings?.accountExecPhone || '+880 1700-123456'
         },
         faqs: [
             { q: 'How do I submit a variation order request?', a: 'All variation order requests must be submitted through your assigned Project Manager via this portal. Navigate to the "Submit Request" form on the left, select "Change Order", and attach any relevant architectural sketches or vendor quotes.' },

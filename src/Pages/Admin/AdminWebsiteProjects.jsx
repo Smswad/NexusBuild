@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
-import { Plus, Edit2, MapPin, Search, UploadCloud, Link as LinkIcon, Home, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, Edit2, MapPin, Search, UploadCloud, Link as LinkIcon, Home, Trash2 } from 'lucide-react';
 import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminWebsiteProjects = () => {
@@ -70,8 +70,8 @@ const AdminWebsiteProjects = () => {
 
     const statusOptions = [
         { label: 'AVAILABLE', bg: '#a14000' },
-        { label: 'SOLD OUT', bg: '#000f22' },
-        { label: 'READY TO MOVE', bg: '#a14000' }
+        { label: 'COMPLETED', bg: '#0a3d2e' },
+        { label: 'SOLD OUT', bg: '#000f22' }
     ];
 
     const typeOptions = ['Residential', 'Commercial', 'Mixed Use'];

@@ -34,7 +34,6 @@ import AdminWebsiteProjects from '../Pages/Admin/AdminWebsiteProjects';
 import AdminProjectDetails from '../Pages/Admin/AdminProjectDetails';
 import AdminSettings from '../Pages/Admin/AdminSettings';
 import AdminTickets from '../Pages/Admin/AdminTickets';
-import AdminContact from '../Pages/Admin/AdminContact';
 
 import { Outlet } from 'react-router';
 import ChatWidget from '../Components/ChatWidget/ChatWidget';
@@ -116,7 +115,7 @@ export const router = createBrowserRouter([
                     { path: 'website-projects', Component: AdminWebsiteProjects },
                     { path: 'settings',         Component: AdminSettings },
                     { path: 'tickets',          Component: AdminTickets },
-                    { path: 'contact',          Component: AdminContact },
+                    { path: 'contact',          Component: AdminSettings },
                 ]
             },
             // ── Catch-all Fallback Route ──────────────────────────────────────────────

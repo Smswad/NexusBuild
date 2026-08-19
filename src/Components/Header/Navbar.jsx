@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import { Search, LogOut, LayoutDashboard, Menu, X, MapPin, Building2 } from "lucide-react";
 import { useAuth } from "../../Context/AuthContext";
+import { useDatabase } from "../../Context/DatabaseContext";
 import { PROJECTS } from "../../data/projectsData";
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
@@ -243,6 +244,7 @@ const ProjectSearch = ({ onNavigate, className = "" }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const Navbar = () => {
     const { user, loading, signOut } = useAuth();
+    const { systemSettings } = useDatabase();
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -261,12 +263,27 @@ const Navbar = () => {
 
                 {/* ── Left: Logo + Nav ── */}
                 <div className="flex items-center gap-8">
-                    {/* Logo — Figma: "NexusBuild" 24px fw=700 #000f22 */}
+                    {/* Logo — Dynamic Company Logo & Name */}
                     <Link
                         to="/"
-                        className="text-[24px] font-bold text-[#000f22] tracking-tight hover:opacity-80 transition-opacity flex-shrink-0"
+                        className="flex items-center gap-2.5 hover:opacity-80 transition-opacity flex-shrink-0"
                     >
-                        NexusBuild
+                        {systemSettings?.companyLogo ? (
+                            <img 
+                                src={systemSettings.companyLogo} 
+                                alt={systemSettings?.companyName || 'Logo'} 
+                                className="h-16 w-auto max-w-[280px] object-contain" 
+                            />
+                        ) : (
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-11 h-11 bg-[#000f22] text-white rounded-xl flex items-center justify-center font-bold shadow-xs">
+                                    <Building2 size={24} />
+                                </div>
+                                <span className="text-[22px] font-extrabold text-[#000f22] tracking-tight">
+                                    {systemSettings?.companyName || 'Reliance Housing Ltd.'}
+                                </span>
+                            </div>
+                        )}
                     </Link>
 
                     {/* Desktop Nav — Figma: 16px fw=400, active = bottom stroke #a14000 */}

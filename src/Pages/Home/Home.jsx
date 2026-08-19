@@ -17,27 +17,12 @@ import {
 } from "lucide-react";
 
 import { PROJECTS } from "../../data/projectsData";
+import { useDatabase } from "../../Context/DatabaseContext";
 import map_mockup from "../../assets/pics/map_mockup.png";
 
 // Public assets matching design system
 const IMG_HERO = "/Frontend/Projects/Hero_Section.svg";
 const IMG_SERVICES = "/Frontend/Projects/Professional_Services_Remodeling.svg";
-const IMG_ABOUT = "/Frontend/Projects/Decades_of_Trust_in_Narayanganj.svg";
-
-const ImageWithSkeleton = ({ src, alt, className }) => {
-    const [loaded, setLoaded] = useState(false);
-    return (
-        <div className="relative w-full h-full overflow-hidden bg-[#edeeef]">
-            {!loaded && <div className="skeleton absolute inset-0 w-full h-full bg-[#e1e3e4]" />}
-            <img
-                src={src}
-                alt={alt}
-                onLoad={() => setLoaded(true)}
-                className={`${className} transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-            />
-        </div>
-    );
-};
 
 const MapFrameWithSkeleton = ({ src, title }) => {
     const [loaded, setLoaded] = useState(false);
@@ -63,6 +48,7 @@ const MapFrameWithSkeleton = ({ src, title }) => {
 };
 
 const Home = () => {
+    const { systemSettings } = useDatabase();
     const [selectedNeighborhood, setSelectedNeighborhood] = useState("Chashiara");
     const [showRemodeling, setShowRemodeling] = useState(false);
     const [showSiteVisit, setShowSiteVisit] = useState(false);
@@ -169,8 +155,8 @@ const Home = () => {
             <section className="relative min-h-[550px] lg:min-h-[720px] overflow-hidden flex items-center">
                 {/* Hero background image */}
                 <img
-                    src={IMG_HERO}
-                    alt="NexusBuild Real Estate & Infrastructure"
+                    src={systemSettings?.heroImage || IMG_HERO}
+                    alt="Real Estate & Infrastructure"
                     className="absolute inset-0 w-full h-full object-cover select-none"
                 />
                 {/* Dark overlay using design token #000f22 */}
@@ -179,39 +165,39 @@ const Home = () => {
                 <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 lg:px-12 py-16 lg:py-24">
                     <div className="max-w-[720px] flex flex-col gap-6">
 
-                        {/* Reliance Housing Ltd pill badge */}
+                        {/* Tagline pill badge */}
                         <div className="inline-flex self-start">
                             <span className="bg-[#a14000] text-white text-[12px] font-medium px-3.5 py-1.5 uppercase tracking-wider rounded-[2px]">
-                                Reliance Housing Ltd.
+                                {systemSettings?.heroTagline || 'Reliance Housing Ltd.'}
                             </span>
                         </div>
 
                         {/* Headline */}
                         <h1 className="text-[32px] sm:text-[44px] lg:text-[56px] font-bold text-white leading-[1.15] tracking-tight">
-                            Building Narayanganj's Future Architecture.
+                            {systemSettings?.heroHeadline || "Building Narayanganj's Future Architecture."}
                         </h1>
 
                         {/* Subtitle */}
                         <p className="text-[16px] lg:text-[18px] font-normal text-[#e1e3e4] leading-relaxed max-w-[620px]">
-                            Precision-engineered residential complexes, commercial hubs, and GIS-mapped land developments designed for the next generation.
+                            {systemSettings?.heroSubtitle || 'Precision-engineered residential complexes, commercial hubs, and GIS-mapped land developments designed for the next generation.'}
                         </p>
 
                         {/* Action CTAs */}
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
                             <Link
-                                to="/projects"
+                                to={systemSettings?.heroCta1Link || "/projects"}
                                 className="flex items-center justify-center gap-2.5 px-8 py-4 bg-[#fe762a] hover:bg-[#a14000] text-[#5e2200] hover:text-white text-[14px] font-bold transition-colors duration-200 min-h-[48px] rounded-[4px]"
                             >
-                                Explore All Projects
+                                {systemSettings?.heroCta1Text || "Explore All Projects"}
                                 <ArrowRight size={16} />
                             </Link>
 
                             <Link
-                                to="/gismap"
+                                to={systemSettings?.heroCta2Link || "/gismap"}
                                 className="flex items-center justify-center gap-2.5 px-8 py-4 border border-[#fe762a] text-white hover:bg-[#fe762a]/10 text-[14px] font-bold transition-all duration-200 min-h-[48px] rounded-[4px]"
                             >
                                 <Globe size={16} className="text-[#fe762a]" />
-                                Interactive GIS Map
+                                {systemSettings?.heroCta2Text || "Interactive GIS Map"}
                             </Link>
                         </div>
                     </div>
@@ -609,7 +595,7 @@ const Home = () => {
                             Decades of Trust in Narayanganj.
                         </h2>
                         <p className="text-[16px] lg:text-[18px] font-normal text-[#43474d] leading-relaxed">
-                            Since our founding at Shamabay New Market, Reliance Housing Ltd. has stood as a symbol of structural reliability and community growth.
+                            Since our founding at Shamabay New Market, {systemSettings?.companyName || 'Reliance Housing Ltd.'} has stood as a symbol of structural reliability and community growth.
                         </p>
                         <p className="text-[16px] font-normal text-[#43474d] leading-relaxed">
                             From high-rise residential towers on BB Road to commercial hubs, our pledge remains steadfast: uncompromising engineering quality, regulatory compliance, and total client transparency.

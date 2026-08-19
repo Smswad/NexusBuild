@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { ClientDataProvider, useClientData } from '../../Context/ClientDataContext';
+import { useDatabase } from '../../Context/DatabaseContext';
 import { showToast } from '../../Components/Toast/globalToast';
 
 const NAV_LINKS = [
@@ -18,6 +19,7 @@ const NAV_LINKS = [
 const DashboardContent = () => {
     const { signOut } = useAuth();
     const { userProfile, activeClient, updateProfile, financials, siteUpdates, support } = useClientData();
+    const { systemSettings } = useDatabase();
     const navigate = useNavigate();
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -148,17 +150,26 @@ const DashboardContent = () => {
                 {/* Header Logo Area */}
                 <div 
                     onClick={() => navigate('/')}
-                    className="p-8 pb-10 cursor-pointer hover:bg-[#002660] transition-colors"
+                    className="p-6 pb-8 cursor-pointer hover:bg-[#002660] transition-colors border-b border-white/10 mb-4"
                     title="Go to Home"
                 >
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-[#003178] flex-shrink-0">
-                            <Building2 size={24} />
-                        </div>
-                        <div>
-                            <div className="text-white font-bold text-2xl leading-none">Reliance</div>
-                            <div className="text-white font-bold text-2xl leading-tight">Housing LTD</div>
-                            <div className="text-[#A0B2C6] text-sm mt-1">Client Portal</div>
+                    <div className="flex items-center gap-3">
+                        {systemSettings?.companyLogo ? (
+                            <img 
+                                src={systemSettings.companyLogo} 
+                                alt={systemSettings?.companyName || 'Logo'} 
+                                className="h-12 w-auto max-w-[200px] object-contain bg-white/10 p-1.5 rounded-lg border border-white/20" 
+                            />
+                        ) : (
+                            <div className="w-10 h-10 bg-white text-[#003178] rounded-lg flex items-center justify-center font-bold flex-shrink-0">
+                                <Building2 size={22} />
+                            </div>
+                        )}
+                        <div className="min-w-0">
+                            <div className="text-white font-bold text-lg leading-tight truncate">
+                                {systemSettings?.companyName || 'Reliance Housing LTD'}
+                            </div>
+                            <div className="text-[#A0B2C6] text-xs mt-0.5 font-medium">Client Portal</div>
                         </div>
                     </div>
                 </div>

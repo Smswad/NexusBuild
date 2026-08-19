@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router";
 import {
-    MapPin, Wrench, Calendar, Building, CheckCircle2,
+    MapPin, Building, CheckCircle2,
     ArrowLeft, Compass, Mail, ShieldCheck, Tag, Layers, ArrowRight
 } from "lucide-react";
 import Navbar from "../../Components/Header/Navbar";
@@ -45,7 +45,7 @@ const ProjectDetails = () => {
             <div className="flex flex-col min-h-screen bg-[#f8f9fa] font-[Inter,sans-serif]">
                 <Navbar />
                 <main className="flex-grow flex items-center justify-center py-20 px-6">
-                    <div className="max-w-md w-full bg-white border border-[#c4c6ce] p-8 text-center rounded-[8px] shadow-sm">
+                    <div className="max-w-md w-full bg-[#f8f9fa] border border-[#c4c6ce] p-8 text-center rounded-[8px] shadow-sm">
                         <div className="w-16 h-16 bg-[#fe762a]/10 text-[#a14000] rounded-full flex items-center justify-center mx-auto mb-4">
                             <Building size={32} />
                         </div>
@@ -67,9 +67,13 @@ const ProjectDetails = () => {
         );
     }
 
-    const galleryImages = project.gallery && project.gallery.length > 0
-        ? project.gallery
-        : [project.image];
+    // Authoritative gallery images list saved by admin
+    const galleryImages = (project.gallery && Array.isArray(project.gallery) && project.gallery.length > 0)
+        ? project.gallery.filter(Boolean)
+        : (project.image ? [project.image] : []);
+
+    // Safeguard activeImage index bounds
+    const activeImageIndex = activeImage >= galleryImages.length ? 0 : activeImage;
 
     return (
         <div className="flex flex-col min-h-screen bg-[#f8f9fa] font-[Inter,sans-serif]">
@@ -112,7 +116,7 @@ const ProjectDetails = () => {
                         {/* Main Featured Image */}
                         <div className="relative aspect-[16/10] bg-[#0a2540] rounded-[6px] overflow-hidden border border-white/10 shadow-lg">
                             <ImageWithSkeleton
-                                src={galleryImages[activeImage]}
+                                src={galleryImages[activeImageIndex]}
                                 alt={project.name}
                                 className="w-full h-full object-cover"
                             />
@@ -135,7 +139,7 @@ const ProjectDetails = () => {
                                         key={idx}
                                         onClick={() => setActiveImage(idx)}
                                         className={`relative w-24 h-16 rounded-[4px] overflow-hidden border-2 flex-shrink-0 transition-all cursor-pointer ${
-                                            activeImage === idx
+                                            activeImageIndex === idx
                                                 ? "border-[#fe762a] scale-105"
                                                 : "border-transparent opacity-60 hover:opacity-100"
                                         }`}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, MessageSquare, ChevronDown, ChevronUp, Clock, HelpCircle, Phone, Mail } from 'lucide-react';
+import { Send, MessageSquare, ChevronDown, ChevronUp, HelpCircle, Phone, Mail } from 'lucide-react';
 import { useClientData } from '../../Context/ClientDataContext';
 import { useDatabase } from '../../Context/DatabaseContext';
 import { showToast } from '../../Components/Toast/globalToast';

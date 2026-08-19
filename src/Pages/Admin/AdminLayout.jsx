@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { AdminDataProvider, useAdminData } from '../../Context/AdminDataContext';
+import { useDatabase } from '../../Context/DatabaseContext';
 
 const NAV_LINKS = [
     { to: '/admin',            label: 'Dashboard',        icon: LayoutDashboard, end: true },
@@ -18,11 +19,11 @@ const NAV_LINKS = [
     { to: '/admin/progress',   label: 'Site Progress',    icon: HardHat },
     { to: '/admin/website-projects', label: 'Website Projects', icon: Globe },
     { to: '/admin/tickets',     label: 'Support Tickets',  icon: MessageSquare },
-    { to: '/admin/contact',     label: 'Contact Settings',  icon: Settings },
 ];
 
 const AdminLayoutContent = () => {
     const { signOut } = useAuth();
+    const { systemSettings } = useDatabase();
     const { projects, activeProject, setActiveProject, addProject, leads, applications, transactions, clients, properties, tickets } = useAdminData();
     const navigate = useNavigate();
 
@@ -167,6 +168,7 @@ const AdminLayoutContent = () => {
 
     // Auto-close sidebar on navigation (mobile/tablet sizes)
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSidebarOpen(false);
     }, [navigate]);
 
@@ -182,20 +184,27 @@ const AdminLayoutContent = () => {
             )}
 
             {/* ══ SIDEBAR (260px) ══════════════════════════════════════════════ */}
-            <aside className={`
-                fixed inset-y-0 left-0 z-[60] w-[260px] flex-shrink-0 flex flex-col bg-[#1A4B9C] text-white print:hidden transition-transform duration-300 ease-in-out
-                lg:static lg:translate-x-0
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            `}>
+            <aside 
+                style={{ backgroundColor: systemSettings?.primaryColor || '#1A4B9C' }}
+                className={`
+                    fixed inset-y-0 left-0 z-[60] w-[260px] flex-shrink-0 flex flex-col text-white print:hidden transition-all duration-300 ease-in-out
+                    lg:static lg:translate-x-0
+                    ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                `}
+            >
                 
                 {/* Header Logo Area */}
                 <div className="p-6 pb-8">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-[#1A4B9C] flex-shrink-0">
-                            <Building2 size={18} />
+                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-[#1A4B9C] flex-shrink-0 overflow-hidden shadow-xs">
+                            {systemSettings?.companyLogo ? (
+                                <img src={systemSettings.companyLogo} alt="Logo" className="w-full h-full object-cover" />
+                            ) : (
+                                <Building2 size={26} />
+                            )}
                         </div>
                         <div>
-                            <div className="text-white font-bold text-sm sm:text-base leading-none">Reliance Housing Ltd.</div>
+                            <div className="text-white font-bold text-sm sm:text-base leading-none">{systemSettings?.companyName || 'Reliance Housing Ltd.'}</div>
                             <div className="text-blue-200 text-[10px] mt-0.5 uppercase tracking-wider">Admin Panel</div>
                         </div>
                         <button 

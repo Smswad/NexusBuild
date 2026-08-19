@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
 import { 
     Building2, MapPin, Save, Trash2, Plus, UploadCloud, 
-    Link as LinkIcon, AlertTriangle, Layers, Home, Check, ArrowLeft
+    AlertTriangle, Layers, ArrowLeft
 } from 'lucide-react';
 import { showToast } from '../../Components/Toast/globalToast';
 import { useNavigate } from 'react-router';
@@ -12,7 +12,7 @@ const AdminProjectDetails = () => {
     const { 
         projects, activeProject, setActiveProject, 
         updatePublicProject, deletePublicProject, publicProjects,
-        projectPhotos = [], addProjectPhoto, deleteProjectPhoto
+        addProjectPhoto
     } = useAdminData();
     const navigate = useNavigate();
 
@@ -22,8 +22,6 @@ const AdminProjectDetails = () => {
     // Determine current project to edit
     const currentProject = projects.find(p => p.id === activeProject);
     const matchingPublicProj = publicProjects.find(p => p.id === currentProject?.id) || {};
-
-    const currentPhotos = projectPhotos.filter(p => p.projectId === (currentProject?.id || 'p1'));
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -57,6 +55,11 @@ const AdminProjectDetails = () => {
             reader.onload = (e) => {
                 const dataUrl = e.target.result;
                 addProjectPhoto(currentProject.id, dataUrl, file.name);
+                setFormData(prev => ({
+                    ...prev,
+                    gallery: Array.from(new Set([...(prev.gallery || []), dataUrl]))
+                }));
+                showToast(`Added new photo for ${currentProject.name}! Click Save Changes to apply.`, 'success', 'Photo Uploaded');
             };
             reader.readAsDataURL(file);
         });
@@ -78,32 +81,75 @@ const AdminProjectDetails = () => {
         nearbyHospitals: '',
         nearbySchools: '',
         nearbyColleges: '',
-        nearbyMarkets: ''
+        nearbyMarkets: '',
+        gallery: []
     });
 
+    const [replaceTargetIndex, setReplaceTargetIndex] = useState(null);
+    const replaceFileInputRef = React.useRef(null);
+
+    const currentProjId = currentProject?.id;
+
     useEffect(() => {
-        if (currentProject) {
-            const defaultProj = PROJECTS.find(p => p.id === currentProject.id) || {};
-            setFormData({
-                name: currentProject.name || matchingPublicProj.name || '',
-                status: matchingPublicProj.status || 'AVAILABLE',
-                statusBg: matchingPublicProj.statusBg || '#a14000',
-                location: matchingPublicProj.location || defaultProj.location || 'Narayanganj',
-                type: matchingPublicProj.type || defaultProj.type || 'Mixed Use',
-                image: matchingPublicProj.image || defaultProj.image || '/Frontend/Projects/Hero_Section.svg',
-                description: matchingPublicProj.description || defaultProj.description || 'Flagship real estate project equipped with modern infrastructure amenities.',
-                detailsLink: matchingPublicProj.detailsLink || defaultProj.detailsLink || '#',
-                mapLink: matchingPublicProj.mapLink || matchingPublicProj.map_link || defaultProj.mapLink || 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed',
-                price: matchingPublicProj.price || defaultProj.price || '৳ 1.50 Crore - ৳ 3.50 Crore',
-                area: matchingPublicProj.area || defaultProj.area || '1,400 - 2,800 sqft',
-                totalUnits: currentProject.totalUnits || matchingPublicProj.totalUnits || defaultProj.totalUnits || 32,
-                nearbyHospitals: matchingPublicProj.nearbyHospitals || matchingPublicProj.nearby_hospitals || defaultProj.nearbyHospitals || '',
-                nearbySchools: matchingPublicProj.nearbySchools || matchingPublicProj.nearby_schools || defaultProj.nearbySchools || '',
-                nearbyColleges: matchingPublicProj.nearbyColleges || matchingPublicProj.nearby_colleges || defaultProj.nearbyColleges || '',
-                nearbyMarkets: matchingPublicProj.nearbyMarkets || matchingPublicProj.nearby_markets || defaultProj.nearbyMarkets || ''
-            });
+        if (!currentProject) return;
+        const defaultProj = PROJECTS.find(p => p.id === currentProject.id) || {};
+        const presetGallery = (matchingPublicProj.gallery && Array.isArray(matchingPublicProj.gallery))
+            ? matchingPublicProj.gallery
+            : (defaultProj.gallery || [matchingPublicProj.image || defaultProj.image || '/Frontend/Projects/Hero_Section.svg']);
+        
+        const newForm = {
+            name: currentProject.name || matchingPublicProj.name || '',
+            status: matchingPublicProj.status || 'AVAILABLE',
+            statusBg: matchingPublicProj.statusBg || '#a14000',
+            location: matchingPublicProj.location || defaultProj.location || 'Narayanganj',
+            type: matchingPublicProj.type || defaultProj.type || 'Mixed Use',
+            image: matchingPublicProj.image || defaultProj.image || '/Frontend/Projects/Hero_Section.svg',
+            gallery: presetGallery,
+            description: matchingPublicProj.description || defaultProj.description || 'Flagship real estate project equipped with modern infrastructure amenities.',
+            detailsLink: matchingPublicProj.detailsLink || defaultProj.detailsLink || '#',
+            mapLink: matchingPublicProj.mapLink || matchingPublicProj.map_link || defaultProj.mapLink || 'https://maps.google.com/maps?q=23.6238,90.4993&z=15&output=embed',
+            price: matchingPublicProj.price || defaultProj.price || '৳ 1.50 Crore - ৳ 3.50 Crore',
+            area: matchingPublicProj.area || defaultProj.area || '1,400 - 2,800 sqft',
+            totalUnits: currentProject.totalUnits || matchingPublicProj.totalUnits || defaultProj.totalUnits || 32,
+            nearbyHospitals: matchingPublicProj.nearbyHospitals || matchingPublicProj.nearby_hospitals || defaultProj.nearbyHospitals || '',
+            nearbySchools: matchingPublicProj.nearbySchools || matchingPublicProj.nearby_schools || defaultProj.nearbySchools || '',
+            nearbyColleges: matchingPublicProj.nearbyColleges || matchingPublicProj.nearby_colleges || defaultProj.nearbyColleges || '',
+            nearbyMarkets: matchingPublicProj.nearbyMarkets || matchingPublicProj.nearby_markets || defaultProj.nearbyMarkets || ''
+        };
+        setFormData(newForm);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentProjId]);
+
+    const handleReplaceImageFile = (e) => {
+        const file = e.target.files?.[0];
+        if (!file || replaceTargetIndex === null) return;
+        if (!file.type.startsWith('image/')) {
+            showToast('Please select a valid image file (PNG, JPG, SVG, WebP).', 'warning', 'Invalid File');
+            return;
         }
-    }, [currentProject?.id]);
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('File size exceeds 5MB limit.', 'warning', 'File Too Large');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (uploadEvent) => {
+            const dataUrl = uploadEvent.target.result;
+            setFormData(prev => {
+                const newGallery = [...(prev.gallery || [])];
+                newGallery[replaceTargetIndex] = dataUrl;
+                // If replacing cover photo as well
+                const isReplacingCover = prev.image === prev.gallery?.[replaceTargetIndex];
+                return {
+                    ...prev,
+                    gallery: newGallery,
+                    image: isReplacingCover ? dataUrl : prev.image
+                };
+            });
+            showToast(`Replaced image #${replaceTargetIndex + 1} with uploaded image!`, 'success', 'Image Replaced');
+            setReplaceTargetIndex(null);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const [isSaving, setIsSaving] = useState(false);
 
@@ -122,6 +168,7 @@ const AdminProjectDetails = () => {
                     { id: 'f4', unit: 'Flat 2B', size: '1,500 sqft', price: '৳1.55Cr', status: 'AVAILABLE' }
                 ];
                 localStorage.setItem('flats_project_' + projId, JSON.stringify(defaultFlats));
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setFlatsList(defaultFlats);
             } else {
                 setFlatsList(stored);
@@ -336,53 +383,97 @@ const AdminProjectDetails = () => {
                         </div>
                     </div>
 
-                    {/* Saved Project Photos Gallery */}
-                    <div className="mt-6 pt-4 border-t border-slate-100">
-                        <div className="flex justify-between items-center mb-3">
-                            <div className="text-xs font-bold text-slate-800">
-                                Saved Gallery Photos for {formData.name} ({currentPhotos.length})
+                    {/* Hidden file input for replacing specific gallery images */}
+                    <input 
+                        type="file" 
+                        ref={replaceFileInputRef} 
+                        onChange={handleReplaceImageFile} 
+                        accept="image/*" 
+                        className="hidden" 
+                    />
+
+                    {/* Active Website Gallery Images (Editable) */}
+                    <div className="mt-6 pt-4 border-t border-slate-100 space-y-4">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <div className="text-xs font-bold text-slate-800">
+                                    Website Gallery Images ({(formData.gallery || []).length})
+                                </div>
+                                <div className="text-[10px] text-slate-500">
+                                    Click <strong>"Replace Image"</strong> on any thumbnail below to swap existing site photos with your own files.
+                                </div>
                             </div>
                         </div>
 
-                        {currentPhotos.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                {currentPhotos.map(photo => (
-                                    <div key={photo.id} className="relative group rounded-lg border border-slate-200 overflow-hidden bg-slate-100 h-32">
-                                        <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-slate-900/70 opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-between text-white">
-                                            <div className="text-[10px] font-bold truncate">{photo.caption}</div>
-                                            <div className="flex gap-1 justify-end">
+                        {(formData.gallery || []).length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {(formData.gallery || []).map((imgUrl, idx) => {
+                                    const isHero = formData.image === imgUrl;
+                                    return (
+                                        <div key={idx} className={`relative group rounded-lg border overflow-hidden bg-slate-100 flex flex-col justify-between ${isHero ? 'border-[#1A4B9C] ring-2 ring-[#1A4B9C]/20' : 'border-slate-200'}`}>
+                                            <div className="h-28 relative overflow-hidden">
+                                                <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                                                {isHero && (
+                                                    <span className="absolute top-1.5 left-1.5 bg-[#1A4B9C] text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shadow">
+                                                        Main Hero
+                                                    </span>
+                                                )}
+                                                <span className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                                                    #{idx + 1}
+                                                </span>
+                                            </div>
+
+                                            <div className="p-2 bg-white border-t border-slate-100 flex flex-col gap-1.5">
                                                 <button
                                                     type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setFormData({ ...formData, image: photo.url });
-                                                        showToast(`Set photo as main hero image for ${formData.name}!`, 'success', 'Hero Image Updated');
+                                                    onClick={() => {
+                                                        setReplaceTargetIndex(idx);
+                                                        replaceFileInputRef.current?.click();
                                                     }}
-                                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-[9px] font-bold rounded cursor-pointer"
+                                                    className="w-full py-1 bg-blue-50 hover:bg-blue-100 text-[#1A4B9C] text-[10px] font-bold rounded transition-colors cursor-pointer flex items-center justify-center gap-1"
                                                 >
-                                                    Set Hero
+                                                    <UploadCloud size={12} /> Replace Image File
                                                 </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (window.confirm("Delete this photo permanently from the database?")) {
-                                                            deleteProjectPhoto(photo.id);
-                                                        }
-                                                    }}
-                                                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-[9px] font-bold rounded cursor-pointer"
-                                                >
-                                                    Delete
-                                                </button>
+
+                                                <div className="flex gap-1">
+                                                    {!isHero && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData(prev => ({ ...prev, image: imgUrl }));
+                                                                showToast(`Set image #${idx + 1} as main cover photo!`, 'success', 'Cover Photo Updated');
+                                                            }}
+                                                            className="flex-1 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold rounded transition-colors cursor-pointer"
+                                                        >
+                                                            Set Hero
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData(prev => {
+                                                                const updated = (prev.gallery || []).filter((_, i) => i !== idx);
+                                                                const newCover = isHero ? (updated[0] || '/Frontend/Projects/Hero_Section.svg') : prev.image;
+                                                                const updatedForm = { ...prev, gallery: updated, image: newCover };
+                                                                updatePublicProject(currentProject.id, updatedForm);
+                                                                return updatedForm;
+                                                            });
+                                                            showToast(`Deleted image #${idx + 1} from website.`, 'success', 'Image Deleted');
+                                                        }}
+                                                        className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-bold rounded transition-colors cursor-pointer"
+                                                        title="Remove from Gallery"
+                                                    >
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div className="text-center py-4 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-400 italic">
-                                No uploaded photos saved for {formData.name} yet. Drag & drop or select images above from your device.
+                                No gallery images for this project. Upload photos above.
                             </div>
                         )}
                     </div>
@@ -439,7 +530,7 @@ const AdminProjectDetails = () => {
                                 className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#1A4B9C]"
                             >
                                 <option value="AVAILABLE">AVAILABLE FOR BOOKING</option>
-                                <option value="READY TO MOVE">READY TO MOVE IN</option>
+                                <option value="COMPLETED">COMPLETED</option>
                                 <option value="SOLD OUT">SOLD OUT</option>
                             </select>
                         </div>

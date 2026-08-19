@@ -1,22 +1,28 @@
 import { useState } from 'react';
-import { 
-    CheckCircle2, Circle, Lock, Download, 
-    CheckCircle, FileText, Mail, Phone, Send, Calendar
-} from 'lucide-react';
+import { Download, CheckCircle, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import heroImg from '../../assets/pics/hero_pic.png';
 import { useClientData } from '../../Context/ClientDataContext';
+import { useDatabase } from '../../Context/DatabaseContext';
 import { showToast } from '../../Components/Toast/globalToast';
 
-const PrintView = ({ financials, userProfile }) => (
+const PrintView = ({ financials, userProfile, systemSettings }) => (
     <div id="print-area" className="hidden print:block bg-white text-slate-800 p-12 font-sans max-w-4xl mx-auto border border-slate-300 rounded shadow-sm">
         {/* Corporate Header Banner */}
         <div className="flex justify-between items-start border-b border-slate-350 pb-8 mb-8">
             <div className="space-y-1">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#003178] rounded flex items-center justify-center font-black text-xl text-white">R</div>
+                    {systemSettings?.companyLogo ? (
+                        <img src={systemSettings.companyLogo} alt="" className="h-10 w-auto object-contain" />
+                    ) : (
+                        <div className="w-10 h-10 bg-[#003178] rounded flex items-center justify-center font-black text-xl text-white">
+                            {(systemSettings?.companyName || 'R').charAt(0).toUpperCase()}
+                        </div>
+                    )}
                     <div>
-                        <h1 className="font-extrabold text-2xl tracking-wider text-[#003178] leading-none">RELIANCE HOUSING LTD.</h1>
+                        <h1 className="font-extrabold text-2xl tracking-wider text-[#003178] leading-none uppercase">
+                            {systemSettings?.companyName || 'RELIANCE HOUSING LTD.'}
+                        </h1>
                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Premier Property & Infrastructure Solutions</p>
                     </div>
                 </div>
@@ -128,7 +134,8 @@ const PrintView = ({ financials, userProfile }) => (
 
 const Overview = () => {
     const navigate = useNavigate();
-    const { loading, userProfile, financials, projects, activeProject, downloadStatement, addInstallment } = useClientData();
+    const { loading, userProfile, financials, activeProject, downloadStatement, addInstallment } = useClientData();
+    const { systemSettings } = useDatabase();
 
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [numInstallments, setNumInstallments] = useState(12);
@@ -428,7 +435,7 @@ const Overview = () => {
 
     return (
         <>
-            <PrintView financials={financials} userProfile={userProfile} />
+            <PrintView financials={financials} userProfile={userProfile} systemSettings={systemSettings} />
             <div className="flex flex-col lg:flex-row gap-6 w-full items-start print:hidden">
             {/* ══ CENTER COLUMN (Flexible Main Content) ════════════════════════ */}
             <div className="flex-1 flex flex-col gap-6 min-w-0 w-full">

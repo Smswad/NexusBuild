@@ -36,7 +36,7 @@ const ImageWithSkeleton = ({ src, alt, className }) => {
 };
 
 const Projects = () => {
-    const { publicProjects } = useDatabase();
+    const { publicProjects, systemSettings } = useDatabase();
 
     const [showRemodeling, setShowRemodeling] = useState(false);
     const [showSiteVisit, setShowSiteVisit] = useState(false);
@@ -193,8 +193,8 @@ const Projects = () => {
 
                         {/* Figma: red pill — #a14000 fill, 12px fw=500 white */}
                         <div className="inline-flex self-start">
-                            <span className="bg-[#a14000] text-white text-[12px] font-medium px-3 py-1 uppercase tracking-wider">
-                                Reliance Housing Ltd.
+                            <span className="bg-[#a14000] text-white text-[12px] font-medium px-3 py-1 uppercase tracking-wider rounded-[2px]">
+                                {systemSettings?.heroTagline || systemSettings?.companyName || 'Reliance Housing Ltd.'}
                             </span>
                         </div>
 
@@ -525,7 +525,7 @@ const Projects = () => {
                             Decades of Trust in Narayanganj.
                         </h2>
                         <p className="text-[16px] lg:text-[18px] font-normal text-[#43474d] leading-relaxed">
-                            Since our founding at Shamabay New Market, Reliance Housing Ltd. has been synonymous with stability and innovation in the local infrastructure landscape.
+                            Since our founding at Shamabay New Market, {systemSettings?.companyName || 'Reliance Housing Ltd.'} has been synonymous with stability and innovation in the local infrastructure landscape.
                         </p>
                         <p className="text-[16px] font-normal text-[#43474d] leading-relaxed">
                             We don't just build apartments; we architect communities. From the bustling corridors of BB Road to the quiet luxury of riverfront estates, our commitment remains the same: uncompromising quality and absolute transparency.
