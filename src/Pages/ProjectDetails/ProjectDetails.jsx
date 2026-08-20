@@ -7,6 +7,7 @@ import {
 import Navbar from "../../Components/Header/Navbar";
 import Footer from "../../Components/Footer/Footer";
 import { useDatabase } from "../../Context/DatabaseContext";
+import { PROJECTS } from "../../data/projectsData";
 
 // ─── Project Details Page ─────────────────────────────────────────────────────
 // Displays comprehensive information for an individual project.
@@ -30,26 +31,47 @@ const ImageWithSkeleton = ({ src, alt, className }) => {
 
 const ProjectDetails = () => {
     const { id } = useParams();
-    const { publicProjects } = useDatabase();
-    
-    const project = publicProjects.find(p => {
-        if (!p) return false;
-        const targetId = String(id).toLowerCase();
-        const pid = String(p.id).toLowerCase();
-        const pslug = p.slug ? String(p.slug).toLowerCase() : '';
-        const cleanPid = pid.replace(/^(proj_|p)/, '');
-        const cleanTargetId = targetId.replace(/^(proj_|p)/, '');
+    const { publicProjects, loading } = useDatabase();
 
-        return (
-            pid === targetId ||
-            pslug === targetId ||
-            cleanPid === cleanTargetId ||
-            pid === `p${targetId}` ||
-            pid === `proj_${targetId}`
-        );
-    });
+    const findProjectInList = (list) => {
+        if (!list || !Array.isArray(list)) return null;
+        return list.find(p => {
+            if (!p) return false;
+            const targetId = String(id).toLowerCase();
+            const pid = String(p.id).toLowerCase();
+            const pslug = p.slug ? String(p.slug).toLowerCase() : '';
+            const cleanPid = pid.replace(/^(proj_|p)/, '');
+            const cleanTargetId = targetId.replace(/^(proj_|p)/, '');
+
+            return (
+                pid === targetId ||
+                pslug === targetId ||
+                cleanPid === cleanTargetId ||
+                pid === `p${targetId}` ||
+                pid === `proj_${targetId}`
+            );
+        });
+    };
+
+    const project = findProjectInList(publicProjects) || findProjectInList(PROJECTS);
 
     const [activeImage, setActiveImage] = useState(0);
+
+    // Show loading indicator while database fetches
+    if (loading && !project) {
+        return (
+            <div className="flex flex-col min-h-screen bg-[#f8f9fa] font-[Inter,sans-serif]">
+                <Navbar />
+                <main className="flex-grow flex items-center justify-center py-20 px-6">
+                    <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-[#003178] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                        <p className="text-slate-600 font-medium text-sm">Loading Project Details...</p>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
 
     // If project ID is invalid or not found
     if (!project) {
