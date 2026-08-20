@@ -1013,7 +1013,6 @@ export const DatabaseProvider = ({ children }) => {
             const projectsPayload = {
                 id,
                 name: newProj.name,
-                total_units: parseInt(newProj.totalUnits) || 20,
                 progress_phase: 1,
                 phases: [
                     { id: 1, name: 'Piling & Foundation', date: 'Target: Q1 2026', progress: 0 },
