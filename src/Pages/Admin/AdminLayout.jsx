@@ -349,12 +349,7 @@ const AdminLayoutContent = () => {
                                 const unreadAdminCount = adminNotifications.filter(n => !readAdminNotifIds.includes(n.id)).length;
                                 return (
                                     <button
-                                        onClick={() => {
-                                            setShowNotif(p => !p);
-                                            const allIds = adminNotifications.map(n => n.id);
-                                            setReadAdminNotifIds(allIds);
-                                            try { localStorage.setItem('admin_read_notifs', JSON.stringify(allIds)); } catch(e) {}
-                                        }}
+                                        onClick={() => setShowNotif(p => !p)}
                                         className="w-10 h-10 flex items-center justify-center rounded-full border border-[#1A4B9C] text-[#1A4B9C] hover:bg-blue-50 transition-colors cursor-pointer relative"
                                     >
                                         <Bell size={18} />

@@ -245,12 +245,7 @@ const DashboardContent = () => {
                                 const unreadCount = clientNotifications.filter(n => !readNotifIds.includes(n.id)).length;
                                 return (
                                     <button
-                                        onClick={() => {
-                                            setShowNotif(p => !p);
-                                            const allIds = clientNotifications.map(n => n.id);
-                                            setReadNotifIds(allIds);
-                                            try { localStorage.setItem('client_read_notifs', JSON.stringify(allIds)); } catch(e) {}
-                                        }}
+                                        onClick={() => setShowNotif(p => !p)}
                                         className="w-10 h-10 flex items-center justify-center rounded-full border border-[#003178] text-[#003178] hover:bg-blue-50 transition-colors cursor-pointer relative"
                                     >
                                         <Bell size={18} />
