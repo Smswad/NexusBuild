@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AtSign, X, ArrowRight, MailCheck } from 'lucide-react';
-import { sendResetEmail } from '../../Backend/Auth/auth';
+import { sendResetEmail } from '../../lib/auth';
 
 const ForgotPasswordModal = ({ isOpen, onClose }) => {
     const [email, setEmail] = useState('');
@@ -9,12 +9,18 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     const [sent, setSent] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
         if (isOpen) {
-            setEmail('');
-            setError('');
-            setLoading(false);
-            setSent(false);
+            requestAnimationFrame(() => {
+                if (isMounted) {
+                    setEmail('');
+                    setError('');
+                    setLoading(false);
+                    setSent(false);
+                }
+            });
         }
+        return () => { isMounted = false; };
     }, [isOpen]);
 
     const handleSubmit = async (e) => {

@@ -4,11 +4,11 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import { supabase } from './supabaseClient.js';
-import chatRouter from '../Chat/chat.js';
+import chatRouter from './chat.js';
 
 // ── Load .env manually (ESM-compatible, no extra dependency) ─────────────────
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = resolve(__dirname, '../../../.env');
+const envPath = resolve(__dirname, '../.env');
 try {
     const envContent = readFileSync(envPath, 'utf-8');
     for (const line of envContent.split('\n')) {

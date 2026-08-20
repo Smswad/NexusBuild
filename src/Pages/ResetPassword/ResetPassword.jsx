@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router';
 import { Lock, Eye, EyeOff, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import login_image from '../../assets/pics/login_pic.png';
 import Footer from '../../Components/Footer/Footer';
-import { updatePassword } from '../../Backend/Auth/auth';
+import { updatePassword } from '../../lib/auth';
 import { supabase } from '../../lib/supabaseClient';
 
 const ResetPassword = () => {
