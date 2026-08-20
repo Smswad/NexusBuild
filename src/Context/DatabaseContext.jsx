@@ -76,12 +76,17 @@ export const DatabaseProvider = ({ children }) => {
             const savedSettings = JSON.parse(localStorage.getItem('system_settings') || '{}');
             const metaObj = savedSettings.projectsMeta || {};
             const savedLocal = JSON.parse(localStorage.getItem('all_public_projects') || '[]');
-            
             const mergedMap = new Map();
+
+            // 1. Load default PROJECTS
             PROJECTS.forEach(proj => mergedMap.set(proj.id, proj));
+
+            // 2. Merge saved local projects (includes newly added custom projects)
             savedLocal.forEach(proj => {
-                const existing = mergedMap.get(proj.id) || {};
-                mergedMap.set(proj.id, { ...existing, ...proj });
+                if (proj && proj.id) {
+                    const defaultProj = mergedMap.get(proj.id) || {};
+                    mergedMap.set(proj.id, { ...defaultProj, ...proj });
+                }
             });
 
             return Array.from(mergedMap.values()).map(proj => {
@@ -91,10 +96,10 @@ export const DatabaseProvider = ({ children }) => {
                 return {
                     ...proj,
                     status: cleanStatus,
-                    statusBg: cleanStatus === 'AVAILABLE' ? '#a14000' : (proj.statusBg || '#a14000'),
-                    image: meta.image !== undefined ? meta.image : (proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg'),
-                    gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || [proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg']),
-                    mapLink: meta.mapLink || proj.mapLink || '',
+                    statusBg: cleanStatus === 'AVAILABLE' ? '#a14000' : (proj.statusBg || '#000f22'),
+                    image: meta.image !== undefined ? meta.image : proj.image,
+                    gallery: meta.gallery !== undefined ? meta.gallery : proj.gallery,
+                    mapLink: meta.mapLink || proj.mapLink,
                     nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
                     nearbySchools: meta.nearbySchools || proj.nearbySchools,
                     nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
@@ -312,17 +317,8 @@ export const DatabaseProvider = ({ children }) => {
                 }));
 
                 const rawProjects = (resProjects.data && resProjects.data.length > 0) ? resProjects.data : defaultProjectsList;
-                const projectMap = new Map();
-                rawProjects.forEach(p => projectMap.set(p.id, mapRawProject(p)));
-                try {
-                    const localProjects = JSON.parse(localStorage.getItem('all_projects') || '[]');
-                    localProjects.forEach(p => {
-                        if (p && p.id && !projectMap.has(p.id)) {
-                            projectMap.set(p.id, p);
-                        }
-                    });
-                } catch(e) {}
-                setProjects(Array.from(projectMap.values()));
+
+                setProjects(rawProjects.map(mapRawProject));
                 if (resProps.data) setProperties(resProps.data.map(p => ({ ...p, clientId: p.client_id, projectId: p.project_id, unitName: p.unit_name, handoverDate: p.handover_date, totalValuation: p.total_valuation, totalPaid: p.total_paid, otherCharges: p.other_charges, dueBalance: p.due_balance })));
                 if (resInsts.data) setInstallments(resInsts.data.map(i => ({ ...i, propertyId: i.property_id, dueDate: i.due_date, statusPill: i.status_pill })));
                 if (resTrans.data) setTransactions(resTrans.data.map(t => ({ ...t, propertyId: t.property_id })));
@@ -391,74 +387,100 @@ export const DatabaseProvider = ({ children }) => {
                         if (local.length > 0) setTickets(local);
                     } catch(e) {}
                 }
-                // ── Load publicProjects with full merge (PROJECTS + localStorage + Supabase + metadata) ──
-                const mergedMap = new Map();
-                PROJECTS.forEach(proj => mergedMap.set(proj.id, proj));
-
-                try {
-                    const local = JSON.parse(localStorage.getItem('all_public_projects') || '[]');
-                    local.forEach(proj => {
-                        if (proj && proj.id) {
-                            const existing = mergedMap.get(proj.id) || {};
-                            mergedMap.set(proj.id, { ...existing, ...proj });
-                        }
-                    });
-                } catch(e) {}
-
+                let publicProjectsLoaded = false;
                 if (resPublicProjects && resPublicProjects.data && resPublicProjects.data.length > 0) {
-                    resPublicProjects.data
+                    const validPublicProjects = resPublicProjects.data
                         .filter(p => p.id !== '1' && p.id !== '2' && p.id !== '3')
-                        .forEach(p => {
-                            const defaultProj = mergedMap.get(p.id) || {};
-                            mergedMap.set(p.id, {
-                                ...defaultProj,
+                        .map(p => {
+                            const obj = {
                                 id: p.id,
-                                name: p.name || defaultProj.name,
-                                status: p.status || defaultProj.status,
-                                statusBg: p.status_bg || defaultProj.statusBg,
-                                location: p.location || defaultProj.location,
-                                type: p.type || defaultProj.type,
-                                image: p.image || defaultProj.image,
-                                description: p.description || defaultProj.description,
-                                price: p.price || defaultProj.price,
-                                area: p.area || defaultProj.area,
-                                mapLink: p.map_link || p.mapLink || defaultProj.mapLink
+                                name: p.name,
+                                status: p.status,
+                                statusBg: p.status_bg,
+                                location: p.location,
+                                type: p.type,
+                                image: p.image,
+                                description: p.description,
+                                price: p.price,
+                                area: p.area
+                            };
+                            if (p.map_link || p.mapLink) obj.mapLink = p.map_link || p.mapLink;
+                            if (p.nearby_hospitals || p.nearbyHospitals) obj.nearbyHospitals = p.nearby_hospitals || p.nearbyHospitals;
+                            if (p.nearby_schools || p.nearbySchools) obj.nearbySchools = p.nearby_schools || p.nearbySchools;
+                            if (p.nearby_colleges || p.nearbyColleges) obj.nearbyColleges = p.nearby_colleges || p.nearbyColleges;
+                            if (p.nearby_markets || p.nearbyMarkets) obj.nearbyMarkets = p.nearby_markets || p.nearbyMarkets;
+                            return obj;
+                        });
+                    
+                    const savedSettings = resSettings?.data?.settings || {};
+                    const metaObj = savedSettings.projectsMeta || {};
+
+                    if (validPublicProjects.length > 0) {
+                        const mergedMap = new Map();
+                        PROJECTS.forEach(proj => mergedMap.set(proj.id, proj));
+                        validPublicProjects.forEach(proj => {
+                            const meta = metaObj[proj.id] || {};
+                            const defaultProj = mergedMap.get(proj.id) || {};
+                            mergedMap.set(proj.id, { 
+                                ...defaultProj, 
+                                ...proj,
+                                image: meta.image !== undefined ? meta.image : (proj.image || defaultProj.image),
+                                gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || defaultProj.gallery),
+                                mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
+                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
+                                nearbySchools: meta.nearbySchools || proj.nearbySchools,
+                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
+                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
                             });
                         });
+                        setPublicProjects(Array.from(mergedMap.values()));
+                        publicProjectsLoaded = true;
+                    }
                 }
 
-                const localSettings = JSON.parse(localStorage.getItem('system_settings') || '{}');
-                const dbSettings = resSettings?.data?.settings || {};
-                const savedSettings = {
-                    ...localSettings,
-                    ...dbSettings,
-                    projectsMeta: {
-                        ...(localSettings.projectsMeta || {}),
-                        ...(dbSettings.projectsMeta || {})
+                if (!publicProjectsLoaded) {
+                    try {
+                        const local = JSON.parse(localStorage.getItem('all_public_projects') || '[]');
+                        const savedSettings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+                        const metaObj = savedSettings.projectsMeta || {};
+                        const mergedMap = new Map();
+                        
+                        PROJECTS.forEach(proj => {
+                            const meta = metaObj[proj.id] || {};
+                            mergedMap.set(proj.id, {
+                                ...proj,
+                                image: meta.image !== undefined ? meta.image : proj.image,
+                                gallery: meta.gallery !== undefined ? meta.gallery : proj.gallery,
+                                mapLink: meta.mapLink || proj.mapLink,
+                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
+                                nearbySchools: meta.nearbySchools || proj.nearbySchools,
+                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
+                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
+                            });
+                        });
+
+                        if (local.length > 0) {
+                            local.forEach(proj => {
+                                const meta = metaObj[proj.id] || {};
+                                const defaultProj = mergedMap.get(proj.id) || {};
+                                mergedMap.set(proj.id, { 
+                                    ...defaultProj, 
+                                    ...proj,
+                                    image: meta.image !== undefined ? meta.image : (proj.image || defaultProj.image),
+                                    gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || defaultProj.gallery),
+                                    mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
+                                    nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
+                                    nearbySchools: meta.nearbySchools || proj.nearbySchools,
+                                    nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
+                                    nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
+                                });
+                            });
+                        }
+                        setPublicProjects(Array.from(mergedMap.values()));
+                    } catch(e) {
+                        setPublicProjects(PROJECTS);
                     }
-                };
-                const metaObj = savedSettings.projectsMeta || {};
-
-                const finalPublicProjects = Array.from(mergedMap.values()).map(proj => {
-                    const meta = metaObj[proj.id] || {};
-                    const rawStatus = (proj.status || 'AVAILABLE').toUpperCase();
-                    const cleanStatus = rawStatus.includes('READY') ? 'AVAILABLE' : rawStatus;
-                    return {
-                        ...proj,
-                        status: cleanStatus,
-                        statusBg: cleanStatus === 'AVAILABLE' ? '#a14000' : (proj.statusBg || '#a14000'),
-                        image: meta.image !== undefined ? meta.image : (proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg'),
-                        gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || [proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg']),
-                        mapLink: meta.mapLink || proj.mapLink || meta.map_link || proj.map_link || '',
-                        nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || meta.nearby_hospitals || proj.nearby_hospitals,
-                        nearbySchools: meta.nearbySchools || proj.nearbySchools || meta.nearby_schools || proj.nearby_schools,
-                        nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || meta.nearby_colleges || proj.nearby_colleges,
-                        nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || meta.nearby_markets || proj.nearby_markets
-                    };
-                });
-
-                setPublicProjects(finalPublicProjects);
-                try { localStorage.setItem('all_public_projects', JSON.stringify(finalPublicProjects)); } catch(e) {}
+                }
 
             } catch (err) {
                 console.error("Error fetching data from Supabase:", err);
@@ -657,38 +679,15 @@ export const DatabaseProvider = ({ children }) => {
     };
 
     const addProject = async (newProject) => {
-        const projId = newProject.id || `p${projects.length + 1}`;
-        const totalU = parseInt(newProject.totalUnits) || 0;
-        const projectItem = {
-            id: projId,
+        return await addPublicProject({
+            id: newProject.id,
             name: newProject.name,
-            totalUnits: totalU,
-            progressPhase: 1,
-            phases: [
-                { id: 1, name: 'Piling & Foundation', date: 'Target: Q1 2026', progress: 0 },
-                { id: 2, name: 'Structural Basement & Columns', date: 'Target: Q2 2026', progress: 0 },
-                { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: Q3 2026', progress: 0 },
-                { id: 4, name: 'Finishing & Handover', date: 'Target: Q4 2026', progress: 0 },
-            ]
-        };
-
-        // 1. Optimistic state update
-        setProjects(prev => [...prev, projectItem]);
-
-        // 2. Supabase insert
-        const dbPayload = {
-            id: projId,
-            name: newProject.name,
-            total_units: totalU,
-            progress_phase: 1
-        };
-        try {
-            const { error } = await supabase.from('projects').insert([dbPayload]);
-            if (error) console.warn("Supabase project insert note:", error.message);
-        } catch (err) {
-            console.error("Error inserting project to Supabase:", err);
-        }
-        return true;
+            totalUnits: newProject.totalUnits,
+            status: 'AVAILABLE',
+            statusBg: '#a14000',
+            location: 'Narayanganj',
+            type: 'Residential'
+        });
     };
 
     const addClientTicket = async (clientId, type, subject, message) => {
@@ -948,26 +947,19 @@ export const DatabaseProvider = ({ children }) => {
     };
 
     const addPublicProject = async (newProj) => {
-        const id = newProj.id || ('proj_' + Date.now());
-        const slug = newProj.slug || ((newProj.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || id);
-        
-        const formatted = { 
+        const id = newProj.id || `p_${Date.now()}`;
+        const formatted = {
             id,
-            slug,
-            name: newProj.name || 'New Property Project',
+            name: newProj.name,
             status: newProj.status || 'AVAILABLE',
             statusBg: newProj.statusBg || '#a14000',
             location: newProj.location || 'Narayanganj',
-            fullAddress: newProj.fullAddress || newProj.location || 'Narayanganj',
             type: newProj.type || 'Residential',
             image: newProj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg',
             gallery: newProj.gallery || [newProj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg'],
             description: newProj.description || '',
-            fullDescription: newProj.fullDescription || newProj.description || '',
-            priceRange: newProj.price || newProj.priceRange || '৳ 1.50 Cr – ৳ 3.80 Cr',
-            price: newProj.price || newProj.priceRange || '৳ 1.50 Cr – ৳ 3.80 Cr',
-            area: newProj.area || '1,850 sq. ft',
-            totalUnits: parseInt(newProj.totalUnits) || 20,
+            price: newProj.price || 'Contact for Price',
+            area: newProj.area || '1,200 - 2,500 sqft',
             mapLink: newProj.mapLink || newProj.map_link || '',
             nearbyHospitals: newProj.nearbyHospitals || '',
             nearbySchools: newProj.nearbySchools || '',
@@ -975,82 +967,90 @@ export const DatabaseProvider = ({ children }) => {
             nearbyMarkets: newProj.nearbyMarkets || ''
         };
 
+        // 1. Update publicProjects state and localStorage
         setPublicProjects(prev => {
-            const updated = [...prev, formatted];
+            const updated = [...prev.filter(p => p.id !== id), formatted];
             try { localStorage.setItem('all_public_projects', JSON.stringify(updated)); } catch(e) {}
             return updated;
         });
 
+        // 2. Update projects state (for admin management)
         setProjects(prev => {
-            const updatedProjects = [...prev, { 
-                id, 
-                slug,
-                name: formatted.name, 
-                location: formatted.location,
-                image: formatted.image,
-                area: formatted.area,
-                progressPhase: 1, 
-                totalUnits: formatted.totalUnits 
+            if (prev.some(p => p.id === id)) return prev.map(p => p.id === id ? { ...p, name: newProj.name } : p);
+            return [...prev, {
+                id,
+                name: newProj.name,
+                progressPhase: 1,
+                totalUnits: parseInt(newProj.totalUnits) || 20,
+                phases: [
+                    { id: 1, name: 'Piling & Foundation', date: 'Target: Q1 2026', progress: 0 },
+                    { id: 2, name: 'Structural Basement & Columns', date: 'Target: Q2 2026', progress: 0 },
+                    { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: Q3 2026', progress: 0 },
+                    { id: 4, name: 'Finishing & Handover', date: 'Target: Q4 2026', progress: 0 },
+                ]
             }];
-            try { localStorage.setItem('all_projects', JSON.stringify(updatedProjects)); } catch(e) {}
-            return updatedProjects;
         });
 
-        // Store metadata inside systemSettings.projectsMeta
-        const currentMeta = systemSettings?.projectsMeta || {};
-        const updatedSettings = {
-            ...systemSettings,
-            projectsMeta: {
-                ...currentMeta,
-                [id]: {
-                    image: formatted.image,
-                    gallery: formatted.gallery,
-                    mapLink: formatted.mapLink,
-                    nearbyHospitals: formatted.nearbyHospitals,
-                    nearbySchools: formatted.nearbySchools,
-                    nearbyColleges: formatted.nearbyColleges,
-                    nearbyMarkets: formatted.nearbyMarkets
-                }
+        // 3. Update systemSettings projectsMeta
+        const updatedMeta = {
+            ...(systemSettings?.projectsMeta || {}),
+            [id]: {
+                image: formatted.image,
+                gallery: formatted.gallery,
+                mapLink: formatted.mapLink,
+                nearbyHospitals: formatted.nearbyHospitals,
+                nearbySchools: formatted.nearbySchools,
+                nearbyColleges: formatted.nearbyColleges,
+                nearbyMarkets: formatted.nearbyMarkets
             }
         };
+        const updatedSettings = { ...(systemSettings || {}), projectsMeta: updatedMeta };
         setSystemSettings(updatedSettings);
         try { localStorage.setItem('system_settings', JSON.stringify(updatedSettings)); } catch(e) {}
 
-        // Persist to Supabase
+        // 4. Save into Supabase tables `projects`, `public_projects`, and `system_settings`
         try {
-            const dbPayload = {
+            const projectsPayload = {
                 id,
-                name: formatted.name,
-                status: formatted.status,
-                status_bg: formatted.statusBg,
-                location: formatted.location,
-                type: formatted.type,
-                image: formatted.image,
-                description: formatted.description,
-                price: formatted.price,
-                area: formatted.area,
-                map_link: formatted.mapLink,
-                nearby_hospitals: formatted.nearbyHospitals,
-                nearby_schools: formatted.nearbySchools,
-                nearby_colleges: formatted.nearbyColleges,
-                nearby_markets: formatted.nearbyMarkets
-            };
-            const { error: pubErr } = await supabase.from('public_projects').upsert([dbPayload]);
-            if (pubErr) console.warn("[DatabaseContext] Supabase public_projects insert note:", pubErr.message);
-
-            const projPayload = {
-                id,
-                name: formatted.name,
+                name: newProj.name,
+                total_units: parseInt(newProj.totalUnits) || 20,
                 progress_phase: 1,
-                total_units: formatted.totalUnits || 20
+                phases: [
+                    { id: 1, name: 'Piling & Foundation', date: 'Target: Q1 2026', progress: 0 },
+                    { id: 2, name: 'Structural Basement & Columns', date: 'Target: Q2 2026', progress: 0 },
+                    { id: 3, name: 'Slabs Casting & Brickwork', date: 'Target: Q3 2026', progress: 0 },
+                    { id: 4, name: 'Finishing & Handover', date: 'Target: Q4 2026', progress: 0 },
+                ]
             };
-            const { error: projErr } = await supabase.from('projects').upsert([projPayload]);
-            if (projErr) console.warn("[DatabaseContext] Supabase projects insert note:", projErr.message);
+            const { error: projErr } = await supabase.from('projects').upsert([projectsPayload]);
+            if (projErr) console.warn("[DatabaseContext] Supabase projects upsert note:", projErr.message);
+
+            const publicPayload = {
+                id,
+                name: newProj.name,
+                status: newProj.status || 'AVAILABLE',
+                status_bg: newProj.statusBg || '#a14000',
+                location: newProj.location || 'Narayanganj',
+                type: newProj.type || 'Residential',
+                image: newProj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg',
+                description: newProj.description || '',
+                price: newProj.price || 'Contact for Price',
+                area: newProj.area || '1,200 - 2,500 sqft',
+                map_link: newProj.mapLink || newProj.map_link || '',
+                nearby_hospitals: newProj.nearbyHospitals || '',
+                nearby_schools: newProj.nearbySchools || '',
+                nearby_colleges: newProj.nearbyColleges || '',
+                nearby_markets: newProj.nearbyMarkets || ''
+            };
+            const { error: pubErr } = await supabase.from('public_projects').upsert([publicPayload]);
+            if (pubErr) console.warn("[DatabaseContext] Supabase public_projects upsert note:", pubErr.message);
 
             await supabase.from('system_settings').upsert([{ id: 'global', settings: updatedSettings }]);
         } catch (err) {
-            console.warn("[DatabaseContext] Supabase insert error:", err.message);
+            console.error("[DatabaseContext] Error inserting new project to Supabase:", err);
         }
+
+        return true;
     };
 
     const updatePublicProject = async (id, updatedProj) => {
@@ -1101,22 +1101,10 @@ export const DatabaseProvider = ({ children }) => {
                 image: updatedProj.image,
                 description: updatedProj.description,
                 price: updatedProj.price,
-                area: updatedProj.area,
-                map_link: updatedProj.mapLink || updatedProj.map_link,
-                nearby_hospitals: updatedProj.nearbyHospitals,
-                nearby_schools: updatedProj.nearbySchools,
-                nearby_colleges: updatedProj.nearbyColleges,
-                nearby_markets: updatedProj.nearbyMarkets
+                area: updatedProj.area
             };
-            const { error: pubErr } = await supabase.from('public_projects').upsert([dbPayload]);
-            if (pubErr) console.warn("[DatabaseContext] Supabase upsert note:", pubErr.message);
-
-            if (updatedProj.name) {
-                await supabase.from('projects').upsert([{
-                    id: id,
-                    name: updatedProj.name
-                }]);
-            }
+            const { error } = await supabase.from('public_projects').upsert([dbPayload]);
+            if (error) console.warn("[DatabaseContext] Supabase upsert note:", error.message);
         } catch (err) {
             console.warn("[DatabaseContext] Supabase update error:", err.message);
         }
@@ -1339,8 +1327,8 @@ export const DatabaseProvider = ({ children }) => {
         setProjects(prev => prev.filter(p => p.id !== id));
 
         try {
-            const { error } = await supabase.from('public_projects').delete().eq('id', id);
-            if (error) console.warn("[DatabaseContext] Supabase delete note:", error.message);
+            await supabase.from('public_projects').delete().eq('id', id);
+            await supabase.from('projects').delete().eq('id', id);
         } catch (err) {
             console.warn("[DatabaseContext] Supabase delete error:", err.message);
         }

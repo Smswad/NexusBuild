@@ -20,9 +20,8 @@ const AdminProjectDetails = () => {
     const [isDragging, setIsDragging] = useState(false);
 
     // Determine current project to edit
-    const allAvailProjects = (publicProjects && publicProjects.length > 0) ? publicProjects : projects;
-    const currentProject = allAvailProjects.find(p => p.id === activeProject) || projects.find(p => p.id === activeProject);
-    const matchingPublicProj = publicProjects.find(p => p.id === currentProject?.id) || currentProject || {};
+    const currentProject = projects.find(p => p.id === activeProject) || projects[0];
+    const matchingPublicProj = publicProjects.find(p => p.id === currentProject?.id) || {};
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -194,7 +193,7 @@ const AdminProjectDetails = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {allAvailProjects.map(proj => (
+                    {projects.map(proj => (
                         <div key={proj.id} className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex justify-between items-start mb-2">
@@ -314,7 +313,7 @@ const AdminProjectDetails = () => {
                         onChange={(e) => setActiveProject(e.target.value)}
                         className="bg-white border border-[#E2E8F0] text-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:border-[#1A4B9C] shadow-sm cursor-pointer"
                     >
-                        {allAvailProjects.map(p => (
+                        {projects.map(p => (
                             <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
                     </select>
