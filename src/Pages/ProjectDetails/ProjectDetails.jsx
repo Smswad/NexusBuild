@@ -32,10 +32,22 @@ const ProjectDetails = () => {
     const { id } = useParams();
     const { publicProjects } = useDatabase();
     
-    const project = publicProjects.find(p => 
-        String(p.id).toLowerCase() === String(id).toLowerCase() || 
-        (p.slug && String(p.slug).toLowerCase() === String(id).toLowerCase())
-    );
+    const project = publicProjects.find(p => {
+        if (!p) return false;
+        const targetId = String(id).toLowerCase();
+        const pid = String(p.id).toLowerCase();
+        const pslug = p.slug ? String(p.slug).toLowerCase() : '';
+        const cleanPid = pid.replace(/^(proj_|p)/, '');
+        const cleanTargetId = targetId.replace(/^(proj_|p)/, '');
+
+        return (
+            pid === targetId ||
+            pslug === targetId ||
+            cleanPid === cleanTargetId ||
+            pid === `p${targetId}` ||
+            pid === `proj_${targetId}`
+        );
+    });
 
     const [activeImage, setActiveImage] = useState(0);
 
@@ -227,24 +239,28 @@ const ProjectDetails = () => {
                         </div>
 
                         {/* Key Features & Amenities checklist */}
-                        {project.features && project.features.length > 0 && (
-                            <div className="bg-white border border-[#c4c6ce] p-6 lg:p-8 rounded-[6px] flex flex-col gap-6">
-                                <h2 className="text-[22px] font-bold text-[#000f22] border-b border-[#e1e3e4] pb-3 flex items-center gap-2">
-                                    <ShieldCheck size={20} className="text-[#a14000]" />
-                                    Features &amp; Infrastructure Amenities
-                                </h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {project.features.map((feature, idx) => (
-                                        <div key={idx} className="flex items-start gap-3 p-3 bg-[#f8f9fa] border border-[#e1e3e4] rounded-[4px]">
-                                            <CheckCircle2 size={18} className="text-[#a14000] flex-shrink-0 mt-0.5" />
-                                            <span className="text-[14px] font-medium text-[#191c1d] leading-snug">
-                                                {feature}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
+                        <div className="bg-white border border-[#c4c6ce] p-6 lg:p-8 rounded-[6px] flex flex-col gap-6">
+                            <h2 className="text-[22px] font-bold text-[#000f22] border-b border-[#e1e3e4] pb-3 flex items-center gap-2">
+                                <ShieldCheck size={20} className="text-[#a14000]" />
+                                Features &amp; Infrastructure Amenities
+                            </h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {((project.features && project.features.length > 0) ? project.features : [
+                                    "Modern Architectural Design & Structural Stability",
+                                    "24/7 Security Surveillance & Access Control",
+                                    "Multi-Level Underground Secure Parking",
+                                    "Full Backup Generator & Water Treatment",
+                                    "High-Speed Passenger & Service Lifts"
+                                ]).map((feature, idx) => (
+                                    <div key={idx} className="flex items-start gap-3 p-3 bg-[#f8f9fa] border border-[#e1e3e4] rounded-[4px]">
+                                        <CheckCircle2 size={18} className="text-[#a14000] flex-shrink-0 mt-0.5" />
+                                        <span className="text-[14px] font-medium text-[#191c1d] leading-snug">
+                                            {feature}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
-                        )}
+                        </div>
 
                     </div>
 
@@ -252,27 +268,32 @@ const ProjectDetails = () => {
                     <div className="lg:col-span-4 flex flex-col gap-6">
 
                         {/* Specifications Card */}
-                        {project.specs && project.specs.length > 0 && (
-                            <div className="bg-white border border-[#c4c6ce] p-6 rounded-[6px] flex flex-col gap-4">
-                                <h3 className="text-[18px] font-bold text-[#000f22] border-b border-[#e1e3e4] pb-3 flex items-center gap-2">
-                                    <Layers size={18} className="text-[#a14000]" />
-                                    Technical Specifications
-                                </h3>
+                        <div className="bg-white border border-[#c4c6ce] p-6 rounded-[6px] flex flex-col gap-4">
+                            <h3 className="text-[18px] font-bold text-[#000f22] border-b border-[#e1e3e4] pb-3 flex items-center gap-2">
+                                <Layers size={18} className="text-[#a14000]" />
+                                Technical Specifications
+                            </h3>
 
-                                <div className="flex flex-col divide-y divide-[#e1e3e4]">
-                                    {project.specs.map((spec, idx) => (
-                                        <div key={idx} className="py-3 flex flex-col gap-0.5">
-                                            <span className="text-[11px] font-semibold text-[#74777e] uppercase tracking-wider">
-                                                {spec.label}
-                                            </span>
-                                            <span className="text-[15px] font-semibold text-[#000f22]">
-                                                {spec.value}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div className="flex flex-col divide-y divide-[#e1e3e4]">
+                                {((project.specs && project.specs.length > 0) ? project.specs : [
+                                    { label: "Total Units", value: `${project.totalUnits || 20} Units` },
+                                    { label: "Land / Floor Area", value: project.area || "1,850 sq. ft" },
+                                    { label: "Project Status", value: project.status || "AVAILABLE" },
+                                    { label: "Development Type", value: project.type || "Residential" },
+                                    { label: "Location", value: project.location || "Narayanganj" },
+                                    { label: "Structural Rating", value: "Grade A Standard" }
+                                ]).map((spec, idx) => (
+                                    <div key={idx} className="py-3 flex flex-col gap-0.5">
+                                        <span className="text-[11px] font-semibold text-[#74777e] uppercase tracking-wider">
+                                            {spec.label}
+                                        </span>
+                                        <span className="text-[15px] font-semibold text-[#000f22]">
+                                            {spec.value}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
-                        )}
+                        </div>
 
                         {/* Support / Inspection Card */}
                         <div className="bg-[#000f22] text-white p-6 rounded-[6px] flex flex-col gap-4">
