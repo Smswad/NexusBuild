@@ -312,8 +312,17 @@ export const DatabaseProvider = ({ children }) => {
                 }));
 
                 const rawProjects = (resProjects.data && resProjects.data.length > 0) ? resProjects.data : defaultProjectsList;
-
-                setProjects(rawProjects.map(mapRawProject));
+                const projectMap = new Map();
+                rawProjects.forEach(p => projectMap.set(p.id, mapRawProject(p)));
+                try {
+                    const localProjects = JSON.parse(localStorage.getItem('all_projects') || '[]');
+                    localProjects.forEach(p => {
+                        if (p && p.id && !projectMap.has(p.id)) {
+                            projectMap.set(p.id, p);
+                        }
+                    });
+                } catch(e) {}
+                setProjects(Array.from(projectMap.values()));
                 if (resProps.data) setProperties(resProps.data.map(p => ({ ...p, clientId: p.client_id, projectId: p.project_id, unitName: p.unit_name, handoverDate: p.handover_date, totalValuation: p.total_valuation, totalPaid: p.total_paid, otherCharges: p.other_charges, dueBalance: p.due_balance })));
                 if (resInsts.data) setInstallments(resInsts.data.map(i => ({ ...i, propertyId: i.property_id, dueDate: i.due_date, statusPill: i.status_pill })));
                 if (resTrans.data) setTransactions(resTrans.data.map(t => ({ ...t, propertyId: t.property_id })));
@@ -382,100 +391,65 @@ export const DatabaseProvider = ({ children }) => {
                         if (local.length > 0) setTickets(local);
                     } catch(e) {}
                 }
-                let publicProjectsLoaded = false;
-                if (resPublicProjects && resPublicProjects.data && resPublicProjects.data.length > 0) {
-                    const validPublicProjects = resPublicProjects.data
-                        .filter(p => p.id !== '1' && p.id !== '2' && p.id !== '3')
-                        .map(p => {
-                            const obj = {
-                                id: p.id,
-                                name: p.name,
-                                status: p.status,
-                                statusBg: p.status_bg,
-                                location: p.location,
-                                type: p.type,
-                                image: p.image,
-                                description: p.description,
-                                price: p.price,
-                                area: p.area
-                            };
-                            if (p.map_link || p.mapLink) obj.mapLink = p.map_link || p.mapLink;
-                            if (p.nearby_hospitals || p.nearbyHospitals) obj.nearbyHospitals = p.nearby_hospitals || p.nearbyHospitals;
-                            if (p.nearby_schools || p.nearbySchools) obj.nearbySchools = p.nearby_schools || p.nearbySchools;
-                            if (p.nearby_colleges || p.nearbyColleges) obj.nearbyColleges = p.nearby_colleges || p.nearbyColleges;
-                            if (p.nearby_markets || p.nearbyMarkets) obj.nearbyMarkets = p.nearby_markets || p.nearbyMarkets;
-                            return obj;
-                        });
-                    
-                    const savedSettings = resSettings?.data?.settings || {};
-                    const metaObj = savedSettings.projectsMeta || {};
+                // ── Load publicProjects with full merge (PROJECTS + localStorage + Supabase + metadata) ──
+                const mergedMap = new Map();
+                PROJECTS.forEach(proj => mergedMap.set(proj.id, proj));
 
-                    if (validPublicProjects.length > 0) {
-                        const mergedMap = new Map();
-                        PROJECTS.forEach(proj => mergedMap.set(proj.id, proj));
-                        validPublicProjects.forEach(proj => {
-                            const meta = metaObj[proj.id] || {};
-                            const defaultProj = mergedMap.get(proj.id) || {};
-                            mergedMap.set(proj.id, { 
-                                ...defaultProj, 
-                                ...proj,
-                                image: meta.image !== undefined ? meta.image : (proj.image || defaultProj.image),
-                                gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || defaultProj.gallery),
-                                mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
-                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
-                                nearbySchools: meta.nearbySchools || proj.nearbySchools,
-                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
-                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
-                            });
-                        });
-                        setPublicProjects(Array.from(mergedMap.values()));
-                        publicProjectsLoaded = true;
-                    }
-                }
-
-                if (!publicProjectsLoaded) {
-                    try {
-                        const local = JSON.parse(localStorage.getItem('all_public_projects') || '[]');
-                        const savedSettings = JSON.parse(localStorage.getItem('system_settings') || '{}');
-                        const metaObj = savedSettings.projectsMeta || {};
-                        const mergedMap = new Map();
-                        
-                        PROJECTS.forEach(proj => {
-                            const meta = metaObj[proj.id] || {};
-                            mergedMap.set(proj.id, {
-                                ...proj,
-                                image: meta.image !== undefined ? meta.image : proj.image,
-                                gallery: meta.gallery !== undefined ? meta.gallery : proj.gallery,
-                                mapLink: meta.mapLink || proj.mapLink,
-                                nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
-                                nearbySchools: meta.nearbySchools || proj.nearbySchools,
-                                nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
-                                nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
-                            });
-                        });
-
-                        if (local.length > 0) {
-                            local.forEach(proj => {
-                                const meta = metaObj[proj.id] || {};
-                                const defaultProj = mergedMap.get(proj.id) || {};
-                                mergedMap.set(proj.id, { 
-                                    ...defaultProj, 
-                                    ...proj,
-                                    image: meta.image !== undefined ? meta.image : (proj.image || defaultProj.image),
-                                    gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || defaultProj.gallery),
-                                    mapLink: meta.mapLink || proj.mapLink || defaultProj.mapLink,
-                                    nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
-                                    nearbySchools: meta.nearbySchools || proj.nearbySchools,
-                                    nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
-                                    nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
-                                });
-                            });
+                try {
+                    const local = JSON.parse(localStorage.getItem('all_public_projects') || '[]');
+                    local.forEach(proj => {
+                        if (proj && proj.id) {
+                            const existing = mergedMap.get(proj.id) || {};
+                            mergedMap.set(proj.id, { ...existing, ...proj });
                         }
-                        setPublicProjects(Array.from(mergedMap.values()));
-                    } catch(e) {
-                        setPublicProjects(PROJECTS);
-                    }
+                    });
+                } catch(e) {}
+
+                if (resPublicProjects && resPublicProjects.data && resPublicProjects.data.length > 0) {
+                    resPublicProjects.data
+                        .filter(p => p.id !== '1' && p.id !== '2' && p.id !== '3')
+                        .forEach(p => {
+                            const defaultProj = mergedMap.get(p.id) || {};
+                            mergedMap.set(p.id, {
+                                ...defaultProj,
+                                id: p.id,
+                                name: p.name || defaultProj.name,
+                                status: p.status || defaultProj.status,
+                                statusBg: p.status_bg || defaultProj.statusBg,
+                                location: p.location || defaultProj.location,
+                                type: p.type || defaultProj.type,
+                                image: p.image || defaultProj.image,
+                                description: p.description || defaultProj.description,
+                                price: p.price || defaultProj.price,
+                                area: p.area || defaultProj.area,
+                                mapLink: p.map_link || p.mapLink || defaultProj.mapLink
+                            });
+                        });
                 }
+
+                const savedSettings = resSettings?.data?.settings || JSON.parse(localStorage.getItem('system_settings') || '{}');
+                const metaObj = savedSettings.projectsMeta || {};
+
+                const finalPublicProjects = Array.from(mergedMap.values()).map(proj => {
+                    const meta = metaObj[proj.id] || {};
+                    const rawStatus = (proj.status || 'AVAILABLE').toUpperCase();
+                    const cleanStatus = rawStatus.includes('READY') ? 'AVAILABLE' : rawStatus;
+                    return {
+                        ...proj,
+                        status: cleanStatus,
+                        statusBg: cleanStatus === 'AVAILABLE' ? '#a14000' : (proj.statusBg || '#a14000'),
+                        image: meta.image !== undefined ? meta.image : (proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg'),
+                        gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || [proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg']),
+                        mapLink: meta.mapLink || proj.mapLink || '',
+                        nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
+                        nearbySchools: meta.nearbySchools || proj.nearbySchools,
+                        nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
+                        nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
+                    };
+                });
+
+                setPublicProjects(finalPublicProjects);
+                try { localStorage.setItem('all_public_projects', JSON.stringify(finalPublicProjects)); } catch(e) {}
 
             } catch (err) {
                 console.error("Error fetching data from Supabase:", err);
