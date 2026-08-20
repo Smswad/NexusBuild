@@ -427,7 +427,16 @@ export const DatabaseProvider = ({ children }) => {
                         });
                 }
 
-                const savedSettings = resSettings?.data?.settings || JSON.parse(localStorage.getItem('system_settings') || '{}');
+                const localSettings = JSON.parse(localStorage.getItem('system_settings') || '{}');
+                const dbSettings = resSettings?.data?.settings || {};
+                const savedSettings = {
+                    ...localSettings,
+                    ...dbSettings,
+                    projectsMeta: {
+                        ...(localSettings.projectsMeta || {}),
+                        ...(dbSettings.projectsMeta || {})
+                    }
+                };
                 const metaObj = savedSettings.projectsMeta || {};
 
                 const finalPublicProjects = Array.from(mergedMap.values()).map(proj => {
@@ -440,11 +449,11 @@ export const DatabaseProvider = ({ children }) => {
                         statusBg: cleanStatus === 'AVAILABLE' ? '#a14000' : (proj.statusBg || '#a14000'),
                         image: meta.image !== undefined ? meta.image : (proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg'),
                         gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || [proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg']),
-                        mapLink: meta.mapLink || proj.mapLink || '',
-                        nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
-                        nearbySchools: meta.nearbySchools || proj.nearbySchools,
-                        nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
-                        nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
+                        mapLink: meta.mapLink || proj.mapLink || meta.map_link || proj.map_link || '',
+                        nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals || meta.nearby_hospitals || proj.nearby_hospitals,
+                        nearbySchools: meta.nearbySchools || proj.nearbySchools || meta.nearby_schools || proj.nearby_schools,
+                        nearbyColleges: meta.nearbyColleges || proj.nearbyColleges || meta.nearby_colleges || proj.nearby_colleges,
+                        nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets || meta.nearby_markets || proj.nearby_markets
                     };
                 });
 
@@ -1019,10 +1028,28 @@ export const DatabaseProvider = ({ children }) => {
                 image: formatted.image,
                 description: formatted.description,
                 price: formatted.price,
-                area: formatted.area
+                area: formatted.area,
+                map_link: formatted.mapLink,
+                nearby_hospitals: formatted.nearbyHospitals,
+                nearby_schools: formatted.nearbySchools,
+                nearby_colleges: formatted.nearbyColleges,
+                nearby_markets: formatted.nearbyMarkets
             };
-            const { error } = await supabase.from('public_projects').upsert([dbPayload]);
-            if (error) console.warn("[DatabaseContext] Supabase insert note:", error.message);
+            const { error: pubErr } = await supabase.from('public_projects').upsert([dbPayload]);
+            if (pubErr) console.warn("[DatabaseContext] Supabase public_projects insert note:", pubErr.message);
+
+            const projPayload = {
+                id,
+                name: formatted.name,
+                location: formatted.location,
+                image: formatted.image,
+                area: formatted.area,
+                progress_phase: 1,
+                total_units: formatted.totalUnits
+            };
+            const { error: projErr } = await supabase.from('projects').upsert([projPayload]);
+            if (projErr) console.warn("[DatabaseContext] Supabase projects insert note:", projErr.message);
+
             await supabase.from('system_settings').upsert([{ id: 'global', settings: updatedSettings }]);
         } catch (err) {
             console.warn("[DatabaseContext] Supabase insert error:", err.message);
@@ -1077,10 +1104,25 @@ export const DatabaseProvider = ({ children }) => {
                 image: updatedProj.image,
                 description: updatedProj.description,
                 price: updatedProj.price,
-                area: updatedProj.area
+                area: updatedProj.area,
+                map_link: updatedProj.mapLink || updatedProj.map_link,
+                nearby_hospitals: updatedProj.nearbyHospitals,
+                nearby_schools: updatedProj.nearbySchools,
+                nearby_colleges: updatedProj.nearbyColleges,
+                nearby_markets: updatedProj.nearbyMarkets
             };
-            const { error } = await supabase.from('public_projects').upsert([dbPayload]);
-            if (error) console.warn("[DatabaseContext] Supabase upsert note:", error.message);
+            const { error: pubErr } = await supabase.from('public_projects').upsert([dbPayload]);
+            if (pubErr) console.warn("[DatabaseContext] Supabase upsert note:", pubErr.message);
+
+            if (updatedProj.name || updatedProj.location || updatedProj.image) {
+                await supabase.from('projects').upsert([{
+                    id: id,
+                    name: updatedProj.name,
+                    location: updatedProj.location,
+                    image: updatedProj.image,
+                    area: updatedProj.area
+                }]);
+            }
         } catch (err) {
             console.warn("[DatabaseContext] Supabase update error:", err.message);
         }
