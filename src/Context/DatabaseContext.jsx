@@ -1041,11 +1041,8 @@ export const DatabaseProvider = ({ children }) => {
             const projPayload = {
                 id,
                 name: formatted.name,
-                location: formatted.location,
-                image: formatted.image,
-                area: formatted.area,
                 progress_phase: 1,
-                total_units: formatted.totalUnits
+                total_units: formatted.totalUnits || 20
             };
             const { error: projErr } = await supabase.from('projects').upsert([projPayload]);
             if (projErr) console.warn("[DatabaseContext] Supabase projects insert note:", projErr.message);
@@ -1114,13 +1111,10 @@ export const DatabaseProvider = ({ children }) => {
             const { error: pubErr } = await supabase.from('public_projects').upsert([dbPayload]);
             if (pubErr) console.warn("[DatabaseContext] Supabase upsert note:", pubErr.message);
 
-            if (updatedProj.name || updatedProj.location || updatedProj.image) {
+            if (updatedProj.name) {
                 await supabase.from('projects').upsert([{
                     id: id,
-                    name: updatedProj.name,
-                    location: updatedProj.location,
-                    image: updatedProj.image,
-                    area: updatedProj.area
+                    name: updatedProj.name
                 }]);
             }
         } catch (err) {
