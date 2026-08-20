@@ -34,10 +34,12 @@ const ProjectDetails = () => {
     const { publicProjects, loading } = useDatabase();
 
     const findProjectInList = (list) => {
-        if (!list || !Array.isArray(list)) return null;
-        return list.find(p => {
+        if (!list || !Array.isArray(list) || list.length === 0) return null;
+        const targetId = String(id).toLowerCase();
+        
+        // 1. Direct ID, slug, or clean ID match
+        const directMatch = list.find(p => {
             if (!p) return false;
-            const targetId = String(id).toLowerCase();
             const pid = String(p.id).toLowerCase();
             const pslug = p.slug ? String(p.slug).toLowerCase() : '';
             const cleanPid = pid.replace(/^(proj_|p)/, '');
@@ -51,6 +53,16 @@ const ProjectDetails = () => {
                 pid === `proj_${targetId}`
             );
         });
+
+        if (directMatch) return directMatch;
+
+        // 2. 1-indexed numeric position fallback (e.g. /project-details/3 -> 3rd project)
+        const numIdx = parseInt(targetId);
+        if (!isNaN(numIdx) && numIdx >= 1 && numIdx <= list.length) {
+            return list[numIdx - 1];
+        }
+
+        return null;
     };
 
     const project = findProjectInList(publicProjects) || findProjectInList(PROJECTS);
