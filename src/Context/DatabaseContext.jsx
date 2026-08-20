@@ -76,25 +76,29 @@ export const DatabaseProvider = ({ children }) => {
             const savedSettings = JSON.parse(localStorage.getItem('system_settings') || '{}');
             const metaObj = savedSettings.projectsMeta || {};
             const savedLocal = JSON.parse(localStorage.getItem('all_public_projects') || '[]');
-            const localMap = new Map(savedLocal.map(p => [p.id, p]));
+            
+            const mergedMap = new Map();
+            PROJECTS.forEach(proj => mergedMap.set(proj.id, proj));
+            savedLocal.forEach(proj => {
+                const existing = mergedMap.get(proj.id) || {};
+                mergedMap.set(proj.id, { ...existing, ...proj });
+            });
 
-            return PROJECTS.map(proj => {
+            return Array.from(mergedMap.values()).map(proj => {
                 const meta = metaObj[proj.id] || {};
-                const localProj = localMap.get(proj.id) || {};
-                const rawStatus = (localProj.status || proj.status || 'AVAILABLE').toUpperCase();
+                const rawStatus = (proj.status || 'AVAILABLE').toUpperCase();
                 const cleanStatus = rawStatus.includes('READY') ? 'AVAILABLE' : rawStatus;
                 return {
                     ...proj,
-                    ...localProj,
                     status: cleanStatus,
-                    statusBg: cleanStatus === 'AVAILABLE' ? '#a14000' : (localProj.statusBg || proj.statusBg),
-                    image: meta.image !== undefined ? meta.image : (localProj.image || proj.image),
-                    gallery: meta.gallery !== undefined ? meta.gallery : (localProj.gallery || proj.gallery),
-                    mapLink: meta.mapLink || localProj.mapLink || proj.mapLink,
-                    nearbyHospitals: meta.nearbyHospitals || localProj.nearbyHospitals || proj.nearbyHospitals,
-                    nearbySchools: meta.nearbySchools || localProj.nearbySchools || proj.nearbySchools,
-                    nearbyColleges: meta.nearbyColleges || localProj.nearbyColleges || proj.nearbyColleges,
-                    nearbyMarkets: meta.nearbyMarkets || localProj.nearbyMarkets || proj.nearbyMarkets
+                    statusBg: cleanStatus === 'AVAILABLE' ? '#a14000' : (proj.statusBg || '#a14000'),
+                    image: meta.image !== undefined ? meta.image : (proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg'),
+                    gallery: meta.gallery !== undefined ? meta.gallery : (proj.gallery || [proj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg']),
+                    mapLink: meta.mapLink || proj.mapLink || '',
+                    nearbyHospitals: meta.nearbyHospitals || proj.nearbyHospitals,
+                    nearbySchools: meta.nearbySchools || proj.nearbySchools,
+                    nearbyColleges: meta.nearbyColleges || proj.nearbyColleges,
+                    nearbyMarkets: meta.nearbyMarkets || proj.nearbyMarkets
                 };
             });
         } catch(e) {}
@@ -961,8 +965,32 @@ export const DatabaseProvider = ({ children }) => {
     };
 
     const addPublicProject = async (newProj) => {
-        const id = String(Date.now());
-        const formatted = { ...newProj, id };
+        const id = newProj.id || ('proj_' + Date.now());
+        const slug = newProj.slug || ((newProj.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || id);
+        
+        const formatted = { 
+            id,
+            slug,
+            name: newProj.name || 'New Property Project',
+            status: newProj.status || 'AVAILABLE',
+            statusBg: newProj.statusBg || '#a14000',
+            location: newProj.location || 'Narayanganj',
+            fullAddress: newProj.fullAddress || newProj.location || 'Narayanganj',
+            type: newProj.type || 'Residential',
+            image: newProj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg',
+            gallery: newProj.gallery || [newProj.image || '/Frontend/Projects/Reliance_Zenith_Towers.svg'],
+            description: newProj.description || '',
+            fullDescription: newProj.fullDescription || newProj.description || '',
+            priceRange: newProj.price || newProj.priceRange || '৳ 1.50 Cr – ৳ 3.80 Cr',
+            price: newProj.price || newProj.priceRange || '৳ 1.50 Cr – ৳ 3.80 Cr',
+            area: newProj.area || '1,850 sq. ft',
+            totalUnits: parseInt(newProj.totalUnits) || 20,
+            mapLink: newProj.mapLink || newProj.map_link || '',
+            nearbyHospitals: newProj.nearbyHospitals || '',
+            nearbySchools: newProj.nearbySchools || '',
+            nearbyColleges: newProj.nearbyColleges || '',
+            nearbyMarkets: newProj.nearbyMarkets || ''
+        };
 
         setPublicProjects(prev => {
             const updated = [...prev, formatted];
@@ -970,23 +998,58 @@ export const DatabaseProvider = ({ children }) => {
             return updated;
         });
 
-        setProjects(prev => [...prev, { id, name: newProj.name, progressPhase: 1, totalUnits: parseInt(newProj.totalUnits) || 20 }]);
+        setProjects(prev => {
+            const updatedProjects = [...prev, { 
+                id, 
+                slug,
+                name: formatted.name, 
+                location: formatted.location,
+                image: formatted.image,
+                area: formatted.area,
+                progressPhase: 1, 
+                totalUnits: formatted.totalUnits 
+            }];
+            try { localStorage.setItem('all_projects', JSON.stringify(updatedProjects)); } catch(e) {}
+            return updatedProjects;
+        });
 
+        // Store metadata inside systemSettings.projectsMeta
+        const currentMeta = systemSettings?.projectsMeta || {};
+        const updatedSettings = {
+            ...systemSettings,
+            projectsMeta: {
+                ...currentMeta,
+                [id]: {
+                    image: formatted.image,
+                    gallery: formatted.gallery,
+                    mapLink: formatted.mapLink,
+                    nearbyHospitals: formatted.nearbyHospitals,
+                    nearbySchools: formatted.nearbySchools,
+                    nearbyColleges: formatted.nearbyColleges,
+                    nearbyMarkets: formatted.nearbyMarkets
+                }
+            }
+        };
+        setSystemSettings(updatedSettings);
+        try { localStorage.setItem('system_settings', JSON.stringify(updatedSettings)); } catch(e) {}
+
+        // Persist to Supabase
         try {
             const dbPayload = {
                 id,
-                name: newProj.name,
-                status: newProj.status,
-                status_bg: newProj.statusBg,
-                location: newProj.location,
-                type: newProj.type,
-                image: newProj.image,
-                description: newProj.description,
-                price: newProj.price,
-                area: newProj.area
+                name: formatted.name,
+                status: formatted.status,
+                status_bg: formatted.statusBg,
+                location: formatted.location,
+                type: formatted.type,
+                image: formatted.image,
+                description: formatted.description,
+                price: formatted.price,
+                area: formatted.area
             };
-            const { error } = await supabase.from('public_projects').insert([dbPayload]);
+            const { error } = await supabase.from('public_projects').upsert([dbPayload]);
             if (error) console.warn("[DatabaseContext] Supabase insert note:", error.message);
+            await supabase.from('system_settings').upsert([{ id: 'global', settings: updatedSettings }]);
         } catch (err) {
             console.warn("[DatabaseContext] Supabase insert error:", err.message);
         }

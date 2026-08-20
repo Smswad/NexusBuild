@@ -111,17 +111,19 @@ const AdminWebsiteProjects = () => {
         setIsModalOpen(true);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         // Find matching bg for status
         const selectedStatusOption = statusOptions.find(o => o.label === formData.status);
-        const finalData = { ...formData, statusBg: selectedStatusOption ? selectedStatusOption.bg : '#000f22' };
+        const finalData = { ...formData, statusBg: selectedStatusOption ? selectedStatusOption.bg : '#a14000' };
 
         if (modalMode === 'add') {
-            addPublicProject(finalData);
+            await addPublicProject(finalData);
+            showToast('New project created successfully!', 'success', 'Project Created');
         } else {
-            updatePublicProject(currentId, finalData);
+            await updatePublicProject(currentId, finalData);
+            showToast('Project updated successfully!', 'success', 'Project Updated');
         }
         setIsModalOpen(false);
     };
