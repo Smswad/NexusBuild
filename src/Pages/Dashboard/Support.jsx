@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Send, MessageSquare, ChevronDown, ChevronUp, HelpCircle, Phone, Mail } from 'lucide-react';
+import { Send, MessageSquare, ChevronDown, ChevronUp, HelpCircle, Phone, Mail, Trash2 } from 'lucide-react';
 import { useClientData } from '../../Context/ClientDataContext';
 import { useDatabase } from '../../Context/DatabaseContext';
 import { showToast } from '../../Components/Toast/globalToast';
 
 const Support = () => {
-    const { loading, support, submitTicket } = useClientData();
+    const { loading, support, submitTicket, deleteTicket } = useClientData();
     const { exec, faqs, tickets } = support;
 
     // ── All hooks must be declared before any early returns ──
@@ -208,13 +208,28 @@ const Support = () => {
                                                 )}
                                             </td>
                                             <td className="py-4 px-6 text-right align-top">
-                                                <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${
-                                                    t.status === 'Resolved' 
-                                                        ? 'bg-slate-100 text-slate-600 border border-slate-200' 
-                                                        : 'bg-[#E1EFFE] text-[#1E429F] border border-blue-200'
-                                                }`}>
-                                                    {t.status}
-                                                </span>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${
+                                                        t.status === 'Resolved' 
+                                                            ? 'bg-slate-100 text-slate-600 border border-slate-200' 
+                                                            : 'bg-[#E1EFFE] text-[#1E429F] border border-blue-200'
+                                                    }`}>
+                                                        {t.status}
+                                                    </span>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={async () => {
+                                                            if (window.confirm(`Are you sure you want to delete ticket ${t.id}?`)) {
+                                                                await deleteTicket(t.id);
+                                                                showToast(`Ticket ${t.id} deleted successfully!`, 'info', 'Ticket Deleted');
+                                                            }
+                                                        }}
+                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                                        title="Delete Ticket"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     );

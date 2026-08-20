@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
-import { Search, Filter, CheckCircle2, MessageSquare, Clock, CornerDownRight, Send, X } from 'lucide-react';
+import { Search, CheckCircle2, MessageSquare, Clock, CornerDownRight, Send, X, Trash2 } from 'lucide-react';
 import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminTickets = () => {
-    const { tickets, clients, resolveTicket, replyToTicket } = useAdminData();
+    const { tickets, clients, resolveTicket, deleteTicket, replyToTicket } = useAdminData();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
 
@@ -226,6 +226,20 @@ const AdminTickets = () => {
                                             <CheckCircle2 size={14} /> Mark as Resolved
                                         </button>
                                     )}
+
+                                    <button 
+                                        type="button"
+                                        onClick={async () => {
+                                            if (window.confirm(`Are you sure you want to delete ticket ${ticket.id}?`)) {
+                                                await deleteTicket(ticket.id);
+                                                showToast(`Ticket ${ticket.id} deleted successfully!`, 'info', 'Ticket Deleted');
+                                            }
+                                        }}
+                                        className="flex-1 sm:flex-none justify-center px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                        title="Delete Ticket"
+                                    >
+                                        <Trash2 size={14} /> Delete
+                                    </button>
                                 </div>
                             </div>
                         </div>

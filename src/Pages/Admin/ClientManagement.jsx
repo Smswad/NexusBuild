@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
-import { Search, Filter, Download, Plus, ChevronRight, X, User, CreditCard, Wallet, MessageSquare, CheckCircle, Send, CornerDownRight } from 'lucide-react';
+import { Search, Filter, Download, Plus, ChevronRight, X, User, CreditCard, Wallet, MessageSquare, CheckCircle, Send, CornerDownRight, Trash2 } from 'lucide-react';
 import { showToast } from '../../Components/Toast/globalToast';
 
 const ClientManagement = () => {
     const { 
         clients, properties, installments, transactions, tickets, leads,
         addClient, updateClient, updateProperty, 
-        addInstallment, updateInstallment, deleteInstallment, addTransaction, resolveTicket, replyToTicket,
+        addInstallment, updateInstallment, deleteInstallment, addTransaction, resolveTicket, deleteTicket, replyToTicket,
         deleteClient, activeProject
     } = useAdminData();
     
@@ -948,6 +948,14 @@ const ClientManagement = () => {
                                                                 </button>
                                                                 <button onClick={() => resolveTicket(ticket.id)} className="px-4 py-1.5 bg-[#006E1C] text-white rounded text-sm font-bold hover:bg-[#005215] transition-colors flex items-center gap-2">
                                                                     <CheckCircle size={14} /> Mark as Resolved
+                                                                </button>
+                                                                <button onClick={async () => {
+                                                                    if (window.confirm(`Are you sure you want to delete ticket ${ticket.id}?`)) {
+                                                                        await deleteTicket(ticket.id);
+                                                                        showToast(`Ticket ${ticket.id} deleted successfully!`, 'info', 'Ticket Deleted');
+                                                                    }
+                                                                }} className="px-4 py-1.5 bg-red-600 text-white rounded text-sm font-bold hover:bg-red-700 transition-colors flex items-center gap-2">
+                                                                    <Trash2 size={14} /> Delete
                                                                 </button>
                                                             </div>
                                                         )

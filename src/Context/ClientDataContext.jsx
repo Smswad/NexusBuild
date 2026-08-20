@@ -94,6 +94,7 @@ export const ClientDataProvider = ({ children }) => {
         siteUpdates,
         support,
         submitTicket,
+        deleteTicket: db.deleteTicket,
         downloadStatement,
         updateProfile,
         addInstallment: db.addInstallment

@@ -605,6 +605,19 @@ export const DatabaseProvider = ({ children }) => {
         } catch(err) {}
     };
 
+    const deleteTicket = async (id) => {
+        setTickets(prev => {
+            const updated = prev.filter(t => t.id !== id);
+            try { localStorage.setItem('all_tickets', JSON.stringify(updated)); } catch(e) {}
+            return updated;
+        });
+        try {
+            await supabase.from('tickets').delete().eq('id', id);
+        } catch(err) {
+            console.warn("Supabase ticket delete note:", err);
+        }
+    };
+
     const replyToTicket = async (ticketId, replyMsg, resolve = true, sender = 'admin') => {
         const ticket = tickets.find(t => t.id === ticketId);
         if (!ticket) return;
@@ -1327,6 +1340,7 @@ export const DatabaseProvider = ({ children }) => {
         updateProjectPhase,
         updateProjectMilestones,
         resolveTicket,
+        deleteTicket,
         replyToTicket,
         addClientTicket,
         addSiteUpdate,
