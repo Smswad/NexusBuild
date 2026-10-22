@@ -136,22 +136,35 @@ Requirements defined in **Section 8 (Additional Pages)** and **Navbar**.
 
 Requirements defined in **Section 9 (Backend Architecture)**.
 
-### 6.1 Modular Express Server Structure
-* **Problem:** Currently `backend/server.js` contains route handlers inline.
-* **Fix Required:** Restructure backend into:
+### 6.1 Modular Express Server Structure [SOLVED]
+* **Problem:** Previously `backend/server.js` contained route handlers inline.
+* **Resolution:** Restructured backend into:
   ```text
-  backend/ (or server/)
+  backend/
   ├── routes/
   │   ├── auth.routes.js
   │   ├── projects.routes.js
   │   ├── leads.routes.js
-  │   └── chat.routes.js
+  │   ├── chat.routes.js
+  │   └── map.routes.js
   ├── controllers/
-  ├── middleware/ (auth, error handler)
+  │   ├── auth.controller.js
+  │   ├── chat.controller.js
+  │   ├── leads.controller.js
+  │   ├── map.controller.js
+  │   └── projects.controller.js
+  ├── middleware/
+  │   ├── auth.middleware.js
+  │   ├── errorHandler.middleware.js
+  │   └── validate.middleware.js
+  ├── validators/
+  │   └── schemas.js
   ├── config/
+  │   ├── env.js
+  │   └── supabase.js
   └── server.js
   ```
-* **Validation:** Add request validation middleware (using `Zod` or `Joi`) for login, registration, and inquiry endpoints.
+* **Validation:** Added robust Zod validation middleware for login, registration, inquiry/leads, chat, and map resolution. Exact endpoint URLs and response shapes preserved. Documented architecture and testing with curl in README.md.
 
 ---
 

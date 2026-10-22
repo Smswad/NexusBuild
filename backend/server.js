@@ -1,116 +1,46 @@
-import { readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
-import { supabase } from './supabaseClient.js';
-import chatRouter from './chat.js';
-
-// ── Load .env manually (ESM-compatible, no extra dependency) ─────────────────
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = resolve(__dirname, '../.env');
-try {
-    const envContent = readFileSync(envPath, 'utf-8');
-    for (const line of envContent.split('\n')) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#')) continue;
-        const eqIdx = trimmed.indexOf('=');
-        if (eqIdx === -1) continue;
-        const key = trimmed.slice(0, eqIdx).trim();
-        const value = trimmed.slice(eqIdx + 1).trim();
-        if (!process.env[key]) process.env[key] = value;
-    }
-} catch {
-    console.warn('[server] Could not load .env — ensure env vars are set externally.');
-}
+import { env } from './config/env.js';
+import authRoutes from './routes/auth.routes.js';
+import projectsRoutes from './routes/projects.routes.js';
+import leadsRoutes from './routes/leads.routes.js';
+import chatRoutes from './routes/chat.routes.js';
+import mapRoutes from './routes/map.routes.js';
+import { notFoundHandler, errorHandler } from './middleware/errorHandler.middleware.js';
 
 const app = express();
+
+// ── Global Middleware ─────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 
-
-// ── Routes ───────────────────────────────────────────────────────────────────
-app.use('/api/chat', chatRouter);
-
-app.get('/api/resolve-map', async (req, res) => {
-    const { url } = req.query;
-    if (!url) {
-        return res.status(400).json({ error: 'url parameter is required' });
-    }
-    try {
-        const response = await fetch(url, {
-            method: 'HEAD',
-            redirect: 'manual'
-        });
-        const resolvedUrl = response.headers.get('location') || url;
-        return res.status(200).json({ resolvedUrl });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
+// ── Health Check ──────────────────────────────────────────────────────────────
+app.get('/api/health', (_req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        service: 'NexusBuild API',
+        timestamp: new Date().toISOString(),
+    });
 });
 
-app.post('/api/auth/register', async (req, res) => {
-    const { fullName, email, phoneNumber, password } = req.body;
+// ── Mount Route Modules ───────────────────────────────────────────────────────
+app.use('/api/auth', authRoutes);
+app.use('/api/projects', projectsRoutes);
+app.use('/api/leads', leadsRoutes);
+app.use('/api/inquiries', leadsRoutes); // Semantic alias for customer inquiries
+app.use('/api/chat', chatRoutes);
+app.use('/api', mapRoutes); // Provides /api/resolve-map
 
-    if (!email || !password || !fullName) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
+// ── Error Handling Middleware ─────────────────────────────────────────────────
+app.use(notFoundHandler);
+app.use(errorHandler);
 
-    try {
-
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    full_name: fullName,
-                    phone_number: phoneNumber,
-                },
-            },
-        });
-
-        if (error) throw error;
-
-        return res.status(201).json({
-            message: 'Registration successful!',
-            user: data.user,
-            session: data.session
-        });
-    } catch (error) {
-        return res.status(400).json({ error: error.message });
-    }
-});
-
-//LOGIN
-app.post('/api/auth/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
-    }
-
-    try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
-
-        if (error) throw error;
-
-
-        return res.status(200).json({
-            message: 'Login successful',
-            session: data.session,
-            user: data.user
-        });
-    } catch (error) {
-        return res.status(400).json({ error: error.message });
-    }
-});
-
-const PORT = process.env.PORT || 5001;
+// ── Start Server ──────────────────────────────────────────────────────────────
+const PORT = env.PORT || 5001;
 if (!process.env.VERCEL) {
-    app.listen(PORT, () => console.log(` Backend listening on port ${PORT}`));
+    app.listen(PORT, () => {
+        console.log(` NexusBuild API listening on port ${PORT}`);
+    });
 }
 
 export default app;

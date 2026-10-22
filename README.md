@@ -78,3 +78,167 @@ NexusBuild solves these communication gaps through four unified, core engineerin
 |  Oracle Database    |   | Redis (Sessions & |   | Google Maps API /     |
 |  (User & Payments)  |   | Map Markers)      |   | Mapbox Engine         |
 +---------------------+   +-------------------+   +-----------------------+
+
+
+---
+
+## Backend Architecture & API Testing
+
+The backend server is structured with separation of concerns into dedicated modules for configuration, controllers, middleware, routes, and validation schemas.
+
+### Directory Structure
+```text
+backend/
+├── config/
+│   ├── env.js                      # Environment variables loader & validation
+│   └── supabase.js                 # Supabase client & admin initialization
+├── controllers/
+│   ├── auth.controller.js          # Authentication (register, login, me)
+│   ├── chat.controller.js          # AI support assistant (GoogleGenAI + fileSearch)
+│   ├── leads.controller.js         # Customer inquiries & leads
+│   ├── map.controller.js           # GIS Google Maps shortlink resolver
+│   └── projects.controller.js      # Project catalog & management
+├── middleware/
+│   ├── auth.middleware.js          # JWT authentication & requireAdmin RBAC
+│   ├── errorHandler.middleware.js  # Centralized error handler & 404 router
+│   └── validate.middleware.js      # Generic Zod request schema validation
+├── routes/
+│   ├── auth.routes.js              # /api/auth/* endpoints
+│   ├── chat.routes.js              # /api/chat endpoint
+│   ├── leads.routes.js             # /api/leads & /api/inquiries endpoints
+│   ├── map.routes.js               # /api/resolve-map endpoint
+│   └── projects.routes.js          # /api/projects/* endpoints
+├── validators/
+│   └── schemas.js                  # Zod validation schemas
+└── server.js                       # Express app initialization & route wiring
+```
+
+### Running the Backend Server
+```bash
+npm run backend
+# Server will listen on http://localhost:5001
+```
+
+### API Endpoints & cURL Testing Guide
+
+#### 1. Server Health Check (`GET /api/health`)
+Verify API connectivity and service status:
+```bash
+curl -X GET http://localhost:5001/api/health
+```
+**Expected Response (200 OK):**
+```json
+{
+  "status": "ok",
+  "service": "NexusBuild API",
+  "timestamp": "2026-10-22T19:54:11.627Z"
+}
+```
+
+#### 2. User Registration (`POST /api/auth/register`)
+Validated with Zod schema (`fullName`, `email`, `password`, optional `phoneNumber`):
+```bash
+curl -X POST http://localhost:5001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullName": "Shahil Mahmud",
+    "email": "user@example.com",
+    "password": "Password123!",
+    "phoneNumber": "+8801700000000"
+  }'
+```
+**Expected Response (201 Created):**
+```json
+{
+  "message": "Registration successful!",
+  "user": { "id": "...", "email": "user@example.com" },
+  "session": { "access_token": "..." }
+}
+```
+
+#### 3. User Login (`POST /api/auth/login`)
+Validated with Zod schema (`email`, `password`):
+```bash
+curl -X POST http://localhost:5001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "Password123!"
+  }'
+```
+**Expected Response (200 OK):**
+```json
+{
+  "message": "Login successful",
+  "session": { "access_token": "..." },
+  "user": { "id": "...", "email": "user@example.com" }
+}
+```
+
+#### 4. Customer Inquiries & Leads (`POST /api/inquiries` or `POST /api/leads`)
+Validated with Zod schema (requires `name`, at least one contact method `email` or `phone`, and `message` or `interest`):
+```bash
+curl -X POST http://localhost:5001/api/inquiries \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Tanvir Ahmed",
+    "email": "tanvir@example.com",
+    "phone": "+8801812345678",
+    "subject": "Booking Query",
+    "message": "Interested in 3-bedroom luxury flat in Narayanganj.",
+    "source": "Website Contact Form"
+  }'
+```
+**Expected Response (201 Created):**
+```json
+{
+  "message": "Inquiry submitted successfully",
+  "lead": {
+    "name": "Tanvir Ahmed",
+    "phone": "+8801812345678",
+    "interest": "Booking Query: Interested in 3-bedroom luxury flat in Narayanganj.",
+    "source": "Website Contact Form",
+    "status": "New"
+  }
+}
+```
+
+#### 5. AI Support Chat (`POST /api/chat`)
+Validated with Zod schema (requires non-empty string `message`):
+```bash
+curl -X POST http://localhost:5001/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "What ongoing residential projects are available in Narayanganj?"
+  }'
+```
+**Expected Response (200 OK):**
+```json
+{
+  "reply": "NexusBuild offers premium luxury apartments in Narayanganj..."
+}
+```
+
+#### 6. GIS Google Maps Shortlink Resolver (`GET /api/resolve-map`)
+Validated with Zod query schema (`url` parameter):
+```bash
+curl -G "http://localhost:5001/api/resolve-map" \
+  --data-urlencode "url=https://maps.app.goo.gl/example"
+```
+**Expected Response (200 OK):**
+```json
+{
+  "resolvedUrl": "https://www.google.com/maps/place/..."
+}
+```
+
+#### 7. Project Catalog (`GET /api/projects`)
+```bash
+curl -X GET http://localhost:5001/api/projects
+```
+**Expected Response (200 OK):**
+```json
+{
+  "projects": [...]
+}
+```
