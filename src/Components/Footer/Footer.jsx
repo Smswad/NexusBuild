@@ -35,26 +35,37 @@ const Footer = () => {
                 {/* Column 1: Brand */}
                 <div className="flex flex-col gap-5 md:col-span-1">
                     <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-                        {currentSettings?.companyLogo ? (
-                            <img 
-                                src={currentSettings.companyLogo} 
-                                alt={currentSettings?.companyName || 'Logo'} 
-                                className="h-14 w-auto max-w-[260px] object-contain" 
-                            />
-                        ) : (
-                            <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2.5">
+                            {currentSettings?.companyLogo ? (
+                                <img 
+                                    src={currentSettings.companyLogo} 
+                                    alt={currentSettings?.companyName || 'Reliance Housing Ltd.'} 
+                                    className="h-10 w-auto max-w-[180px] object-contain" 
+                                />
+                            ) : (
                                 <div className="w-10 h-10 bg-white text-[#000f22] rounded-xl flex items-center justify-center font-bold shadow-xs">
                                     <Building2 size={22} />
                                 </div>
-                                <span className="text-[20px] font-extrabold text-white tracking-tight">
-                                    {currentSettings?.companyName || 'Reliance Housing Ltd.'}
-                                </span>
-                            </div>
-                        )}
+                            )}
+                            <span className="text-[20px] font-extrabold text-white tracking-tight">
+                                Reliance Housing
+                            </span>
+                        </div>
                     </Link>
                     <p className="text-[12px] font-medium text-white/80 leading-relaxed">
                         Building the future of Bangladesh with transparency, structural integrity, and innovative GIS technology.
                     </p>
+                    {/* Newsletter input */}
+                    <form onSubmit={(e) => e.preventDefault()} className="flex items-center gap-1.5 max-w-xs">
+                        <input 
+                            type="email" 
+                            placeholder="Enter your email" 
+                            className="w-full px-3 py-1.5 bg-white/10 border border-white/20 rounded text-xs text-white placeholder-white/50 focus:outline-none"
+                        />
+                        <button type="submit" className="px-3 py-1.5 bg-[#fe762a] text-white text-xs font-bold rounded cursor-pointer hover:bg-[#a14000] transition-colors">
+                            Subscribe
+                        </button>
+                    </form>
                     {/* Social links with verified URLs from systemSettings */}
                     <div className="flex items-center gap-3 pt-1">
                         {/* Facebook */}
@@ -162,7 +173,7 @@ const Footer = () => {
             {/* ── Bottom bar ── */}
             <div className="border-t border-white/20 max-w-[1280px] mx-auto px-6 lg:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                 <span className="text-[12px] font-medium text-white/70">
-                    © 2026 {currentSettings.companyName}. All rights reserved.
+                    © 2026 {String(currentSettings.companyName || 'Reliance Housing Ltd.').replace(/\.*$/, '')}. All rights reserved.
                 </span>
                 <div className="flex items-center gap-5 text-[11px] text-white/60">
                     <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>

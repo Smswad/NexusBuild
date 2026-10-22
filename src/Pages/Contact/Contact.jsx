@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
+import { useState } from 'react';
+
 import {
-    Mail, Phone, Clock, MapPin, Send, MessageSquare,
+    Mail, Phone, MapPin, Send, MessageSquare,
     TrendingUp, HeadphonesIcon, ChevronRight,
 } from 'lucide-react';
 import Navbar from '../../Components/Header/Navbar';

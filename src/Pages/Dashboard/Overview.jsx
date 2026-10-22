@@ -478,7 +478,7 @@ const Overview = () => {
 
     return (
         <>
-            <PrintView financials={financials} userProfile={userProfile} systemSettings={systemSettings} />
+            
             <div className="flex flex-col lg:flex-row gap-6 w-full items-start print:hidden">
             {/* ══ CENTER COLUMN (Flexible Main Content) ════════════════════════ */}
             <div className="flex-1 flex flex-col gap-6 min-w-0 w-full">
@@ -663,9 +663,9 @@ const Overview = () => {
 
                 {/* 3. Installment Schedule Table */}
                 <div className="bg-base-100 rounded-lg border border-base-300 shadow-sm">
-                    <div className="p-6">
+                    <header className="p-6">
                         <h2 className="text-primary font-bold text-[18px]">Installment Schedule</h2>
-                    </div>
+                    </header>
                     
                     {(!financials.installments || financials.installments.length === 0) ? (
                         <div className="p-8 text-center flex flex-col items-center gap-4">
@@ -865,6 +865,8 @@ const Overview = () => {
                     </div>
                 </div>
             )}
+        
+            <PrintView financials={financials} userProfile={userProfile} systemSettings={systemSettings} />
         </div>
         </>
     );

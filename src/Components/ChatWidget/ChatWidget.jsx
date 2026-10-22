@@ -10,14 +10,7 @@ import {
     MessageCircle,
     X
 } from "lucide-react";
-
-// Mock automated responses based on input / pill selection
-const BOT_RESPONSES = {
-    "what is nexusbuild?": "NexusBuild is our premier real-time infrastructure portal. It allows clients to track project statuses, view zoning permits, check construction progress feeds, and monitor financial ledgers securely.",
-    "check project status": "To check your project's status, please head over to the /projects directory. If you are a registered client, log into the Client Dashboard to view real-time milestones and status timelines.",
-    "view documents": "All project blueprints, structural ratings, and permit approvals are stored securely within the Client Dashboard support section. Log in or reach out to your primary account manager for access links.",
-    "default": "Thank you for reaching out to NexusBuild Support! An engineer has been notified, and we typically respond in under 5 minutes. Feel free to request project status updates in the meantime."
-};
+import { getApiUrl } from "../../config/api.js";
 
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -71,7 +64,7 @@ const ChatWidget = () => {
         setIsTyping(true);
 
         try {
-            const response = await fetch("/api/chat", {
+            const response = await fetch(getApiUrl("/api/chat"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

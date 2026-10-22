@@ -5,7 +5,7 @@ import { DEFAULT_SYSTEM_SETTINGS } from '../../config/defaultSettings';
 import { 
     Download, TrendingUp, DollarSign, Building, AlertCircle,
     UserPlus, CreditCard, CheckSquare, Megaphone,
-    FileText, UserCheck, Clock, Edit2, BarChart2
+    Clock, Edit2, BarChart2
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { MonthlyBarChart, MilestoneLineChart, StatusDonutChart } from '../../Components/Charts';

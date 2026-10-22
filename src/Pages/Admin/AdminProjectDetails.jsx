@@ -7,6 +7,7 @@ import {
 import { showToast } from '../../Components/Toast/globalToast';
 import { useNavigate } from 'react-router';
 import { PROJECTS } from '../../data/projectsData';
+import { getApiUrl } from '../../config/api';
 
 const AdminProjectDetails = () => {
     const { 
@@ -168,7 +169,7 @@ const AdminProjectDetails = () => {
                     { id: 'f4', unit: 'Flat 2B', size: '1,500 sqft', price: '৳1.55Cr', status: 'AVAILABLE' }
                 ];
                 localStorage.setItem('flats_project_' + projId, JSON.stringify(defaultFlats));
-                // eslint-disable-next-line react-hooks/set-state-in-effect
+
                 setFlatsList(defaultFlats);
             } else {
                 setFlatsList(stored);
@@ -224,7 +225,7 @@ const AdminProjectDetails = () => {
             // Resolve shortened Google Maps URLs
             if (finalMapLink && (finalMapLink.includes('maps.app.goo.gl') || finalMapLink.includes('goo.gl/maps'))) {
                 try {
-                    const res = await fetch(`/api/resolve-map?url=${encodeURIComponent(finalMapLink)}`);
+                    const res = await fetch(getApiUrl(`/api/resolve-map?url=${encodeURIComponent(finalMapLink)}`));
                     if (res.ok) {
                         const data = await res.json();
                         if (data.resolvedUrl) {

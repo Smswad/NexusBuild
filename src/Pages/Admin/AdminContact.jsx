@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Mail, Phone, Clock, MapPin, Globe, Compass, MessageSquare } from 'lucide-react';
+import { Save, Mail, Phone, MapPin, Globe, Compass, MessageSquare } from 'lucide-react';
 import { useDatabase } from '../../Context/DatabaseContext';
 import { DEFAULT_SYSTEM_SETTINGS } from '../../config/defaultSettings';
 import { showToast } from '../../Components/Toast/globalToast';

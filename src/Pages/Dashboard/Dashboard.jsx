@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import {
-    LayoutDashboard, BookOpen, HardHat, Headphones,
-    Bell, LogOut, Building2, User, Menu, X as XIcon, Settings
+    LayoutDashboard, BookOpen, Headphones,
+    Bell, LogOut, Building2, User, Menu, Settings
 } from 'lucide-react';
 import { useAuth } from '../../Context/AuthContext';
 import { ClientDataProvider, useClientData } from '../../Context/ClientDataContext';
@@ -11,8 +11,8 @@ import { DEFAULT_SYSTEM_SETTINGS } from '../../config/defaultSettings';
 import { showToast } from '../../Components/Toast/globalToast';
 
 const NAV_LINKS = [
-    { to: '/dashboard',            label: 'Overview',         icon: LayoutDashboard, end: true },
-    { to: '/dashboard/progress',   label: 'My Properties',    icon: Building2 },
+    { to: '/dashboard',            label: 'Dashboard',         icon: LayoutDashboard, end: true },
+    { to: '/dashboard/progress',   label: 'Projects',         icon: Building2 },
     { to: '/dashboard/financials', label: 'Financials',       icon: BookOpen },
     { to: '/dashboard/profile',    label: 'Profile',          icon: User },
     { to: '/dashboard/settings',   label: 'Settings',         icon: Settings },

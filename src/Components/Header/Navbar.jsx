@@ -270,6 +270,7 @@ const Navbar = () => {
                     {/* Logo — Dynamic Company Logo & Name */}
                     <Link
                         to="/"
+                        aria-label="NexusBuild"
                         className="flex items-center gap-2.5 hover:opacity-80 transition-opacity flex-shrink-0"
                     >
                         {systemSettings?.companyLogo ? (

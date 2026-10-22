@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
 import { showToast } from '../../Components/Toast/globalToast';
-import { Camera, Image as ImageIcon, Send, Clock, CheckCircle, Circle, Edit3, Plus, X, Save, Activity } from 'lucide-react';
+import { Image as ImageIcon, Send, CheckCircle, Circle, Edit3, Plus, X, Save, Activity } from 'lucide-react';
 
 const AdminSiteProgress = () => {
     const { 

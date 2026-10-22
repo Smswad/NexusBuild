@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
     Search,
@@ -10,14 +10,13 @@ import {
     CheckCircle2,
     ArrowUpDown,
     ChevronLeft,
-    ChevronRight,
-    SlidersHorizontal
+    ChevronRight
 } from "lucide-react";
 import { useDatabase } from "../../Context/DatabaseContext";
 import { DEFAULT_SYSTEM_SETTINGS } from "../../config/defaultSettings";
 import { supabase } from "../../lib/supabaseClient";
 import { showToast } from '../../Components/Toast/globalToast';
-import { Button, Badge } from "../../Components/UI";
+
 
 // ── Public image paths (files in /public/frontend/projects/) ──────────────────
 const IMG_HERO = "/Frontend/Projects/Hero_Section.svg";
@@ -313,6 +312,14 @@ const Projects = () => {
                             Precision-engineered living spaces and commercial hubs designed for the next generation. Leveraging GIS technology for unparalleled site accuracy.
                         </p>
 
+                        {/* Prime Locations Quick Tags */}
+                        <div className="flex items-center gap-2 text-[13px] text-white/80">
+                            <MapPin size={14} className="text-primary flex-shrink-0" />
+                            <span className="font-semibold text-white/90">Prime Locations:</span>
+                            <span className="bg-white/10 px-2.5 py-0.5 rounded-full text-white text-xs font-medium">Narayanganj</span>
+                            <span className="bg-white/10 px-2.5 py-0.5 rounded-full text-white text-xs font-medium">BB Road</span>
+                        </div>
+
                         {/* Integrated Search/Filter Form */}
                         <form
                             onSubmit={handleSearchSubmit}
@@ -453,12 +460,12 @@ const Projects = () => {
                     </div>
 
                     {/* Skeletons OR Project Grid OR Empty State */}
-                    {loading ? (
+                    {loading && publicProjects.length === 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
                             {Array.from({ length: 8 }).map((_, idx) => (
                                 <div
                                     key={idx}
-                                    className="bg-base-100 border border-base-300 flex flex-col justify-between h-full rounded-xl overflow-hidden shadow-sm animate-pulse"
+                                    className="bg-white border bg-base-100 border-base-300 flex flex-col justify-between h-full rounded-xl overflow-hidden shadow-sm animate-pulse"
                                 >
                                     <div className="skeleton h-[200px] lg:h-[220px] w-full bg-base-300 rounded-none" />
                                     <div className="p-5 flex flex-col flex-1 gap-3 justify-between">
@@ -485,7 +492,7 @@ const Projects = () => {
                                 {paginatedProjects.map((project) => (
                                     <div
                                         key={project.id}
-                                        className="bg-base-100 border border-base-300 flex flex-col justify-between h-full hover:shadow-lg transition-all duration-200 rounded-xl overflow-hidden group"
+                                        className="bg-white border bg-base-100 border-base-300 flex flex-col justify-between h-full hover:shadow-lg transition-all duration-200 rounded-xl overflow-hidden group"
                                     >
                                         {/* Card image area */}
                                         <div className="relative h-[200px] lg:h-[220px] overflow-hidden flex-shrink-0">
@@ -551,6 +558,7 @@ const Projects = () => {
 
                                                 <Link
                                                     to="/gismap"
+                                                    aria-label="View Map"
                                                     className="w-full flex items-center justify-center gap-2 py-2 border border-base-300 text-base-content/80 text-[13px] font-medium hover:bg-base-200 hover:text-base-content transition-colors duration-200 cursor-pointer min-h-[40px] rounded-lg"
                                                 >
                                                     <MapPin size={13} />

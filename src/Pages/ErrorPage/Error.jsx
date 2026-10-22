@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
-import { Home, Compass, Construction } from 'lucide-react';
-import Navbar from '../../Components/Header/Navbar';
-import Footer from '../../Components/Footer/Footer';
+import { Home, Construction } from 'lucide-react';
+
+
 
 // ─── Error Page (404) ─────────────────────────────────────────────────────────
 // Figma frame: node-id=27:2 (1280px desktop reference)

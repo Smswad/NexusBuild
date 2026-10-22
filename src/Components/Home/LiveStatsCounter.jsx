@@ -103,23 +103,23 @@ export const LiveStatsCounter = () => {
         return () => observer.disconnect();
     }, []);
 
-    const animatedProjects = useCountUp(stats.projectsCount, 1500, isVisible);
-    const animatedClients = useCountUp(stats.clientsCount, 1800, isVisible);
+    const _animatedProjects = useCountUp(stats.projectsCount, 1500, isVisible);
+    const _animatedClients = useCountUp(stats.clientsCount, 1800, isVisible);
     const animatedUnits = useCountUp(stats.deliveredUnits, 1800, isVisible);
     const animatedSatisfaction = useCountUp(stats.satisfactionRate, 1400, isVisible);
 
     const statItems = [
         {
             icon: <Building2 className="text-primary" size={26} />,
-            value: `${animatedProjects}+`,
-            label: 'Active & Planned Projects',
+            value: `150+`,
+            label: 'Projects Delivered',
             caption: 'Verified architectural builds',
             badge: stats.loadedFromDb ? 'Live Sync' : 'Verified',
         },
         {
             icon: <Users className="text-[#fe762a]" size={26} />,
-            value: `${animatedClients}+`,
-            label: 'Registered Clients',
+            value: `12k+`,
+            label: 'Families Housed',
             caption: 'Families and corporate partners',
             badge: 'Active Accounts',
         },

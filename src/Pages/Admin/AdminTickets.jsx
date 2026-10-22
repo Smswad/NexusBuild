@@ -110,7 +110,7 @@ const AdminTickets = () => {
                             
                             {/* Client Message (Thread conversation) */}
                             {(() => {
-                                let msgs = [];
+                                let msgs;
                                 try {
                                     if (ticket.message && ticket.message.trim().startsWith('[')) {
                                         msgs = JSON.parse(ticket.message);

@@ -20,7 +20,7 @@ const path = require('path');
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, AlignmentType, HeadingLevel, ShadingType,
-  BorderStyle, VerticalAlign,
+  VerticalAlign,
 } = require('docx');
 
 // ─── Paths ───────────────────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ const para = (text, opts = {}) => new Paragraph({
 
 // ─── Parse JSON results ───────────────────────────────────────────────────────
 const suites   = raw.suites ?? [];
-const stats    = raw.stats  ?? {};
+const _stats   = raw.stats  ?? {};
 
 // Flatten all results across suites + nested suites
 function flattenSpecs(suite, specFileName) {
@@ -239,7 +239,7 @@ specFiles.forEach((sf, idx) => {
   // Count for this file
   const fp = sf.tests.filter(t => t.status === 'passed').length;
   const ff = sf.tests.filter(t => t.status === 'failed' || t.status === 'timedOut').length;
-  const allPassed = ff === 0;
+  const _allPassed = ff === 0;
 
   children.push(
     new Paragraph({
@@ -332,5 +332,5 @@ Packer.toBuffer(doc).then((buf) => {
   try {
     fs.unlinkSync(JSON_PATH);
     console.log('🗑   Cleaned up test-results/results.json\n');
-  } catch (_) { /* ignore */ }
+  } catch { /* ignore */ }
 });

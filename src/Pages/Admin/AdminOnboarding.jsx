@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Download, UserCheck, ChevronRight } from 'lucide-react';
+import { Search, Filter, UserCheck, ChevronRight } from 'lucide-react';
 import { useAdminData } from '../../Context/AdminDataContext';
 import { showToast } from '../../Components/Toast/globalToast';
 
@@ -322,7 +322,7 @@ const AdminOnboarding = () => {
                              <div>
                                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Assign Property Unit</label>
                                  {(() => {
-                                     let availableFlats = [];
+                                     let availableFlats;
                                      try {
                                          const stored = localStorage.getItem('flats_project_' + selectedProjectId);
                                          if (stored) {

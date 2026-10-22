@@ -12,7 +12,6 @@ export const Dropdown = ({
   trigger,
   children,
   position = 'bottom',
-  size = 'md',
   className = '',
   menuClassName = '',
   ...props

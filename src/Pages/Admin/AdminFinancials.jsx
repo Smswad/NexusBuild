@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAdminData } from '../../Context/AdminDataContext';
 import { useDatabase } from '../../Context/DatabaseContext';
 import { DEFAULT_SYSTEM_SETTINGS } from '../../config/defaultSettings';
-import { Search, Download, Filter, Eye, Plus, X, Building2, CreditCard, CheckCircle } from 'lucide-react';
+import { Search, Download, Eye, Plus, X } from 'lucide-react';
 import { showToast } from '../../Components/Toast/globalToast';
 
 const AdminFinancials = () => {

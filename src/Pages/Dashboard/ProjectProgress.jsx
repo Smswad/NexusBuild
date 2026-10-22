@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { 
-    CheckCircle2, Circle, Lock, 
+ 
     Camera, FileText, Wrench, Clock, Download
 } from 'lucide-react';
 import { useClientData } from '../../Context/ClientDataContext';

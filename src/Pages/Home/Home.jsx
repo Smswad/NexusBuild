@@ -10,15 +10,12 @@ import {
     TrendingUp,
     FileText,
     Globe,
-    LifeBuoy,
-    Building2,
-    ShieldCheck,
-    Award
+    LifeBuoy
 } from "lucide-react";
 
 import { PROJECTS } from "../../data/projectsData";
 import { useDatabase } from "../../Context/DatabaseContext";
-import { DEFAULT_SYSTEM_SETTINGS } from "../../config/defaultSettings";
+
 import map_mockup from "../../assets/pics/map_mockup.png";
 import {
     HeroSlider,
@@ -31,7 +28,7 @@ import {
 } from "../../Components/Home";
 
 // Public assets matching design system
-const IMG_HERO = "/Frontend/Projects/Hero_Section.svg";
+
 const IMG_SERVICES = "/Frontend/Projects/Professional_Services_Remodeling.svg";
 
 const MapFrameWithSkeleton = ({ src, title }) => {

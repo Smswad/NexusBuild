@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+
 import { Link, useNavigate } from 'react-router';
 import { Lock, Eye, EyeOff, ArrowRight, AtSign } from 'lucide-react';
 import login_image from '../../assets/pics/login_pic.png';

@@ -430,10 +430,10 @@ export const DatabaseProvider = ({ children }) => {
         };
         const channel = supabase
             .channel('db_projects_sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, (payload) => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
                 refreshProjectsOnly();
             })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'site_updates' }, (payload) => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'site_updates' }, () => {
                 refreshSiteUpdatesOnly();
             })
             .subscribe();
@@ -529,7 +529,7 @@ export const DatabaseProvider = ({ children }) => {
         });
         try {
             await supabase.from('tickets').update({ status: 'Resolved' }).eq('id', id);
-        } catch(err) {}
+        } catch {}
     };
 
     const deleteTicket = async (id) => {
@@ -549,7 +549,7 @@ export const DatabaseProvider = ({ children }) => {
         const ticket = tickets.find(t => t.id === ticketId);
         if (!ticket) return;
 
-        let msgs = [];
+        let msgs;
         try {
             if (ticket.message && ticket.message.trim().startsWith('[')) {
                 msgs = JSON.parse(ticket.message);

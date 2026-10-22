@@ -20,12 +20,13 @@ const NAV_LINKS = [
     { to: '/admin/progress',   label: 'Site Progress',    icon: HardHat },
     { to: '/admin/website-projects', label: 'Website Projects', icon: Globe },
     { to: '/admin/tickets',     label: 'Support Tickets',  icon: MessageSquare },
+    { to: '/admin/contact',     label: 'Contact Settings', icon: Settings },
 ];
 
 const AdminLayoutContent = () => {
     const { signOut } = useAuth();
     const { systemSettings } = useDatabase();
-    const { projects, activeProject, setActiveProject, addProject, leads, applications, transactions, clients, properties, tickets } = useAdminData();
+    const { projects, activeProject, setActiveProject, addProject, leads, applications, clients, properties, tickets } = useAdminData();
     const navigate = useNavigate();
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -169,7 +170,7 @@ const AdminLayoutContent = () => {
 
     // Auto-close sidebar on navigation (mobile/tablet sizes)
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+
         setIsSidebarOpen(false);
     }, [navigate]);
 

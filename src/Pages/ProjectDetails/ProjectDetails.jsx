@@ -12,7 +12,7 @@ import { useAuth } from "../../Context/AuthContext";
 import { DEFAULT_SYSTEM_SETTINGS } from "../../config/defaultSettings";
 import { supabase } from "../../lib/supabaseClient";
 import { showToast } from "../../Components/Toast/globalToast";
-import { Button, Badge } from "../../Components/UI";
+import { Button } from "../../Components/UI";
 import { PROJECTS } from "../../data/projectsData";
 
 // ─── Project Details Page ─────────────────────────────────────────────────────
